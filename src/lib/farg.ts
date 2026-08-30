@@ -20,16 +20,54 @@ const SKALA: [number, RGB][] = [
   [1.0, [255, 216, 87]],
 ]
 
-export function chansfarg(v: number): string {
-  const [r, g, b] = chansRGB(v)
+/**
+ * Samma skala mot vit bakgrund.
+ *
+ * Skalan bär text lika ofta som den bär fyllning — procenttalet i mätaren,
+ * artradernas siffror, "· bra" i kartpanelen — och textkravet är det hårdare
+ * av de två. Därför sänks hela mellanregistret i ljushet i stället för att
+ * spegla den mörka skalan rakt av: gräsgrönt och kantarellgult som lyser fint
+ * mot skogssvart blir oläsligt mot vitt. De mörka blågröna stegen längst ned
+ * är redan mörka nog och ändras knappt.
+ */
+const SKALA_LJUS: [number, RGB][] = [
+  [0.0, [26, 40, 55]],
+  [0.15, [36, 74, 74]],
+  [0.32, [42, 106, 80]],
+  [0.48, [90, 122, 32]],
+  [0.62, [147, 113, 8]],
+  [0.75, [175, 126, 4]],
+  [1.0, [190, 140, 12]],
+]
+
+/*
+ * Vilket läge skalorna ska svara i. Temat är en egenskap hos dokumentet, inte
+ * hos någon enskild anropare, och skulle man skicka med det som argument på
+ * vartenda av de tjugotalet ställen som frågar efter en chansfärg blir det en
+ * parameter att glömma i stället för en inställning. Flaggan sätts en gång av
+ * `tillampaTema` och kan alltid överskuggas per anrop.
+ */
+let ljustTema = false
+
+export function sattFargtema(ljust: boolean): void {
+  ljustTema = ljust
+}
+
+export function arLjustTema(): boolean {
+  return ljustTema
+}
+
+export function chansfarg(v: number, ljust = ljustTema): string {
+  const [r, g, b] = chansRGB(v, ljust)
   return `rgb(${r} ${g} ${b})`
 }
 
-export function chansRGB(v: number): RGB {
+export function chansRGB(v: number, ljust = ljustTema): RGB {
+  const skala = ljust ? SKALA_LJUS : SKALA
   const t = Math.max(0, Math.min(1, isFinite(v) ? v : 0))
-  for (let i = 0; i < SKALA.length - 1; i++) {
-    const [a, fa] = SKALA[i]!
-    const [b, fb] = SKALA[i + 1]!
+  for (let i = 0; i < skala.length - 1; i++) {
+    const [a, fa] = skala[i]!
+    const [b, fb] = skala[i + 1]!
     if (t <= b) {
       const k = b === a ? 0 : (t - a) / (b - a)
       return [
@@ -39,7 +77,7 @@ export function chansRGB(v: number): RGB {
       ]
     }
   }
-  return SKALA[SKALA.length - 1]![1]
+  return skala[skala.length - 1]![1]
 }
 
 /** Ord för en chans i procent — det man faktiskt läser innan man går ut. */

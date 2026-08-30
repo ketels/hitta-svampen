@@ -35,6 +35,8 @@ export type Fruktsattning = {
   torkfaktor: number
   /** Viktad nederbörd i det kritiska fönstret, mm/dygn. */
   regnIFonster: number
+  /** Summerad nederbörd över samma fönster som regndiagrammet markerar, mm. */
+  regnFonsterMm: number
   regn7: number
   regn14: number
   regn30: number
@@ -72,6 +74,15 @@ export function beraknaFruktsattning(
   }
   const regnIFonster = viktSumma > 0 ? viktatRegn / viktSumma : 0
   const regnDriv = mattnad(regnIFonster, 2.3)
+
+  /* Samma fönster som regndiagrammet målar gult, men summerat i millimeter i
+     stället för viktat dygnsmedel. Det viktade medlet driver modellen; den
+     här siffran är den man kan läsa och känna igen sig i. */
+  let regnFonsterMm = 0
+  for (let alder = Math.max(0, Math.round(topp - bredd)); alder <= Math.round(topp + bredd); alder++) {
+    const j = i - alder
+    if (j >= 0) regnFonsterMm += serie[j]!.nederbord || 0
+  }
 
   /* --- 2. Markfukt i mycelets djup, medel över tio dygn --- */
   const fuktFonster = serie.slice(Math.max(0, i - 9), tom)
@@ -180,6 +191,7 @@ export function beraknaFruktsattning(
     frostfaktor,
     torkfaktor,
     regnIFonster,
+    regnFonsterMm,
     regn7: summera(7),
     regn14: summera(14),
     regn30: summera(30),

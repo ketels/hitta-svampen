@@ -8,6 +8,7 @@ import type { Find } from '../lib/types.ts'
 import { FyndFormular } from './FyndFormular.tsx'
 import { fuktIOrd } from './PunktDetalj.tsx'
 import { IkonNal, IkonPapperskorg } from './Ikoner.tsx'
+import { artIkon, artfarg } from './Artikoner.tsx'
 
 const MANGD_TEXT: Record<Find['mangd'], string> = {
   enstaka: 'Enstaka',
@@ -82,7 +83,8 @@ export function FyndDetalj({
 
       <div className="rad" style={{ gap: 10, marginBottom: 12 }}>
         <span className="chip" style={{ borderColor: a.farg }}>
-          {a.emoji} {MANGD_TEXT[fynd.mangd]}
+          {(() => { const Ikon = artIkon(fynd.art); return <Ikon size={17} style={{ color: artfarg(fynd.art) }} /> })()}
+          {MANGD_TEXT[fynd.mangd]}
         </span>
         {fynd.favorit ? <span className="chip" aria-pressed="true">⭐ Guldställe</span> : null}
       </div>

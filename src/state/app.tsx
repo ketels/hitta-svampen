@@ -15,6 +15,7 @@ import {
   skriv, sparaFynd, sparaSkanning, stadaCache,
 } from '../lib/db.ts'
 import { useGPS, useKompass, type Plats } from '../lib/gps.ts'
+import { lasTema, loserTema, skrivTema, systemetsTema, tillampaTema, type Tema } from '../lib/tema.ts'
 import type { Find, Spar, SpeciesId } from '../lib/types.ts'
 import type { Skanning } from '../model/skanning.ts'
 import { berikaEftersläntrare } from '../model/berika.ts'
@@ -22,6 +23,13 @@ import { berikaEftersläntrare } from '../model/berika.ts'
 export type Vy = 'karta' | 'prognos' | 'fynd' | 'arter' | 'mer'
 
 export type Kartlager = 'topo' | 'satellit' | 'karta'
+
+/**
+ * Målet man navigerar mot. `etikett` är det namn användaren själv tryckte på —
+ * "Mot plats 2" eller "Mot kantarell" säger under gång vad man är på väg till,
+ * vilket "Mot ditt mål" aldrig gjorde.
+ */
+export type Malpunkt = { lat: number; lon: number; zoom?: number; etikett?: string }
 
 type AppVarde = {
   fynd: Find[]
@@ -51,12 +59,18 @@ type AppVarde = {
   nattlage: boolean
   setNattlage: (v: boolean) => void
 
+  /** Ljust eller mörkt formspråk. Auto följer systemet. */
+  tema: Tema
+  setTema: (t: Tema) => void
+  /** Vilket läge temat faktiskt landade i just nu. */
+  ljustLage: boolean
+
   skanning: Skanning | null
   setSkanning: (s: Skanning | null) => void
 
   /** Punkt kartan ska flyga till, sätts av andra vyer. */
-  malpunkt: { lat: number; lon: number; zoom?: number } | null
-  gaTill: (lat: number, lon: number, zoom?: number) => void
+  malpunkt: Malpunkt | null
+  gaTill: (mal: Malpunkt) => void
   rensaMal: () => void
 
   gps: ReturnType<typeof useGPS>
@@ -76,6 +90,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [visaObservationer, setVisaObservationerRaw] = useState(false)
   const [panelOppen, setPanelOppenRaw] = useState(true)
   const [nattlage, setNattlageRaw] = useState(false)
+  const [tema, setTemaRaw] = useState<Tema>(lasTema)
+  const [systemtema, setSystemtema] = useState(systemetsTema)
   const [skanning, setSkanningRaw] = useState<Skanning | null>(null)
   const [malpunkt, setMalpunkt] = useState<AppVarde['malpunkt']>(null)
   const [sistaPlats, setSistaPlats] = useState<Plats | null>(null)
@@ -86,6 +102,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (gps.plats) setSistaPlats(gps.plats)
   }, [gps.plats])
+
+  /* Systemet kan byta läge medan appen är igång — soluppgång, schemalagt
+     nattläge, eller att man drar ned kontrollcentret och trycker. */
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: light)')
+    if (!mq) return
+    const vid = () => setSystemtema(systemetsTema())
+    mq.addEventListener('change', vid)
+    return () => mq.removeEventListener('change', vid)
+  }, [])
+
+  const ljustLage = (tema === 'auto' ? systemtema : tema) === 'ljus'
+
+  useEffect(() => {
+    tillampaTema(loserTema(tema))
+  }, [tema, systemtema])
 
   const laddaOm = useCallback(async () => {
     const [f, s] = await Promise.all([hamtaFynd(), hamtaSpar()])
@@ -179,6 +211,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void skriv('nattlage', v)
   }, [])
 
+  const setTema = useCallback((t: Tema) => {
+    setTemaRaw(t)
+    skrivTema(t)
+  }, [])
+
   const spara = useCallback(
     async (f: Find) => {
       await sparaFynd(f)
@@ -206,8 +243,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [laddaOm],
   )
 
-  const gaTill = useCallback((lat: number, lon: number, zoom?: number) => {
-    setMalpunkt({ lat, lon, zoom })
+  const gaTill = useCallback((mal: Malpunkt) => {
+    setMalpunkt(mal)
     setVy('karta')
   }, [])
 
@@ -222,14 +259,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       visaObservationer, setVisaObservationer,
       panelOppen, setPanelOppen,
       nattlage, setNattlage,
+      tema, setTema, ljustLage,
       skanning, setSkanning,
       malpunkt, gaTill, rensaMal,
       gps, kompass, sistaPlats,
     }),
     [fynd, spar, laddaOm, spara, taBort, taBortSpar, valdArt, setValdArt, vy, kartlager,
      setKartlager, visaObservationer, setVisaObservationer, panelOppen, setPanelOppen,
-     nattlage, setNattlage, skanning, setSkanning, malpunkt, gaTill, rensaMal, gps,
-     kompass, sistaPlats],
+     nattlage, setNattlage, tema, setTema, ljustLage, skanning, setSkanning, malpunkt,
+     gaTill, rensaMal, gps, kompass, sistaPlats],
   )
 
   return <Kontext.Provider value={varde}>{children}</Kontext.Provider>

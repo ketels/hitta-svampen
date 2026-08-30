@@ -1,22 +1,32 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ARTER, art, HUVUDARTER } from '../data/arter.ts'
 import { hamtaVader, type Vaderserie } from '../data/vader.ts'
-import { chansfarg, chansOrd, chansRad } from '../lib/farg.ts'
+import { chansfarg } from '../lib/farg.ts'
 import { useApp } from '../state/app.tsx'
 import {
   beraknaFruktsattning, prognosframat, sasongsfaktor, sasongsText,
 } from '../model/fruktsattning.ts'
 import { anpassaArt } from '../model/personlig.ts'
 import { Chansmatare } from '../components/Poang.tsx'
+import { artIkon, artfarg } from '../components/Artikoner.tsx'
 import { Prognosdiagram, Regndiagram } from '../components/Diagram.tsx'
 import { IkonSikte, IkonSol } from '../components/Ikoner.tsx'
 import { dagsljus } from '../lib/tid.ts'
+
+/* "Visa alla nio arter" läser bättre än "Visa alla 9 arter", och antalet ska
+   räknas fram och inte stå skrivet i klartext. */
+const RAKNEORD = ['noll', 'en', 'två', 'tre', 'fyra', 'fem', 'sex', 'sju', 'åtta', 'nio', 'tio', 'elva', 'tolv']
+const rakneord = (n: number) => RAKNEORD[n] ?? String(n)
+
+/** Hur många arter listan visar innan man ber om resten. */
+const ARTER_I_KORTLISTAN = 5
 
 export function PrognosVy() {
   const app = useApp()
   const [vader, setVader] = useState<Vaderserie | null>(null)
   const [laddar, setLaddar] = useState(false)
   const [fel, setFel] = useState<string | null>(null)
+  const [allaArter, setAllaArter] = useState(false)
 
   const plats = app.gps.plats ?? app.sistaPlats
 
@@ -83,16 +93,19 @@ export function PrognosVy() {
 
   return (
     <div className="rullar">
-      <div className="chips rad" style={{ marginBottom: 14 }}>
-        {HUVUDARTER.map((id) => {
-          const a = art(id)
-          return (
-            <button key={id} className="chip" aria-pressed={app.valdArt === id} onClick={() => app.setValdArt(id)}>
-              <span>{a.emoji}</span>
-              {a.namn}
-            </button>
-          )
-        })}
+      <div className="chipsrad" style={{ marginBottom: 14 }}>
+        <div className="chips rad">
+          {HUVUDARTER.map((id) => {
+            const a = art(id)
+            const Ikon = artIkon(id)
+            return (
+              <button key={id} className="chip" aria-pressed={app.valdArt === id} onClick={() => app.setValdArt(id)}>
+                <Ikon size={17} style={{ color: artfarg(id) }} />
+                {a.namn}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {laddar && !vader ? (
@@ -104,17 +117,23 @@ export function PrognosVy() {
         <div className="fara-ruta">{fel}</div>
       ) : analys && vader ? (
         <>
-          <div className="kort" style={{ paddingTop: 18 }}>
-            <Chansmatare procent={analys.chans} etikett={artData.namn.toUpperCase()} />
-            {(() => {
-              const ljus = dagsljus(vader.serie[vader.idag])
-              return ljus.text ? (
-                <div className="rad mitten liten svag" style={{ justifyContent: 'center', gap: 7, marginTop: 12 }}>
-                  <IkonSol size={16} />
-                  {ljus.text}
-                </div>
-              ) : null
-            })()}
+          {/* Arten står redan i chipset ovanför, så mätaren behöver ingen
+              egen etikett. Dagsljus och säsong delar fotrad: båda svarar på
+              hur långt fram vi är, det ena på dygnet och det andra på året. */}
+          <div className="kort" style={{ padding: '18px 14px 16px' }}>
+            <Chansmatare procent={analys.chans} />
+            <div className="matarfot">
+              {(() => {
+                const ljus = dagsljus(vader.serie[vader.idag])
+                return ljus.text ? (
+                  <span>
+                    <IkonSol size={15} />
+                    {ljus.text}
+                  </span>
+                ) : null
+              })()}
+              <span>{sasongsText(artData, new Date(), plats.lat)}</span>
+            </div>
             {vader.gammal ? (
               <div className="mini svagast mitten" style={{ marginTop: 10 }}>
                 Sparad data — appen har inte nått nätet på ett tag
@@ -122,25 +141,24 @@ export function PrognosVy() {
             ) : null}
           </div>
 
+          {/* Bästa dagen var den enda anledningen att titta under diagrammet.
+              Nu står den ovanför det, i kort form. */}
           <div className="kort">
             <div className="kort-rubrik">
               <h3>Kommande dygn</h3>
-              <span className="liten svag">{sasongsText(artData, new Date(), plats.lat)}</span>
+              {analys.bast.chans > analys.framat[0]!.chans * 1.12 && analys.bast.chans > 0.1 ? (
+                <span className="liten" style={{ color: 'var(--guld-ljus)' }}>
+                  Bäst {new Date(analys.bast.datum + 'T12:00:00').toLocaleDateString('sv-SE', {
+                    weekday: 'short', day: 'numeric', month: 'short',
+                  }).replace('.', '')} · {Math.round(analys.bast.chans * 100)} %
+                </span>
+              ) : (
+                <span className="liten svag">
+                  {analys.chans > 30 ? 'Redan så bra det blir' : 'Ingen förbättring i sikte'}
+                </span>
+              )}
             </div>
             <Prognosdiagram dagar={analys.framat.slice(0, 12)} />
-            {analys.bast.chans > analys.framat[0]!.chans * 1.12 && analys.bast.chans > 0.1 ? (
-              <div className="liten" style={{ marginTop: 12, color: 'var(--guld-ljus)' }}>
-                Bäst dag: {new Date(analys.bast.datum + 'T12:00:00').toLocaleDateString('sv-SE', {
-                  weekday: 'long', day: 'numeric', month: 'long',
-                })} — {Math.round(analys.bast.chans * 100)} %
-              </div>
-            ) : (
-              <div className="liten svag" style={{ marginTop: 12 }}>
-                {analys.chans > 30
-                  ? 'Läget är redan så bra det blir den närmaste tiden. Gå ut nu.'
-                  : 'Ingen tydlig förbättring i sikte. Håll koll på regnet.'}
-              </div>
-            )}
           </div>
 
           <div className="kort">
@@ -158,22 +176,28 @@ export function PrognosVy() {
               topp={artData.regnfordrojning.topp}
               bredd={artData.regnfordrojning.bredd}
             />
-            <div className="matvarden" style={{ marginTop: 14 }}>
-              <div className="matvarde">
-                <div className="v">{Math.round(analys.f.regn7)}</div>
-                <div className="e">mm / 7 d</div>
+            {/* Regnet i fördröjningsfönstret är den siffra hela modellen
+                bygger på och den enda som förtjänar guld. */}
+            <div className="varderutor" style={{ marginTop: 14 }}>
+              <div className="varderuta">
+                <span className="e">I fönstret</span>
+                <span className="v" style={{ color: 'var(--guld-text)' }}>
+                  {Math.round(analys.f.regnFonsterMm)} mm
+                </span>
               </div>
-              <div className="matvarde">
-                <div className="v">{Math.round(analys.f.regn14)}</div>
-                <div className="e">mm / 14 d</div>
+              <div className="varderuta">
+                <span className="e">30 dygn</span>
+                <span className="v">{Math.round(analys.f.regn30)} mm</span>
               </div>
-              <div className="matvarde">
-                <div className="v">{Math.round(analys.f.regn30)}</div>
-                <div className="e">mm / 30 d</div>
+              <div className="varderuta">
+                <span className="e">7 dygn</span>
+                <span className="v">{Math.round(analys.f.regn7)} mm</span>
               </div>
-              <div className="matvarde">
-                <div className="v">{analys.f.dagarSedanRegn === null ? '30+' : analys.f.dagarSedanRegn}</div>
-                <div className="e">dygn sen regn</div>
+              <div className="varderuta">
+                <span className="e">Sen regn</span>
+                <span className="v">
+                  {analys.f.dagarSedanRegn === null ? '30+ dygn' : `${analys.f.dagarSedanRegn} dygn`}
+                </span>
               </div>
             </div>
           </div>
@@ -205,9 +229,6 @@ export function PrognosVy() {
             <ul className="punktlista">
               {analys.f.forklaring.map((f, i) => <li key={i}>{f}</li>)}
             </ul>
-            <div className="liten" style={{ marginTop: 12, color: chansfarg(analys.chans / 100) }}>
-              {chansOrd(analys.chans)}. {chansRad(analys.chans)}.
-            </div>
           </div>
 
           <div className="kort">
@@ -215,14 +236,16 @@ export function PrognosVy() {
               <h3>Vad som står i skogen nu</h3>
             </div>
             <div className="artlage">
-              {artlage.map((a) => (
+              {(allaArter ? artlage : artlage.slice(0, ARTER_I_KORTLISTAN)).map((a) => {
+                const Ikon = artIkon(a.art.id)
+                return (
                 <button
                   key={a.art.id}
                   className="artrad"
                   onClick={() => app.setValdArt(a.art.id)}
                   aria-pressed={app.valdArt === a.art.id}
                 >
-                  <span className="emoji">{a.art.emoji}</span>
+                  <span className="artikon"><Ikon size={17} style={{ color: artfarg(a.art.id) }} /></span>
                   <span className="vaxa trunka fet liten">{a.art.namn}</span>
                   <span className="stapel" style={{ width: 74 }}>
                     <i style={{ width: `${Math.max(2, a.chans)}%`, background: chansfarg(a.chans / 100) }} />
@@ -231,8 +254,14 @@ export function PrognosVy() {
                     {Math.round(a.chans)}%
                   </span>
                 </button>
-              ))}
+                )
+              })}
             </div>
+            {artlage.length > ARTER_I_KORTLISTAN ? (
+              <button className="visa-alla" onClick={() => setAllaArter((v) => !v)} aria-expanded={allaArter}>
+                {allaArter ? 'Visa färre' : `Visa alla ${rakneord(artlage.length)} arter`}
+              </button>
+            ) : null}
           </div>
 
           <p className="mini svagast mitten" style={{ marginTop: 4 }}>

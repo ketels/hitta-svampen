@@ -5,8 +5,6 @@ import type { Dagsprognos } from '../model/fruktsattning.ts'
 const veckodag = (datum: string) =>
   new Date(datum + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'short' }).slice(0, 2)
 
-const dagIManad = (datum: string) => Number(datum.slice(8, 10))
-
 /**
  * Nederbörd dag för dag, med artens känslighetsfönster utmärkt.
  * Det är den mest talande bilden i hela appen: den visar att regnet som spelar
@@ -46,7 +44,7 @@ export function Regndiagram({
           y={0}
           width={Math.max(0, fonsterSlut - Math.max(0, fonsterStart) + 1) * (B + G)}
           height={H}
-          fill="rgba(242,183,5,0.13)"
+          fill="var(--gulmark)"
         />
         {del.map((d, i) => {
           const h = Math.max(d.nederbord > 0 ? 1.5 : 0, (d.nederbord / max) * H)
@@ -59,7 +57,7 @@ export function Regndiagram({
               width={B}
               height={h}
               rx={1.4}
-              fill={framtid ? 'rgba(79,163,217,0.5)' : '#4fa3d9'}
+              fill={framtid ? 'color-mix(in srgb, var(--bla) 50%, transparent)' : 'var(--bla)'}
             />
           )
         })}
@@ -76,7 +74,7 @@ export function Regndiagram({
       </svg>
       <div className="diagram-fot mini svagast">
         <span>{dagar} dygn sedan</span>
-        <span style={{ color: 'var(--guld)' }}>fönstret som avgör</span>
+        <span style={{ color: 'var(--guld-text)' }}>fönstret som avgör</span>
         <span>idag →</span>
       </div>
     </div>
@@ -97,11 +95,12 @@ export function Prognosdiagram({ dagar }: { dagar: Dagsprognos[] }) {
             <div className="stapelbox">
               <i style={{ height: `${h}%`, background: chansfarg(d.chans) }} />
             </div>
-            <div className="mini siffror" style={{ color: i === bast ? 'var(--guld)' : 'var(--text-svag)' }}>
+            <div className="mini siffror" style={{ color: i === bast ? 'var(--guld-text)' : 'var(--text-svag)' }}>
               {Math.round(d.chans * 100)}
             </div>
+            {/* Datumsiffran är redundant när veckodagen står ovanför, och
+                kolumnerna får mer luft utan den. */}
             <div className="mini svagast">{i === 0 ? 'idag' : veckodag(d.datum)}</div>
-            <div className="mini svagast" style={{ opacity: 0.6 }}>{dagIManad(d.datum)}</div>
           </div>
         )
       })}

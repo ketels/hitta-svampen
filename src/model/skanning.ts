@@ -442,6 +442,20 @@ export function bastaStallen(
   return valda
 }
 
+/**
+ * De numrerade toppställena, precis som de hamnar på kartan.
+ *
+ * Numreringen finns på två ställen — markörerna i kartan och etiketten i
+ * navigeringspanelen — och måste vara samma siffra på båda. Därför bor
+ * urvalet här och inte i den som råkar rita först.
+ */
+export function numreradeToppstallen(s: Skanning, egnaFynd: Find[] = []): ScanCell[] {
+  const basta = bastaStallen(s, 6, s.radieM / 6, egnaFynd)
+  // Ett tips som är märkbart sämre än det bästa är inte ett tips.
+  const grans = (basta[0]?.poang ?? 0) * 0.82
+  return basta.filter((c) => c.poang >= grans)
+}
+
 /* ---------- Enskild punkt ---------- */
 
 export type Punktbedomning = {

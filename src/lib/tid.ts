@@ -25,6 +25,12 @@ export type Dagsljus = {
   kvarMs: number | null
   /** Färdig mening att visa. */
   text: string | null
+  /**
+   * Samma sak på en rad som delar plats med annat — teckenförklaringen på
+   * kartan. Klockslaget räcker så länge det är gott om dag kvar; den sista
+   * timmen är det tiden som betyder något, och då står den där i stället.
+   */
+  kort: string | null
 }
 
 /**
@@ -33,21 +39,29 @@ export type Dagsljus = {
  * bilen med mobilens ficklampa.
  */
 export function dagsljus(dag: VaderDag | undefined, nu = new Date()): Dagsljus {
-  if (!dag?.solnedgang) return { uppgang: null, nedgang: null, kvarMs: null, text: null }
+  const tomt = { uppgang: null, nedgang: null, kvarMs: null, text: null, kort: null }
+  if (!dag?.solnedgang) return tomt
   const nedgang = new Date(dag.solnedgang)
   const uppgang = dag.soluppgang ? new Date(dag.soluppgang) : null
-  if (isNaN(nedgang.getTime())) return { uppgang: null, nedgang: null, kvarMs: null, text: null }
+  if (isNaN(nedgang.getTime())) return tomt
 
   const kvarMs = nedgang.getTime() - nu.getTime()
   let text: string
+  let kort: string
   if (kvarMs > 0) {
     text = `${varaktighet(kvarMs)} till skymning (${klockslag(dag.solnedgang)})`
+    kort =
+      kvarMs <= 3600e3
+        ? `${varaktighet(kvarMs)} till skymning`
+        : `Ljust till ${klockslag(dag.solnedgang)}`
   } else if (uppgang && nu < uppgang) {
     text = `Soluppgång ${klockslag(dag.soluppgang!)}`
+    kort = text
   } else {
     text = `Solen gick ned ${klockslag(dag.solnedgang)}`
+    kort = `Mörkt sedan ${klockslag(dag.solnedgang)}`
   }
-  return { uppgang, nedgang, kvarMs, text }
+  return { uppgang, nedgang, kvarMs, text, kort }
 }
 
 /** "för 3 timmar sedan", för att visa hur färsk en skanning är. */

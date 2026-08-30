@@ -10,6 +10,7 @@ import {
 } from '../components/Ikoner.tsx'
 import { LAGER } from '../components/kartlager.ts'
 import { art, HUVUDARTER } from '../data/arter.ts'
+import { artIkon, artfarg } from '../components/Artikoner.tsx'
 import { avstand, baring, formateraAvstand, kompass } from '../lib/geo.ts'
 import { nyttId, sparaSpar } from '../lib/db.ts'
 import { chansfarg, chansOrd, varmeGradient } from '../lib/farg.ts'
@@ -17,7 +18,7 @@ import { dagsljus, sedan } from '../lib/tid.ts'
 import { useApp, type Kartlager } from '../state/app.tsx'
 import type { Find, LatLng } from '../lib/types.ts'
 import {
-  analyseraPunkt, bedomFranSkanning, skanna, type Punktbedomning,
+  analyseraPunkt, bedomFranSkanning, numreradeToppstallen, skanna, type Punktbedomning,
 } from '../model/skanning.ts'
 import { berikaFynd } from '../model/berika.ts'
 
@@ -204,13 +205,19 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
     setArk('nyttFynd')
   }, [plats, vald])
 
-  /* --- Navigering mot målpunkt --- */
+  /* --- Navigering mot målpunkt ---
+     Gångtiden räknas på 4,5 km/h, alltså 75 meter i minuten. Det är en rimlig
+     takt i skogsterräng med korg i handen — inte samma sak som på stig. */
   const mal = app.malpunkt
   const navigering = useMemo(() => {
     if (!mal || !plats) return null
+    const m = avstand(plats, { lat: mal.lat, lon: mal.lon })
+    const minuter = Math.round(m / 75)
     return {
-      avstand: avstand(plats, { lat: mal.lat, lon: mal.lon }),
+      avstand: m,
       riktning: baring(plats, { lat: mal.lat, lon: mal.lon }),
+      // Under en minut säger tiden ingenting man inte redan ser på avståndet.
+      minuter: minuter >= 1 ? minuter : null,
     }
   }, [mal, plats])
 
@@ -222,6 +229,23 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
     app.skanning && skanningGaller
       ? app.skanning.fruktsattning.index * app.skanning.sasong * 100
       : null
+
+  /**
+   * Vad man är på väg till, med det namn man själv tryckte på. "Mot plats 2"
+   * går att koppla ihop med markören på kartan; "Mot ditt mål" gick inte att
+   * koppla ihop med någonting.
+   */
+  const etikettForPunkt = useCallback(
+    (p: LatLng): string | undefined => {
+      const s = app.skanning
+      if (!s || s.art !== app.valdArt) return undefined
+      // Toppställena skickar sina egna cellkoordinater vidare, så en träff är
+      // exakt och inte ungefärlig.
+      const i = numreradeToppstallen(s, app.fynd).findIndex((c) => avstand(c, p) < 2)
+      return i >= 0 ? `Mot plats ${i + 1}` : undefined
+    },
+    [app.skanning, app.valdArt, app.fynd],
+  )
 
   const ljus = app.skanning ? dagsljus(app.skanning.vader.serie[app.skanning.vader.idag]) : null
   // En skanning som legat över natten har ett väderunderlag som hunnit bli
@@ -247,11 +271,16 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
           <div className="vaxa">
             {navigering ? (
               <div className="panel navpanel">
-                <div>
-                  <div className="etikett">Mot ditt mål</div>
-                  <div className="rad" style={{ gap: 8 }}>
-                    <span className="siffror" style={{ fontSize: 21 }}>{formateraAvstand(navigering.avstand)}</span>
-                    <span className="liten svag">{kompass(navigering.riktning)}</span>
+                <div className="vaxa">
+                  <div className="etikett">{mal?.etikett ?? 'Mot ditt mål'}</div>
+                  <div className="rad" style={{ gap: 8, alignItems: 'baseline' }}>
+                    <span className="siffror" style={{ fontSize: 26, lineHeight: 1.1 }}>
+                      {formateraAvstand(navigering.avstand)}
+                    </span>
+                    <span className="liten svag">
+                      {kompass(navigering.riktning)}
+                      {navigering.minuter !== null ? ` · ${navigering.minuter} min` : ''}
+                    </span>
                   </div>
                 </div>
                 <div
@@ -261,7 +290,7 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
                   }}
                   aria-hidden="true"
                 >
-                  <svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="var(--guld)" /></svg>
+                  <svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="var(--guld-ikon)" /></svg>
                 </div>
                 <button className="stang" onClick={app.rensaMal} aria-label="Sluta navigera">
                   <IkonKryss size={16} />
@@ -315,7 +344,7 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
         ) : null}
 
         {skanfel ? (
-          <div className="panel" style={{ borderColor: '#5e2b28' }}>
+          <div className="panel" style={{ borderColor: 'var(--fara-kant)' }}>
             <div className="rad" style={{ gap: 10 }}>
               <div className="vaxa liten">{skanfel}</div>
               <button className="stang" onClick={() => setSkanfel(null)}><IkonKryss size={16} /></button>
@@ -324,68 +353,93 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
         ) : null}
 
         <div className="panel">
-          {/* Huvudet ligger kvar när panelen är hopfälld — det är där man
-              fäller ut den igen, och det är dessutom enda stället som visar
-              vald art när resten är dolt. */}
-          <button
-            className="panel-huvud"
-            onClick={() => app.setPanelOppen(!app.panelOppen)}
-            aria-expanded={app.panelOppen}
-          >
-            {app.panelOppen ? (
-              <span className="etikett">Svampläge</span>
-            ) : (
+          {/* Huvudet visar art och läge i båda tillstånden. Hopfälld är det
+              enda stället som visar vald art när resten är dolt, och utfälld
+              sa "Svampläge" ingenting som inte redan syntes. */}
+          <div className="panel-huvud">
+            <button
+              className="titel"
+              onClick={() => app.setPanelOppen(!app.panelOppen)}
+              aria-expanded={app.panelOppen}
+            >
+              <span className="artprick" style={{ background: artData.farg }} />
+              <span className="fet liten namn">{artData.namn}</span>
+              {vaderlage !== null ? (
+                <span className="liten lage" style={{ color: chansfarg(vaderlage / 100) }}>
+                  · {chansOrd(vaderlage).toLowerCase()}
+                </span>
+              ) : null}
+            </button>
+
+            <span className="vaxa" />
+
+            {/* Värmekartans kontroller hör till det utfällda läget. Hopfälld
+                är huvudraden det enda som visar vald art, och den behöver
+                hela bredden till namnet — "Rödgul trumpetsvamp · mycket bra"
+                och en segmentväljare får inte plats på 336 px. */}
+            {skanningGaller && app.panelOppen ? (
               <>
-                <span className="artprick" style={{ background: artData.farg }} />
-                <span className="fet liten">{artData.namn}</span>
-                {vaderlage !== null ? (
-                  <span className="liten" style={{ color: chansfarg(vaderlage / 100) }}>
-                    · {chansOrd(vaderlage).toLowerCase()}
-                  </span>
+                <button
+                  className="mini fet"
+                  style={{ color: 'var(--guld-text)', flexShrink: 0 }}
+                  aria-pressed={visaVarme}
+                  onClick={() => setVisaVarme((v) => !v)}
+                >
+                  {visaVarme ? 'Dölj' : 'Visa'}
+                </button>
+                {visaVarme ? (
+                  <div className="segment kompakt">
+                    <button
+                      aria-pressed={varmelager === 'habitat'}
+                      onClick={() => setVarmelager('habitat')}
+                    >
+                      Mark
+                    </button>
+                    <button
+                      aria-pressed={varmelager === 'chans'}
+                      onClick={() => setVarmelager('chans')}
+                    >
+                      Idag
+                    </button>
+                  </div>
                 ) : null}
               </>
-            )}
-            <span className="vaxa" />
-            <IkonNed size={17} style={{ transform: app.panelOppen ? 'none' : 'rotate(180deg)' }} />
-          </button>
+            ) : null}
+
+            <button
+              className="fall"
+              onClick={() => app.setPanelOppen(!app.panelOppen)}
+              aria-expanded={app.panelOppen}
+              aria-label={app.panelOppen ? 'Fäll ihop panelen' : 'Fäll ut panelen'}
+            >
+              <IkonNed size={17} style={{ transform: app.panelOppen ? 'none' : 'rotate(180deg)' }} />
+            </button>
+          </div>
 
           {app.panelOppen ? (
             <>
-              <div className="chips rad" style={{ marginTop: 8, marginBottom: skanningGaller ? 10 : 0 }}>
-                {HUVUDARTER.map((id) => {
-                  const a = art(id)
-                  return (
-                    <button
-                      key={id}
-                      className="chip"
-                      aria-pressed={app.valdArt === id}
-                      onClick={() => app.setValdArt(id)}
-                    >
-                      <span>{a.emoji}</span>
-                      {a.namn}
-                    </button>
-                  )
-                })}
+              <div className="chipsrad" style={{ marginTop: 9, marginBottom: skanningGaller ? 10 : 0 }}>
+                <div className="chips rad">
+                  {HUVUDARTER.map((id) => {
+                    const a = art(id)
+                    const Ikon = artIkon(id)
+                    return (
+                      <button
+                        key={id}
+                        className="chip"
+                        aria-pressed={app.valdArt === id}
+                        onClick={() => app.setValdArt(id)}
+                      >
+                        <Ikon size={17} style={{ color: artfarg(id) }} />
+                        {a.namn}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
               {skanningGaller && app.skanning ? (
                 <>
-                  <div className="rad mellan" style={{ marginBottom: 8, gap: 10 }}>
-                    <div className="liten vaxa">
-                      <span className="svag">Fruktsättning: </span>
-                      <span className="fet" style={{ color: chansfarg((vaderlage ?? 0) / 100) }}>
-                        {chansOrd(vaderlage ?? 0).toLowerCase()}
-                      </span>
-                    </div>
-                    <button
-                      className="mini fet"
-                      style={{ color: 'var(--guld)', flexShrink: 0 }}
-                      onClick={() => setVisaVarme((v) => !v)}
-                    >
-                      {visaVarme ? 'Dölj' : 'Visa'}
-                    </button>
-                  </div>
-
                   {app.skanning.landtackeSaknas ? (
                     <div className="rad mini" style={{ gap: 7, marginBottom: 8, color: 'var(--orange)' }}>
                       <IkonVarning size={15} />
@@ -395,14 +449,9 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
                     </div>
                   ) : null}
 
-                  {ljus?.text || gammalSkanning ? (
-                    <div className="rad mini svagast" style={{ gap: 6, marginBottom: 8 }}>
-                      {ljus?.text ? <span>{ljus.text}</span> : null}
-                      {gammalSkanning ? (
-                        <span style={{ color: 'var(--orange)' }}>
-                          · skannad {sedan(app.skanning.tid)}
-                        </span>
-                      ) : null}
+                  {gammalSkanning ? (
+                    <div className="mini" style={{ marginBottom: 8, color: 'var(--orange)' }}>
+                      Skannad {sedan(app.skanning.tid)}
                     </div>
                   ) : null}
 
@@ -414,22 +463,12 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
                         style={{ background: `linear-gradient(90deg, ${varmeGradient(app.kartlager === 'satellit')})` }}
                       />
                       <span className="mini svagast">Starkt</span>
-                      <div className="segment" style={{ marginLeft: 4, padding: 2 }}>
-                        <button
-                          aria-pressed={varmelager === 'habitat'}
-                          onClick={() => setVarmelager('habitat')}
-                          style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
-                        >
-                          Mark
-                        </button>
-                        <button
-                          aria-pressed={varmelager === 'chans'}
-                          onClick={() => setVarmelager('chans')}
-                          style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
-                        >
-                          Idag
-                        </button>
-                      </div>
+                      {ljus?.kort ? (
+                        <>
+                          <span className="avdelare" aria-hidden="true" />
+                          <span className="mini svagast ljustext">{ljus.kort}</span>
+                        </>
+                      ) : null}
                     </div>
                   ) : null}
                 </>
@@ -438,13 +477,20 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
           ) : null}
         </div>
 
+        {/* Man skannar en gång per skogsbesök och sparar fynd varje gång man
+            hittar något. Två lika breda knappar påstod att de är lika ofta
+            använda. */}
         <div className="knapprad">
-          <button className="knapp" onClick={() => void kor()} disabled={!!skanlage}>
-            <IkonRadar size={19} />
-            {app.skanning && skanningGaller ? 'Skanna om' : 'Skanna'}
+          <button
+            className="knapp ikon"
+            onClick={() => void kor()}
+            disabled={!!skanlage}
+            aria-label={app.skanning && skanningGaller ? 'Skanna om området' : 'Skanna området'}
+          >
+            <IkonRadar size={22} />
           </button>
-          <button className="knapp primar" onClick={oppnaNyttFynd}>
-            <IkonPlus size={19} />
+          <button className="knapp primar stor" onClick={oppnaNyttFynd}>
+            <IkonPlus size={21} />
             Spara fynd
           </button>
         </div>
@@ -459,7 +505,13 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
           fot={
             vald ? (
               <div className="knapprad">
-                <button className="knapp" onClick={() => { app.gaTill(vald.lat, vald.lon); setArk(null) }}>
+                <button
+                  className="knapp"
+                  onClick={() => {
+                    app.gaTill({ lat: vald.lat, lon: vald.lon, etikett: etikettForPunkt(vald) })
+                    setArk(null)
+                  }}
+                >
                   <IkonNal size={18} /> Navigera hit
                 </button>
                 <button className="knapp primar" onClick={oppnaNyttFynd}>
@@ -516,7 +568,14 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
           <FyndDetalj
             fynd={valtFynd}
             onStang={() => setArk(null)}
-            onNavigera={() => { app.gaTill(valtFynd.lat, valtFynd.lon); setArk(null) }}
+            onNavigera={() => {
+              app.gaTill({
+                lat: valtFynd.lat,
+                lon: valtFynd.lon,
+                etikett: valtFynd.art === 'annat' ? 'Mot fyndplats' : `Mot ${art(valtFynd.art).namn}`,
+              })
+              setArk(null)
+            }}
           />
         </Ark>
       ) : null}

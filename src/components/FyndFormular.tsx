@@ -4,6 +4,7 @@ import { formateraKoord } from '../lib/geo.ts'
 import { nyttId, sparaBild } from '../lib/db.ts'
 import type { Find, Mangd, SpeciesId } from '../lib/types.ts'
 import { IkonKamera, IkonStjarna } from './Ikoner.tsx'
+import { artIkon, artfarg } from './Artikoner.tsx'
 
 const MANGDER: { id: Mangd; namn: string; beskrivning: string }[] = [
   { id: 'enstaka', namn: 'Enstaka', beskrivning: 'Någon enda' },
@@ -76,6 +77,7 @@ export function FyndFormular({
       <div className="chips" style={{ marginBottom: 6 }}>
         {arterAttVisa.map((id) => {
           const a = art(id)
+          const Ikon = artIkon(id)
           return (
             <button
               key={id}
@@ -83,7 +85,7 @@ export function FyndFormular({
               aria-pressed={artId === id}
               onClick={() => setArtId(id)}
             >
-              <span>{a.emoji}</span>
+              <Ikon size={17} style={{ color: artfarg(id) }} />
               {a.namn}
             </button>
           )

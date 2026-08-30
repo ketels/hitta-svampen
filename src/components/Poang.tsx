@@ -1,14 +1,20 @@
 import { chansfarg, chansOrd, chansRad } from '../lib/farg.ts'
 import type { Delpoang } from '../lib/types.ts'
 
-/** Stor mätare för dagens chans. */
+/**
+ * Stor mätare för dagens chans.
+ *
+ * Ordet står inne i ringen tillsammans med siffran — de säger samma sak och
+ * hörde aldrig hemma på var sitt håll. Utanför ringen står bara rådet.
+ */
 export function Chansmatare({
   procent,
   etikett,
   rad = true,
 }: {
   procent: number
-  etikett: string
+  /** Valfri överrubrik i ringen. Prognosvyn har arten i chipset ovanför. */
+  etikett?: string
   rad?: boolean
 }) {
   const p = Math.max(0, Math.min(100, procent))
@@ -39,12 +45,12 @@ export function Chansmatare({
           {Math.round(p)}
           <span style={{ fontSize: 20, marginLeft: 1 }}>%</span>
         </div>
-        <div className="etikett" style={{ marginTop: 4 }}>{etikett}</div>
+        <div className="fet" style={{ color: farg, fontSize: 17, marginTop: 2 }}>{chansOrd(p)}</div>
+        {etikett ? <div className="etikett" style={{ marginTop: 4 }}>{etikett}</div> : null}
       </div>
       {rad ? (
-        <div className="mitten" style={{ marginTop: -10 }}>
-          <div className="fet" style={{ color: farg, fontSize: 17 }}>{chansOrd(p)}</div>
-          <div className="liten svag">{chansRad(p)}</div>
+        <div className="mitten svag" style={{ marginTop: -14, fontSize: 14 }}>
+          {chansRad(p)}
         </div>
       ) : null}
     </div>
