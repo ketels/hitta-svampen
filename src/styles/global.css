@@ -112,7 +112,7 @@
   --text-svagast: #686e63;
 
   --guld-ljus: #96690a;
-  --gron: #2f8c45;
+  --gron: #2b8340;
   --orange: #a4600f;
   --rod: #c0322c;
   --bla: #1b7cbc;
@@ -772,7 +772,7 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
 .m-mal {
   width: 22px; height: 22px;
   border-radius: 999px;
-  border: 3px solid #ffd24a;
+  border: 3px solid var(--guld);
   box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55);
 }
 
