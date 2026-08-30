@@ -23,8 +23,18 @@ const SPEGLAR = [
  *  och ignorerar vår, men i andra körmiljöer behövs den. */
 const AGENT = 'hitta-svampen/1.0 (personlig svampapp)'
 
-/** En död spegel får inte hålla hela skanningen gisslan. */
-const SPEGEL_TIMEOUT_MS = 25_000
+/** En frisk spegel svarar på under fem sekunder. Tio räcker gott. */
+const SPEGEL_TIMEOUT_MS = 10_000
+
+/**
+ * Tak för hela försöket, inklusive omtagningar.
+ *
+ * Utan det multipliceras timeouterna: tre speglar i två varv à 25 sekunder
+ * blir över två minuter innan appen ger upp — en evighet för någon som just
+ * tryckt på kartan. Budgeten gör att man snabbt får ett ärligt "kartdatan
+ * saknas" i stället för en snurra som aldrig slutar.
+ */
+const STANDARD_BUDGET_MS = 22_000
 
 export type Yta = {
   marktyp: Marktyp
@@ -164,7 +174,11 @@ type OverpassEl = {
   members?: { type: string; role: string; geometry?: { lat: number; lon: number }[] }[]
 }
 
-export async function hamtaLandtacke(box: BBox, signal?: AbortSignal): Promise<Landtacke> {
+export async function hamtaLandtacke(
+  box: BBox,
+  signal?: AbortSignal,
+  budgetMs = STANDARD_BUDGET_MS,
+): Promise<Landtacke> {
   const nyckel = `osm:${box.south.toFixed(3)},${box.west.toFixed(3)},${box.north.toFixed(3)},${box.east.toFixed(3)}`
   const cachad = await cacheLas<Landtacke>(nyckel)
   if (cachad) return cachad
@@ -175,11 +189,14 @@ export async function hamtaLandtacke(box: BBox, signal?: AbortSignal): Promise<L
   // Overpass är gratis och därefter belastad. Ett 502 betyder oftast bara
   // "kom tillbaka om en stund", så vi går varvet runt två gånger.
   const forsok: string[] = [...SPEGLAR, ...SPEGLAR]
+  const slutTid = Date.now() + budgetMs
 
   for (const [i, spegel] of forsok.entries()) {
-    if (i === SPEGLAR.length) await new Promise((r) => setTimeout(r, 2500))
+    const kvar = slutTid - Date.now()
+    if (kvar <= 1500) break
+    if (i === SPEGLAR.length) await new Promise((r) => setTimeout(r, Math.min(2000, kvar / 4)))
     const klocka = new AbortController()
-    const avbryt = setTimeout(() => klocka.abort(), SPEGEL_TIMEOUT_MS)
+    const avbryt = setTimeout(() => klocka.abort(), Math.min(SPEGEL_TIMEOUT_MS, slutTid - Date.now()))
     const koppla = () => klocka.abort()
     signal?.addEventListener('abort', koppla)
     try {

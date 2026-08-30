@@ -534,7 +534,9 @@ export async function analyseraPunkt(
   let landtacke: Landtacke
   let landtackeSaknas = false
   try {
-    landtacke = await hamtaLandtacke(box, signal)
+    // Kortare tålamod här än vid en skanning: den som tryckt på kartan
+    // väntar på ett svar, inte på en förloppsindikator.
+    landtacke = await hamtaLandtacke(box, signal, 11_000)
   } catch {
     landtacke = { box, ytor: [] as Yta[], vattendrag: [], stigar: [] }
     landtackeSaknas = true
