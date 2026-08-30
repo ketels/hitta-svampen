@@ -887,3 +887,19 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   flex-shrink: 0;
   border: 1.5px solid rgba(255, 255, 255, 0.55);
 }
+
+/* ---------- Nattläge ---------- */
+
+/*
+ * Dämpar bara själva kartrutorna, inte lager ovanpå. Ett riktigt mörkt
+ * baslager finns (CARTO, Esri Dark Gray) men de är avskalade gatukartor utan
+ * höjdkurvor och skogsmarkering — alltså utan det man faktiskt letar efter.
+ * Att dämpa terrängkartan behåller informationen och skonar mörkerseendet,
+ * medan värmekartan och markörerna ligger kvar i full styrka ovanpå.
+ */
+.kartyta.natt .leaflet-tile-pane {
+  filter: brightness(0.52) saturate(0.68) contrast(1.12);
+}
+
+/* Attributionsraden ska inte lysa vitt i skogen. */
+.kartyta.natt .leaflet-control-attribution { opacity: 0.5; }

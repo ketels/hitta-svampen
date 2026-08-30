@@ -47,6 +47,10 @@ type AppVarde = {
   panelOppen: boolean
   setPanelOppen: (v: boolean) => void
 
+  /** Dämpad karta för skymning och mörker. */
+  nattlage: boolean
+  setNattlage: (v: boolean) => void
+
   skanning: Skanning | null
   setSkanning: (s: Skanning | null) => void
 
@@ -71,6 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [kartlager, setKartlagerRaw] = useState<Kartlager>('topo')
   const [visaObservationer, setVisaObservationerRaw] = useState(false)
   const [panelOppen, setPanelOppenRaw] = useState(true)
+  const [nattlage, setNattlageRaw] = useState(false)
   const [skanning, setSkanningRaw] = useState<Skanning | null>(null)
   const [malpunkt, setMalpunkt] = useState<AppVarde['malpunkt']>(null)
   const [sistaPlats, setSistaPlats] = useState<Plats | null>(null)
@@ -97,6 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setKartlagerRaw(await las<Kartlager>('kartlager', 'topo'))
       setVisaObservationerRaw(await las<boolean>('visaObservationer', false))
       setPanelOppenRaw(await las<boolean>('panelOppen', true))
+      setNattlageRaw(await las<boolean>('nattlage', false))
       const p = await las<Plats | null>('sistaPlats', null)
       if (p) setSistaPlats(p)
       // Den senaste skanningen läggs tillbaka så att kartan är ifylld direkt
@@ -168,6 +174,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void skriv('panelOppen', v)
   }, [])
 
+  const setNattlage = useCallback((v: boolean) => {
+    setNattlageRaw(v)
+    void skriv('nattlage', v)
+  }, [])
+
   const spara = useCallback(
     async (f: Find) => {
       await sparaFynd(f)
@@ -210,13 +221,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kartlager, setKartlager,
       visaObservationer, setVisaObservationer,
       panelOppen, setPanelOppen,
+      nattlage, setNattlage,
       skanning, setSkanning,
       malpunkt, gaTill, rensaMal,
       gps, kompass, sistaPlats,
     }),
     [fynd, spar, laddaOm, spara, taBort, taBortSpar, valdArt, setValdArt, vy, kartlager,
      setKartlager, visaObservationer, setVisaObservationer, panelOppen, setPanelOppen,
-     skanning, setSkanning, malpunkt, gaTill, rensaMal, gps, kompass, sistaPlats],
+     nattlage, setNattlage, skanning, setSkanning, malpunkt, gaTill, rensaMal, gps,
+     kompass, sistaPlats],
   )
 
   return <Kontext.Provider value={varde}>{children}</Kontext.Provider>

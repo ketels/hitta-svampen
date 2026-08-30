@@ -537,6 +537,20 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
           <hr className="skiljare" />
           <button
             className="knapp bred"
+            aria-pressed={app.nattlage}
+            onClick={() => app.setNattlage(!app.nattlage)}
+            style={app.nattlage ? { borderColor: 'var(--guld-mork)' } : undefined}
+          >
+            {app.nattlage ? 'Slå av' : 'Slå på'} nattläge
+          </button>
+          <p className="liten svag" style={{ marginTop: 10 }}>
+            Dämpar kartan utan att byta ut den, så höjdkurvor och skogsmark finns kvar.
+            Svampfälten och markörerna ligger kvar i full styrka ovanpå. Skonsamt mot
+            mörkerseendet när skymningen kommer.
+          </p>
+          <hr className="skiljare" />
+          <button
+            className="knapp bred"
             aria-pressed={app.visaObservationer}
             onClick={() => app.setVisaObservationer(!app.visaObservationer)}
             style={app.visaObservationer ? { borderColor: 'var(--guld-mork)' } : undefined}

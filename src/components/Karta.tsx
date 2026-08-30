@@ -389,5 +389,5 @@ export function Karta(p: Props) {
     }
   }, [app.gps.plats, app.kompass.riktning, p.foljGPS])
 
-  return <div className="kartyta" ref={rutaRef} />
+  return <div className={`kartyta${app.nattlage ? ' natt' : ''}`} ref={rutaRef} />
 }

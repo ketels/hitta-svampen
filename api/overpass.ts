@@ -16,12 +16,11 @@
  */
 
 /*
- * Node-runtime, inte edge. Edge-miljön är Workers-baserad och får skriva om
- * utgående headers — inklusive `User-Agent`, som är själva anledningen till
- * att den här funktionen finns. Node kör vanlig fetch och skickar det man ber
- * den skicka.
+ * Edge-runtime. Node-runtimen förväntar sig Vercels egen (req, res)-signatur
+ * och kraschar direkt på en handler skriven mot Web-standardens Request och
+ * Response, vilket den här är.
  */
-export const config = { runtime: 'nodejs' }
+export const config = { runtime: 'edge' }
 
 const SPEGLAR = [
   'https://overpass-api.de/api/interpreter',
