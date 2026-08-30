@@ -5,13 +5,14 @@ import { FyndFormular } from '../components/FyndFormular.tsx'
 import { PunktDetalj } from '../components/PunktDetalj.tsx'
 import { FyndDetalj } from '../components/FyndDetalj.tsx'
 import {
-  IkonKryss, IkonLager, IkonNal, IkonPlus, IkonRadar, IkonSikte, IkonSpar, IkonVarning,
+  IkonKryss, IkonLager, IkonNal, IkonNed, IkonPlus, IkonRadar, IkonSikte, IkonSpar,
+  IkonVarning,
 } from '../components/Ikoner.tsx'
 import { LAGER } from '../components/kartlager.ts'
 import { art, HUVUDARTER } from '../data/arter.ts'
 import { avstand, baring, formateraAvstand, kompass } from '../lib/geo.ts'
 import { nyttId, sparaSpar } from '../lib/db.ts'
-import { chansfarg, chansOrd } from '../lib/farg.ts'
+import { chansfarg, chansOrd, varmeGradient } from '../lib/farg.ts'
 import { dagsljus, sedan } from '../lib/tid.ts'
 import { useApp, type Kartlager } from '../state/app.tsx'
 import type { Find, LatLng } from '../lib/types.ts'
@@ -323,82 +324,115 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
         ) : null}
 
         <div className="panel">
-          <div className="chips rad" style={{ marginBottom: skanningGaller ? 10 : 0 }}>
-            {HUVUDARTER.map((id) => {
-              const a = art(id)
-              return (
-                <button
-                  key={id}
-                  className="chip"
-                  aria-pressed={app.valdArt === id}
-                  onClick={() => app.setValdArt(id)}
-                >
-                  <span>{a.emoji}</span>
-                  {a.namn}
-                </button>
-              )
-            })}
-          </div>
+          {/* Huvudet ligger kvar när panelen är hopfälld — det är där man
+              fäller ut den igen, och det är dessutom enda stället som visar
+              vald art när resten är dolt. */}
+          <button
+            className="panel-huvud"
+            onClick={() => app.setPanelOppen(!app.panelOppen)}
+            aria-expanded={app.panelOppen}
+          >
+            {app.panelOppen ? (
+              <span className="etikett">Svampläge</span>
+            ) : (
+              <>
+                <span className="artprick" style={{ background: artData.farg }} />
+                <span className="fet liten">{artData.namn}</span>
+                {vaderlage !== null ? (
+                  <span className="liten" style={{ color: chansfarg(vaderlage / 100) }}>
+                    · {chansOrd(vaderlage).toLowerCase()}
+                  </span>
+                ) : null}
+              </>
+            )}
+            <span className="vaxa" />
+            <IkonNed size={17} style={{ transform: app.panelOppen ? 'none' : 'rotate(180deg)' }} />
+          </button>
 
-          {skanningGaller && app.skanning ? (
+          {app.panelOppen ? (
             <>
-              <div className="rad mellan" style={{ marginBottom: 8 }}>
-                <div className="liten">
-                  <span className="svag">Fruktsättning just nu: </span>
-                  <span className="fet" style={{ color: chansfarg((vaderlage ?? 0) / 100) }}>
-                    {chansOrd(vaderlage ?? 0).toLowerCase()}
-                  </span>
-                  <span className="svagast"> · tryck på kartan för en plats</span>
-                </div>
-                <button
-                  className="mini fet"
-                  style={{ color: 'var(--guld)' }}
-                  onClick={() => setVisaVarme((v) => !v)}
-                >
-                  {visaVarme ? 'Dölj' : 'Visa'}
-                </button>
-              </div>
-              {app.skanning?.landtackeSaknas ? (
-                <div className="rad mini" style={{ gap: 7, marginBottom: 8, color: 'var(--orange)' }}>
-                  <IkonVarning size={15} />
-                  <span className="vaxa">
-                    Kartdatan gick inte att hämta — poängen bygger bara på terrängen och
-                    kan inte skilja skog från åker. Skanna om senare.
-                  </span>
-                </div>
-              ) : null}
-              {ljus?.text || gammalSkanning ? (
-                <div className="rad mini svagast" style={{ gap: 6, marginBottom: 8 }}>
-                  {ljus?.text ? <span>{ljus.text}</span> : null}
-                  {gammalSkanning ? (
-                    <span style={{ color: 'var(--orange)' }}>
-                      · skannad {sedan(app.skanning!.tid)}, skanna om för färskt väder
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-              {visaVarme ? (
-                <div className="legend">
-                  <span className="mini svagast">Svagt</span>
-                  <div className="skala" />
-                  <span className="mini svagast">Starkt</span>
-                  <div className="segment" style={{ marginLeft: 4, padding: 2 }}>
+              <div className="chips rad" style={{ marginTop: 8, marginBottom: skanningGaller ? 10 : 0 }}>
+                {HUVUDARTER.map((id) => {
+                  const a = art(id)
+                  return (
                     <button
-                      aria-pressed={varmelager === 'habitat'}
-                      onClick={() => setVarmelager('habitat')}
-                      style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
+                      key={id}
+                      className="chip"
+                      aria-pressed={app.valdArt === id}
+                      onClick={() => app.setValdArt(id)}
                     >
-                      Mark
+                      <span>{a.emoji}</span>
+                      {a.namn}
                     </button>
+                  )
+                })}
+              </div>
+
+              {skanningGaller && app.skanning ? (
+                <>
+                  <div className="rad mellan" style={{ marginBottom: 8, gap: 10 }}>
+                    <div className="liten vaxa">
+                      <span className="svag">Fruktsättning: </span>
+                      <span className="fet" style={{ color: chansfarg((vaderlage ?? 0) / 100) }}>
+                        {chansOrd(vaderlage ?? 0).toLowerCase()}
+                      </span>
+                    </div>
                     <button
-                      aria-pressed={varmelager === 'chans'}
-                      onClick={() => setVarmelager('chans')}
-                      style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
+                      className="mini fet"
+                      style={{ color: 'var(--guld)', flexShrink: 0 }}
+                      onClick={() => setVisaVarme((v) => !v)}
                     >
-                      Idag
+                      {visaVarme ? 'Dölj' : 'Visa'}
                     </button>
                   </div>
-                </div>
+
+                  {app.skanning.landtackeSaknas ? (
+                    <div className="rad mini" style={{ gap: 7, marginBottom: 8, color: 'var(--orange)' }}>
+                      <IkonVarning size={15} />
+                      <span className="vaxa">
+                        Kartdatan gick inte att hämta — poängen bygger bara på terrängen.
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {ljus?.text || gammalSkanning ? (
+                    <div className="rad mini svagast" style={{ gap: 6, marginBottom: 8 }}>
+                      {ljus?.text ? <span>{ljus.text}</span> : null}
+                      {gammalSkanning ? (
+                        <span style={{ color: 'var(--orange)' }}>
+                          · skannad {sedan(app.skanning.tid)}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {visaVarme ? (
+                    <div className="legend">
+                      <span className="mini svagast">Svagt</span>
+                      <div
+                        className="skala"
+                        style={{ background: `linear-gradient(90deg, ${varmeGradient(app.kartlager === 'satellit')})` }}
+                      />
+                      <span className="mini svagast">Starkt</span>
+                      <div className="segment" style={{ marginLeft: 4, padding: 2 }}>
+                        <button
+                          aria-pressed={varmelager === 'habitat'}
+                          onClick={() => setVarmelager('habitat')}
+                          style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
+                        >
+                          Mark
+                        </button>
+                        <button
+                          aria-pressed={varmelager === 'chans'}
+                          onClick={() => setVarmelager('chans')}
+                          style={{ minHeight: 28, fontSize: 12, padding: '0 9px' }}
+                        >
+                          Idag
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
               ) : null}
             </>
           ) : null}

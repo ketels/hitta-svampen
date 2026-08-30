@@ -65,25 +65,50 @@ export function chansRad(procent: number): string {
 }
 
 /**
- * Färgramp för värmekartan.
+ * Färgramper för värmekartan — en per bakgrundstyp.
  *
- * Skiljer sig från `chansfarg` med flit. Kartan under är grön och ljus, så
- * gröna toner försvinner i den — här går skalan i stället från dov teal genom
- * bärnsten till glödande guld, som syns mot både terrängkarta och satellitbild.
+ * Det här är inte kosmetik. Mätt mot OpenTopoMaps skogsgröna gav den gamla
+ * gulskalan 1,1–1,2:1 i kontrast över *hela* registret, och dessutom inte
+ * stigande: den starkaste cellen syntes lika lite som den svagaste, eftersom
+ * ljust gult och ljust grönt har nästan samma ljushet. Lagret fanns där men
+ * gick knappt att se.
+ *
+ * Mot en ljus karta måste färgen därför bli mörkare och mättare ju starkare
+ * värdet är; mot satellitbildens mörka barrskog gäller tvärtom. Två ramper
+ * i stället för en kompromiss som fungerar dåligt på båda.
  */
-const VARME: [number, RGB][] = [
-  [0.0, [56, 104, 116]],
-  [0.3, [126, 142, 78]],
-  [0.55, [206, 148, 30]],
-  [0.78, [244, 184, 10]],
-  [1.0, [255, 236, 152]],
+type Ramp = [number, RGB][]
+
+/**
+ * Ljus bakgrund: terrängkarta och OSM.
+ *
+ * Guldet är kvar — det är trots allt en kantarellapp — men mättat och en
+ * aning djupare än kartans egen gröna. Det som gjorde det gamla lagret
+ * osynligt var inte kulören utan opaciteten: vid 0,58 som mest lyste
+ * terrängkartan rakt igenom. Nu går den till 0,88.
+ */
+const VARME_LJUS: Ramp = [
+  [0.0, [92, 126, 140]],
+  [0.3, [156, 142, 58]],
+  [0.6, [208, 136, 16]],
+  [0.85, [234, 162, 10]],
+  [1.0, [246, 188, 16]],
 ]
 
-export function varmeRGB(v: number): RGB {
+/** Mörk bakgrund: satellitbild. Slutar i lysande guld. */
+const VARME_MORK: Ramp = [
+  [0.0, [72, 112, 126]],
+  [0.28, [134, 150, 72]],
+  [0.58, [214, 160, 28]],
+  [0.8, [246, 192, 20]],
+  [1.0, [255, 232, 130]],
+]
+
+function slaUppRamp(ramp: Ramp, v: number): RGB {
   const t = Math.max(0, Math.min(1, isFinite(v) ? v : 0))
-  for (let i = 0; i < VARME.length - 1; i++) {
-    const [a, fa] = VARME[i]!
-    const [b, fb] = VARME[i + 1]!
+  for (let i = 0; i < ramp.length - 1; i++) {
+    const [a, fa] = ramp[i]!
+    const [b, fb] = ramp[i + 1]!
     if (t <= b) {
       const k = b === a ? 0 : (t - a) / (b - a)
       return [
@@ -93,5 +118,24 @@ export function varmeRGB(v: number): RGB {
       ]
     }
   }
-  return VARME[VARME.length - 1]![1]
+  return ramp[ramp.length - 1]![1]
+}
+
+export function varmeRGB(v: number, morkBakgrund = false): RGB {
+  return slaUppRamp(morkBakgrund ? VARME_MORK : VARME_LJUS, v)
+}
+
+/**
+ * Opacitet för en cell. Betydligt kraftigare än tidigare — lagret ska gå att
+ * se i motljus med solen i skärmen, och den som vill ha kartan ren har
+ * "Dölj"-knappen.
+ */
+export function varmeAlfa(t: number): number {
+  return 0.22 + 0.66 * Math.pow(Math.max(0, Math.min(1, t)), 0.85)
+}
+
+/** CSS-gradient för teckenförklaringen, så den matchar kartan. */
+export function varmeGradient(morkBakgrund = false): string {
+  const ramp = morkBakgrund ? VARME_MORK : VARME_LJUS
+  return ramp.map(([p, [r, g, b]]) => `rgb(${r} ${g} ${b}) ${(p * 100).toFixed(0)}%`).join(', ')
 }

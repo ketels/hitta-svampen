@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import { useApp } from '../state/app.tsx'
 import { LAGER, skapaLager } from './kartlager.ts'
 import { art } from '../data/arter.ts'
-import { varmeRGB } from '../lib/farg.ts'
+import { varmeAlfa, varmeRGB } from '../lib/farg.ts'
 import type { Find, LatLng } from '../lib/types.ts'
 import type { Skanning } from '../model/skanning.ts'
 import { bastaStallen } from '../model/skanning.ts'
@@ -33,7 +33,7 @@ type Props = {
  * i latitud medan Leaflet sträcker bilden i Mercator, men över några kilometer
  * på våra breddgrader är skillnaden mindre än en bildpunkt.
  */
-function varmebild(s: Skanning, lage: 'habitat' | 'chans'): string {
+function varmebild(s: Skanning, lage: 'habitat' | 'chans', morkBakgrund: boolean): string {
   const c = document.createElement('canvas')
   c.width = s.kolumner
   c.height = s.rader
@@ -75,11 +75,11 @@ function varmebild(s: Skanning, lage: 'habitat' | 'chans'): string {
       continue
     }
     const t = (relativ - TROSKEL) / (1 - TROSKEL)
-    const [r, g, b] = varmeRGB(t)
+    const [r, g, b] = varmeRGB(t, morkBakgrund)
     d[p] = r
     d[p + 1] = g
     d[p + 2] = b
-    d[p + 3] = Math.round(255 * (0.14 + 0.56 * t ** 1.1) * dampning)
+    d[p + 3] = Math.round(255 * varmeAlfa(t) * dampning)
   }
   ctx.putImageData(bild, 0, 0)
   return c.toDataURL()
@@ -253,7 +253,7 @@ export function Karta(p: Props) {
     }
     const s = app.skanning
     if (!s || p.varmelager === 'av') return
-    const url = varmebild(s, p.varmelager)
+    const url = varmebild(s, p.varmelager, app.kartlager === 'satellit')
     varme.current = L.imageOverlay(
       url,
       [
@@ -263,7 +263,9 @@ export function Karta(p: Props) {
       { opacity: 1, interactive: false, className: 'varmekarta' },
     ).addTo(karta)
     varme.current.bringToBack()
-  }, [app.skanning, p.varmelager])
+    // Bilden ritas om när baslagret byts, eftersom rampen är anpassad efter
+    // om bakgrunden är ljus eller mörk.
+  }, [app.skanning, p.varmelager, app.kartlager])
 
   /* --- Toppställen --- */
   useEffect(() => {

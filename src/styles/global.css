@@ -864,3 +864,26 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   padding: 0 1px;
 }
 .sasongsmanader span { flex: 1; text-align: center; }
+
+/* ---------- Hopfällbar kartpanel ---------- */
+
+.panel-huvud {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 30px;
+  margin: -4px 0 -2px;
+  color: var(--text-svag);
+  text-align: left;
+}
+.panel-huvud svg { transition: transform 0.2s ease; color: var(--text-svagast); }
+.panel-huvud:active { opacity: 0.65; }
+
+.artprick {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+}

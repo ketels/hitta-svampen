@@ -1,12 +1,26 @@
 /** Ikoner. Streckade, 24×24, ärver färg från texten. */
 
-type P = { size?: number; strokeWidth?: number }
+type P = {
+  size?: number
+  strokeWidth?: number
+  /** För enkla transformer, som att vända en chevron. */
+  style?: React.CSSProperties
+  className?: string
+}
 
-function Svg({ size = 24, strokeWidth = 1.9, children }: P & { children: React.ReactNode }) {
+function Svg({
+  size = 24,
+  strokeWidth = 1.9,
+  style,
+  className,
+  children,
+}: P & { children: React.ReactNode }) {
   return (
     <svg
       width={size}
       height={size}
+      style={style}
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
