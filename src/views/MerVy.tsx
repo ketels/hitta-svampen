@@ -22,6 +22,7 @@ export function MerVy() {
   const [laddar, setLaddar] = useState<{ klara: number; totalt: number; vad: string } | null>(null)
   const [klarText, setKlarText] = useState<string | null>(null)
   const [bekraftaRensa, setBekraftaRensa] = useState(false)
+  const [kallstart, setKallstart] = useState<'ja' | 'nej' | 'okand'>('okand')
   const avbryt = useRef<AbortController | null>(null)
   const filRef = useRef<HTMLInputElement>(null)
 
@@ -33,6 +34,21 @@ export function MerVy() {
   }, [])
 
   useEffect(() => { void uppdateraStatus() }, [uppdateraStatus])
+
+  // Går appen att starta helt utan nät? Det avgörs av om serviceworkern
+  // registrerats, och det vill man veta innan man kör ut i skogen.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) {
+      setKallstart('nej')
+      return
+    }
+    let levande = true
+    void navigator.serviceWorker
+      .getRegistrations()
+      .then((r) => levande && setKallstart(r.some((x) => x.active) ? 'ja' : 'nej'))
+      .catch(() => levande && setKallstart('okand'))
+    return () => { levande = false }
+  }, [rutor])
 
   const bounds = plats
     ? L.latLng(plats.lat, plats.lon).toBounds(radie * 2000)
@@ -178,6 +194,19 @@ export function MerVy() {
         {klarText ? <div className="liten" style={{ marginTop: 10, color: 'var(--guld-ljus)' }}>{klarText}</div> : null}
 
         <hr className="skiljare" />
+        <div className="rad mellan liten" style={{ marginBottom: 6 }}>
+          <span className="svag">Starta utan nät</span>
+          <span className={kallstart === 'ja' ? 'fet' : 'svagast'}
+                style={kallstart === 'ja' ? { color: 'var(--gron)' } : undefined}>
+            {kallstart === 'ja' ? 'fungerar' : kallstart === 'nej' ? 'inte förberedd än' : 'okänt'}
+          </span>
+        </div>
+        {kallstart === 'nej' ? (
+          <p className="mini svagast" style={{ marginBottom: 8 }}>
+            Ladda om sidan en gång med uppkoppling så förbereds den. I utvecklingsläge
+            är det här alltid avstängt.
+          </p>
+        ) : null}
         <div className="rad mellan liten">
           <span className="svag">{antal(rutor, 'sparad ruta', 'sparade rutor')}</span>
           <span className="svagast">
