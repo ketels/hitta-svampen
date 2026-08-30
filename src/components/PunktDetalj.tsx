@@ -56,6 +56,13 @@ export function PunktDetalj({
 
   return (
     <>
+      {b.landtackeSaknas ? (
+        <div className="varning" style={{ marginBottom: 12 }}>
+          <strong>Utan kartdata.</strong> OpenStreetMap gick inte att nå, så marktypen är
+          okänd och poängen bygger bara på terrängen. Siffran är trubbigare än vanligt —
+          den kan inte se skillnad på granskog och åker.
+        </div>
+      ) : null}
       <div className="kort" style={{ borderColor: chansfarg(b.chans / 100) }}>
         <div className="rad mellan" style={{ alignItems: 'flex-start' }}>
           <div>

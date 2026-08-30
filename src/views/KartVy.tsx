@@ -5,7 +5,7 @@ import { FyndFormular } from '../components/FyndFormular.tsx'
 import { PunktDetalj } from '../components/PunktDetalj.tsx'
 import { FyndDetalj } from '../components/FyndDetalj.tsx'
 import {
-  IkonKryss, IkonLager, IkonNal, IkonPlus, IkonRadar, IkonSikte, IkonSpar,
+  IkonKryss, IkonLager, IkonNal, IkonPlus, IkonRadar, IkonSikte, IkonSpar, IkonVarning,
 } from '../components/Ikoner.tsx'
 import { LAGER } from '../components/kartlager.ts'
 import { art, HUVUDARTER } from '../data/arter.ts'
@@ -358,6 +358,15 @@ export function KartVy({ aktiv }: { aktiv: boolean }) {
                   {visaVarme ? 'Dölj' : 'Visa'}
                 </button>
               </div>
+              {app.skanning?.landtackeSaknas ? (
+                <div className="rad mini" style={{ gap: 7, marginBottom: 8, color: 'var(--orange)' }}>
+                  <IkonVarning size={15} />
+                  <span className="vaxa">
+                    Kartdatan gick inte att hämta — poängen bygger bara på terrängen och
+                    kan inte skilja skog från åker. Skanna om senare.
+                  </span>
+                </div>
+              ) : null}
               {ljus?.text || gammalSkanning ? (
                 <div className="rad mini svagast" style={{ gap: 6, marginBottom: 8 }}>
                   {ljus?.text ? <span>{ljus.text}</span> : null}

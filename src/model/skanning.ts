@@ -51,6 +51,12 @@ export type Skanning = {
   larande: Larande
   observationer: Observation[]
   tid: number
+  /**
+   * True när OSM inte gick att nå. Skanningen är fortfarande användbar —
+   * terrängen bär det mesta — men den kan inte skilja skog från åker, och
+   * det måste synas i gränssnittet i stället för att tyst se ut att fungera.
+   */
+  landtackeSaknas: boolean
 }
 
 /* ---------- Rutnätshjälpare ---------- */
@@ -250,11 +256,13 @@ export async function skanna(val: SkanningsVal): Promise<Skanning> {
 
   framsteg?.('Hämtar skogs- och markdata', 62)
   let landtacke: Landtacke
+  let landtackeSaknas = false
   try {
     landtacke = await hamtaLandtacke(box, signal)
   } catch {
     // Utan OSM blir det sämre men inte värdelöst — terrängen bär modellen.
     landtacke = { box, ytor: [] as Yta[], vattendrag: [], stigar: [] }
+    landtackeSaknas = true
   }
 
   framsteg?.('Hämtar rapporterade fynd', 80)
@@ -358,6 +366,7 @@ export async function skanna(val: SkanningsVal): Promise<Skanning> {
     larande,
     observationer,
     tid: Date.now(),
+    landtackeSaknas,
   }
 }
 
@@ -448,6 +457,8 @@ export type Punktbedomning = {
   larande: Larande
   /** True när bedömningen lästes ur en färdig skanning i stället för nätet. */
   franSkanning: boolean
+  /** True när OSM inte gick att nå — poängen bygger då bara på terrängen. */
+  landtackeSaknas: boolean
 }
 
 /** Läser ut en punkt ur en redan gjord skanning. Ögonblickligt. */
@@ -490,6 +501,7 @@ export function bedomFranSkanning(
     vader: s.vader,
     larande,
     franSkanning: true,
+    landtackeSaknas: s.landtackeSaknas,
   }
 }
 
@@ -520,10 +532,12 @@ export async function analyseraPunkt(
   const terrang = analyseraTerrang(dem)
 
   let landtacke: Landtacke
+  let landtackeSaknas = false
   try {
     landtacke = await hamtaLandtacke(box, signal)
   } catch {
     landtacke = { box, ytor: [] as Yta[], vattendrag: [], stigar: [] }
+    landtackeSaknas = true
   }
 
   let observationer: Observation[] = []
@@ -583,5 +597,6 @@ export async function analyseraPunkt(
     vader,
     larande,
     franSkanning: false,
+    landtackeSaknas,
   }
 }
