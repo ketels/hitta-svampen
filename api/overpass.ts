@@ -25,8 +25,17 @@ const SPEGLAR = [
 
 const AGENT = 'hitta-svampen/1.0 (personlig svampapp; https://hitta-svampen.vercel.app)'
 
-/** Per spegel. Hela anropet får inte hänga längre än klienten orkar vänta. */
-const SPEGEL_TIMEOUT_MS = 20_000
+/*
+ * Tidsbudget. Vercels edge-funktioner har en hård gräns kring 25 sekunder —
+ * spränger man den får klienten 504 i stället för ett ärligt felmeddelande,
+ * och hinner aldrig degradera till enbart terräng. Tre speglar à tjugo
+ * sekunder gjorde precis det.
+ *
+ * Ett friskt svar tar tre till sju sekunder. Åtta per spegel räcker alltså
+ * gott, och totalen håller sig med marginal under gränsen.
+ */
+const SPEGEL_TIMEOUT_MS = 8_000
+const TOTAL_BUDGET_MS = 16_000
 
 const json = (kropp: unknown, status: number, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(kropp), {
@@ -55,10 +64,14 @@ export default async function handler(req: Request): Promise<Response> {
   if (fraga.length > 8000) return json({ fel: 'Frågan är för lång.' }, 413)
 
   let sistaFel = 'Ingen spegel svarade.'
+  const slutTid = Date.now() + TOTAL_BUDGET_MS
 
   for (const spegel of SPEGLAR) {
+    const kvar = slutTid - Date.now()
+    // Under en sekund kvar hinner ingen spegel svara ändå.
+    if (kvar < 1000) break
     const klocka = new AbortController()
-    const avbryt = setTimeout(() => klocka.abort(), SPEGEL_TIMEOUT_MS)
+    const avbryt = setTimeout(() => klocka.abort(), Math.min(SPEGEL_TIMEOUT_MS, kvar))
     try {
       const svar = await fetch(`${spegel}?data=${encodeURIComponent(fraga)}`, {
         headers: { 'User-Agent': AGENT, Accept: 'application/json' },

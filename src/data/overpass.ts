@@ -41,7 +41,7 @@ const SPEGEL_TIMEOUT_MS = 10_000
  * tryckt på kartan. Budgeten gör att man snabbt får ett ärligt "kartdatan
  * saknas" i stället för en snurra som aldrig slutar.
  */
-const STANDARD_BUDGET_MS = 22_000
+const STANDARD_BUDGET_MS = 24_000
 
 export type Yta = {
   marktyp: Marktyp
