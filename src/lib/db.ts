@@ -185,6 +185,36 @@ export async function skriv(nyckel: string, varde: unknown): Promise<void> {
   await (await db()).put('installningar', varde, nyckel)
 }
 
+/**
+ * Ber webbläsaren behålla datan.
+ *
+ * IndexedDB är inte garanterat beständigt. Under lagringsbrist kan
+ * webbläsaren vräka det, och Safari rensar dessutom skrivbar lagring efter
+ * ungefär en veckas inaktivitet för vanliga webbsidor. Fyndplatser som tagit
+ * år att samla ihop ska inte försvinna för att man haft en lugn höst.
+ *
+ * Webbläsaren avgör själv, utifrån om appen är installerad på hemskärmen,
+ * bokmärkt eller flitigt använd. Nekas den får man be igen senare — därför
+ * anropas den här både vid start och efter att ett fynd sparats.
+ */
+export async function begarBestandigLagring(): Promise<boolean> {
+  try {
+    if (!navigator.storage?.persist) return false
+    if (await navigator.storage.persisted()) return true
+    return await navigator.storage.persist()
+  } catch {
+    return false
+  }
+}
+
+export async function arLagringBestandig(): Promise<boolean> {
+  try {
+    return (await navigator.storage?.persisted?.()) ?? false
+  } catch {
+    return false
+  }
+}
+
 /** Ungefärlig lagringsanvändning, för inställningsvyn. */
 export async function lagringsstatus(): Promise<{ anvant: number; kvot: number }> {
   if (navigator.storage?.estimate) {

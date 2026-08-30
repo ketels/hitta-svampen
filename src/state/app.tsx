@@ -11,8 +11,8 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  hamtaFynd, hamtaSkanning, hamtaSpar, las, raderaFynd, raderaSpar, skriv, sparaFynd,
-  sparaSkanning, stadaCache,
+  begarBestandigLagring, hamtaFynd, hamtaSkanning, hamtaSpar, las, raderaFynd, raderaSpar,
+  skriv, sparaFynd, sparaSkanning, stadaCache,
 } from '../lib/db.ts'
 import { useGPS, useKompass, type Plats } from '../lib/gps.ts'
 import type { Find, Spar, SpeciesId } from '../lib/types.ts'
@@ -91,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void laddaOm()
     void stadaCache()
+    void begarBestandigLagring()
     void (async () => {
       setValdArtRaw(await las<SpeciesId>('valdArt', 'kantarell'))
       setKartlagerRaw(await las<Kartlager>('kartlager', 'topo'))
@@ -171,6 +172,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (f: Find) => {
       await sparaFynd(f)
       await laddaOm()
+      // Webbläsaren beviljar beständig lagring lättare när appen bevisligen
+      // används, så vi frågar igen varje gång något sparas.
+      void begarBestandigLagring()
     },
     [laddaOm],
   )

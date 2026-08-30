@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { ARTER } from '../data/arter.ts'
-import { antalRutor, lagringsstatus, rensaRutor, sparaFynd, sparaSpar } from '../lib/db.ts'
+import {
+  antalRutor, arLagringBestandig, begarBestandigLagring, lagringsstatus, rensaRutor,
+  sparaFynd, sparaSpar,
+} from '../lib/db.ts'
 import { LAGER, laddaNedOmrade, raknaRutor } from '../components/kartlager.ts'
 import { Hojdmosaik } from '../data/hojdkakel.ts'
 import { antal } from '../lib/geo.ts'
@@ -23,6 +26,7 @@ export function MerVy() {
   const [klarText, setKlarText] = useState<string | null>(null)
   const [bekraftaRensa, setBekraftaRensa] = useState(false)
   const [kallstart, setKallstart] = useState<'ja' | 'nej' | 'okand'>('okand')
+  const [bestandig, setBestandig] = useState<boolean | null>(null)
   const avbryt = useRef<AbortController | null>(null)
   const filRef = useRef<HTMLInputElement>(null)
 
@@ -34,6 +38,7 @@ export function MerVy() {
   }, [])
 
   useEffect(() => { void uppdateraStatus() }, [uppdateraStatus])
+  useEffect(() => { void arLagringBestandig().then(setBestandig) }, [])
 
   // Går appen att starta helt utan nät? Det avgörs av om serviceworkern
   // registrerats, och det vill man veta innan man kör ut i skogen.
@@ -268,8 +273,34 @@ export function MerVy() {
         <div className="kort-rubrik"><h3>Dina fynd</h3></div>
         <p className="liten svag">
           Fyndplatser är personlig egendom. De lämnar aldrig telefonen av sig själva —
-          men de försvinner också om du rensar webbläsardatan. Ta en säkerhetskopia.
+          men de försvinner om du rensar webbläsardatan. Ta en säkerhetskopia.
         </p>
+
+        <div className="rad mellan liten" style={{ marginTop: 12 }}>
+          <span className="svag">Skyddad mot automatisk rensning</span>
+          <span
+            className={bestandig ? 'fet' : 'svagast'}
+            style={bestandig ? { color: 'var(--gron)' } : undefined}
+          >
+            {bestandig === null ? '…' : bestandig ? 'ja' : 'nej'}
+          </span>
+        </div>
+        {bestandig === false ? (
+          <>
+            <p className="mini svagast" style={{ marginTop: 6 }}>
+              Webbläsaren kan rensa lagringen vid utrymmesbrist, och Safari gör det efter
+              ungefär en veckas inaktivitet. Lägg till appen på hemskärmen så beviljas
+              undantaget nästan alltid.
+            </p>
+            <button
+              className="knapp smal"
+              style={{ marginTop: 8 }}
+              onClick={() => void begarBestandigLagring().then(setBestandig)}
+            >
+              Be om skydd nu
+            </button>
+          </>
+        ) : null}
         <div className="knapprad" style={{ marginTop: 12 }}>
           <button className="knapp" onClick={exportera} disabled={app.fynd.length === 0}>
             Exportera
