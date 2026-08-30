@@ -97,7 +97,9 @@ const OfflineLager = L.TileLayer.extend({
       } catch {
         /* faller igenom till nätet */
       }
-      bild.crossOrigin = ''
+      // Inget crossOrigin: vi läser aldrig pixlar ur bakgrundskartan, och med
+      // attributet satt slutar rutorna laddas helt om en kakelserver någon
+      // gång skulle sluta skicka CORS-huvuden.
       bild.src = rutURL(def, coords.z, coords.x, coords.y)
     })()
 

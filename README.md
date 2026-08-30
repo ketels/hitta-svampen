@@ -61,6 +61,35 @@ Servern startar då med ett självsignerat certifikat på `https://<din-ip>:5173
 Telefonen varnar för certifikatet en gång — godkänn, och lägg sedan till sidan
 på hemskärmen så beter den sig som en app.
 
+### Deploy
+
+Ligger på Vercel. Push till `main` bygger och publicerar automatiskt.
+
+```bash
+git push
+```
+
+`vercel.json` sköter tre saker som spelar roll för en PWA:
+
+- **`sw.js` cachas aldrig hårt.** Annars skulle en telefon som redan installerat
+  appen fortsätta köra en gammal serviceworker i evighet och aldrig se en ny
+  version.
+- **Byggda tillgångar cachas för alltid** — de har innehållshash i filnamnet.
+- **`Service-Worker-Allowed: /`** så att serviceworkern får styra hela sajten.
+
+Bygget kör `tsc --noEmit` före `vite build`, så ett typfel stoppar deployen i
+stället för att nå telefonen.
+
+Vercel ger HTTPS automatiskt, vilket är hela poängen: GPS kräver "secure
+context", och över wifi duger inte `http://`. Lägg till sidan på hemskärmen så
+beter den sig som en app.
+
+En sak att veta: URL:en är publik. Ingen data läcker — alla fynd ligger i
+webbläsaren på din egen telefon och lämnar den aldrig — men vem som helst med
+länken kan använda själva appen. Vill du stänga den går det med Vercels
+lösenordsskydd (kräver betald plan) eller genom att låta bli att sprida
+adressen.
+
 ### Övriga kommandon
 
 ```bash
