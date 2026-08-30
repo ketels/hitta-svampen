@@ -39,8 +39,19 @@ const AGENT = 'hitta-svampen/1.0 (personlig svampapp; https://hitta-svampen.verc
  * Ett friskt svar tar tre till sju sekunder. Åtta per spegel räcker alltså
  * gott, och totalen håller sig med marginal under gränsen.
  */
-const SPEGEL_TIMEOUT_MS = 8_000
-const TOTAL_BUDGET_MS = 16_000
+const TOTAL_BUDGET_MS = 20_000
+
+/*
+ * Huvudservern är den enda som faktiskt levererar data — de andra två har
+ * svarat 500 varje gång de testats. Den får därför lejonparten av budgeten.
+ *
+ * Att den behöver så mycket beror inte på att den är trög i sig; från en
+ * vanlig maskin svarar den på en till tre sekunder. Overpass köar per
+ * IP-adress (`Rate limit: 2` enligt deras statussida), och Vercels utgående
+ * adress delas med andra, så våra anrop får vänta på en ledig plats.
+ */
+const HUVUDSPEGEL_MS = 15_000
+const RESERVSPEGEL_MS = 4_000
 
 const json = (kropp: unknown, status: number, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(kropp), {
@@ -76,7 +87,8 @@ export default async function handler(req: Request): Promise<Response> {
     // Under en sekund kvar hinner ingen spegel svara ändå.
     if (kvar < 1000) break
     const klocka = new AbortController()
-    const avbryt = setTimeout(() => klocka.abort(), Math.min(SPEGEL_TIMEOUT_MS, kvar))
+    const tak = spegel === SPEGLAR[0] ? HUVUDSPEGEL_MS : RESERVSPEGEL_MS
+    const avbryt = setTimeout(() => klocka.abort(), Math.min(tak, kvar))
     try {
       const svar = await fetch(`${spegel}?data=${encodeURIComponent(fraga)}`, {
         headers: { 'User-Agent': AGENT, Accept: 'application/json' },

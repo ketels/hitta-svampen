@@ -537,7 +537,7 @@ export async function analyseraPunkt(
     // Måste vara längre än proxyns egen budget. Avbryter klienten först
     // hinner svaret aldrig hamna i CDN-cachen, och nästa tryck blir lika
     // långsamt som det förra.
-    landtacke = await hamtaLandtacke(box, signal, 19_000)
+    landtacke = await hamtaLandtacke(box, signal, 23_000)
   } catch {
     landtacke = { box, ytor: [] as Yta[], vattendrag: [], stigar: [] }
     landtackeSaknas = true
