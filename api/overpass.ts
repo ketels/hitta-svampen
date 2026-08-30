@@ -39,18 +39,21 @@ const AGENT = 'hitta-svampen/1.0 (personlig svampapp; https://hitta-svampen.verc
  * Ett friskt svar tar tre till sju sekunder. Åtta per spegel räcker alltså
  * gott, och totalen håller sig med marginal under gränsen.
  */
-const TOTAL_BUDGET_MS = 20_000
+const TOTAL_BUDGET_MS = 21_000
 
 /*
- * Huvudservern är den enda som faktiskt levererar data — de andra två har
- * svarat 500 varje gång de testats. Den får därför lejonparten av budgeten.
+ * Strategin bygger på hur Overpass faktiskt beter sig under belastning:
+ * antingen svarar den på en till fyra sekunder, eller så hänger den tills
+ * något ger upp. Något däremellan finns knappt. Mätt både härifrån och från
+ * en vanlig maskin — den är överbelastad för alla, inte bara mot moln-IP:n.
  *
- * Att den behöver så mycket beror inte på att den är trög i sig; från en
- * vanlig maskin svarar den på en till tre sekunder. Overpass köar per
- * IP-adress (`Rate limit: 2` enligt deras statussida), och Vercels utgående
- * adress delas med andra, så våra anrop får vänta på en ledig plats.
+ * Ett långt försök är därför sämre än flera korta. En femton sekunders
+ * timeout gav noll av fyra; tre försök à fem sekunder träffar betydligt
+ * oftare ett tillfälle då servern är vaken.
  */
-const HUVUDSPEGEL_MS = 15_000
+const HUVUDSPEGEL_MS = 5_500
+const HUVUDSPEGEL_FORSOK = 3
+const PAUS_MELLAN_MS = 700
 const RESERVSPEGEL_MS = 4_000
 
 const json = (kropp: unknown, status: number, extra: Record<string, string> = {}) =>
@@ -82,13 +85,20 @@ export default async function handler(req: Request): Promise<Response> {
   const kedja: string[] = []
   const slutTid = Date.now() + TOTAL_BUDGET_MS
 
-  for (const spegel of SPEGLAR) {
+  // Huvudspegeln provas flera gånger, reserverna en gång var.
+  const kandidater: string[] = [
+    ...Array<string>(HUVUDSPEGEL_FORSOK).fill(SPEGLAR[0]!),
+    ...SPEGLAR.slice(1),
+  ]
+
+  for (const [forsok, spegel] of kandidater.entries()) {
     const kvar = slutTid - Date.now()
     // Under en sekund kvar hinner ingen spegel svara ändå.
     if (kvar < 1000) break
+    if (forsok > 0) await new Promise((r) => setTimeout(r, PAUS_MELLAN_MS))
     const klocka = new AbortController()
     const tak = spegel === SPEGLAR[0] ? HUVUDSPEGEL_MS : RESERVSPEGEL_MS
-    const avbryt = setTimeout(() => klocka.abort(), Math.min(tak, kvar))
+    const avbryt = setTimeout(() => klocka.abort(), Math.min(tak, slutTid - Date.now()))
     try {
       const svar = await fetch(`${spegel}?data=${encodeURIComponent(fraga)}`, {
         headers: { 'User-Agent': AGENT, Accept: 'application/json' },
@@ -99,7 +109,7 @@ export default async function handler(req: Request): Promise<Response> {
         // inte accepteras, 429 att vi kör för hårt, 403 att adressen är
         // blockerad. Utan den skillnaden går problemet inte att laga.
         const detalj = (await svar.text().catch(() => '')).slice(0, 80).replace(/\s+/g, ' ')
-        kedja.push(`${new URL(spegel).host}=${svar.status}${detalj ? ` (${detalj})` : ''}`)
+        kedja.push(`${new URL(spegel).host}#${forsok + 1}=${svar.status}${detalj ? ` (${detalj})` : ''}`)
         continue
       }
       const kropp = await svar.text()
@@ -114,7 +124,7 @@ export default async function handler(req: Request): Promise<Response> {
       })
     } catch (e) {
       kedja.push(
-        `${new URL(spegel).host}=${
+        `${new URL(spegel).host}#${forsok + 1}=${
           e instanceof Error && e.name === 'AbortError' ? 'timeout' : 'onåbar'
         }`,
       )

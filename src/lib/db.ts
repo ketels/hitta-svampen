@@ -127,6 +127,37 @@ export async function cacheSkriv(nyckel: string, data: unknown, ttl: number): Pr
   }
 }
 
+/**
+ * Letar upp en cachepost vars nyckel matchar `prefix` och vars sparade ruta
+ * omsluter den efterfrågade. Används av landtäcket: har man förhämtat en
+ * hel trakt ska en skanning mitt i den slippa gå ut på nätet igen, trots att
+ * dess ruta inte är exakt densamma.
+ */
+export async function cacheHittaTackande<T>(
+  prefix: string,
+  box: { south: number; west: number; north: number; east: number },
+): Promise<T | null> {
+  try {
+    const d = await db()
+    const nycklar = await d.getAllKeys('cache')
+    const nu = Date.now()
+    for (const nyckel of nycklar) {
+      const k = String(nyckel)
+      if (!k.startsWith(`v${CACHE_VERSION}:${prefix}`)) continue
+      const delar = k.slice(k.indexOf(prefix) + prefix.length).split(',').map(Number)
+      if (delar.length < 4 || delar.some((v) => !isFinite(v))) continue
+      const [s2, w2, n2, e2] = delar as [number, number, number, number]
+      if (s2 > box.south || w2 > box.west || n2 < box.north || e2 < box.east) continue
+      const post = await d.get('cache', k)
+      if (!post || nu - post.tid > post.ttl) continue
+      return post.data as T
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 /** Slänger cacheposter från äldre versioner. Körs en gång vid uppstart. */
 export async function stadaCache(): Promise<number> {
   try {

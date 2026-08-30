@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #08090a; }
+  a { color: #F0A81E; text-decoration: none; }
+  a:hover { color: #FFC94D; }
+  @keyframes puls { 0% { transform: scale(.72); opacity: 1 } 70% { transform: scale(1); opacity: .85 } 100% { transform: scale(1.08); opacity: .6 } }
+  @keyframes snurr { to { transform: rotate(360deg) } }
+</style>
+</helmet>
+
+<section style="padding:64px 56px 40px;background:#EFEDE6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#191C18">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:34px;max-width:760px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#96690A">Tur 3 · ljust läge</div>
+    <h1 style="margin:0;font-size:32px;font-weight:650;letter-spacing:-.02em;color:#191C18">Samma skärmar, ljus palett</h1>
+    <p style="margin:0;font-size:15px;line-height:1.55;color:#585E56;text-wrap:pretty">Identisk layout och identiska mått som <a href="#2a" style="color:#96690A">2a</a> och <a href="#2b" style="color:#96690A">2b</a> — bara tokens som bytts ut, token för token. Guldet är kvar som accent men mörkas där det bär text.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+    <div id="3a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#191203;background:#f2b705;padding:3px 8px;border-radius:6px">3A</span>
+        <span style="font-size:17px;font-weight:650">Kartvy</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#F7F6F1;border:1px solid #DAD8CD;box-shadow:0 24px 60px rgba(0,0,0,.18);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#191C18;font-size:16px;line-height:1.45;display:flex;flex-direction:column">
+        <div style="position:relative;flex:1;min-height:0">
+          <div style="position:absolute;inset:0;background:#E8E6DC url('https://a.tile.opentopomap.org/14/8856/4872.png') center/165% no-repeat;filter:saturate(.98) contrast(1.02)"></div>
+          <canvas data-varme="1" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+
+          <div style="position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600;text-shadow:0 1px 2px rgba(255,255,255,.85)">
+            <span>09:42</span><span>4G 78%</span>
+          </div>
+
+          <div style="position:absolute;left:190px;top:392px;width:40px;height:40px">
+            <div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #1B7CBC;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))"></div>
+            <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#1B7CBC;border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2),0 2px 6px rgba(0,0,0,.3)"></div>
+          </div>
+          <div style="position:absolute;left:96px;top:252px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(58,43,0,.5);box-shadow:0 2px 7px rgba(0,0,0,.3);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">1</div>
+          <div style="position:absolute;left:268px;top:316px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(58,43,0,.5);box-shadow:0 2px 7px rgba(0,0,0,.3);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">2</div>
+          <div style="position:absolute;left:150px;top:470px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(58,43,0,.5);box-shadow:0 2px 7px rgba(0,0,0,.3);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">3</div>
+          <div style="position:absolute;left:238px;top:208px;width:28px;height:28px;border-radius:999px;background:#f2b705;border:2.5px solid rgba(58,43,0,.45);box-shadow:0 2px 6px rgba(0,0,0,.28);display:grid;place-items:center;font-size:13px;line-height:1">🟡</div>
+
+          <div style="position:absolute;left:0;right:0;top:54px;padding:0 12px;display:flex;align-items:flex-start;gap:10px">
+            <div style="flex:1;min-width:0">
+              <div style="background:rgba(255,255,255,.95);border:1px solid #C2C0B1;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.16);display:flex;align-items:center;gap:11px;padding:9px 10px 9px 14px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#686E63">Mot plats 1</div>
+                  <div style="display:flex;align-items:baseline;gap:8px">
+                    <span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:26px;line-height:1.1">820 m</span>
+                    <span style="font-size:13.5px;color:#585E56">NNO · 11 min</span>
+                  </div>
+                </div>
+                <div style="flex-shrink:0;transform:rotate(28deg)"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="#C68A00"/></svg></div>
+                <div style="width:34px;height:34px;flex-shrink:0;border-radius:999px;background:#E4E3D9;color:#585E56;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></svg></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+              <div style="width:44px;height:44px;border-radius:13px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.16)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.94);border:1px solid #C2C0B1;color:#191C18;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.16)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.94);border:1px solid #C2C0B1;color:#191C18;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.16)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.4 17c4.4-.6 3-4.6 1.2-6.2C7.8 9.2 9.6 6.4 15.5 6"/></svg></div>
+            </div>
+          </div>
+
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(255,255,255,.95);border:1px solid #C2C0B1;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.16);padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:9px;min-height:30px;margin:-4px 0 -2px">
+                <span style="width:13px;height:13px;border-radius:999px;flex-shrink:0;border:1.5px solid rgba(255,255,255,.55);background:#f2b705"></span>
+                <span style="font-weight:650;font-size:13.5px">Kantarell</span>
+                <span style="font-size:13.5px;color:rgb(84 120 38)">· bra</span>
+                <span style="flex:1"></span>
+                <span style="font-size:12px;font-weight:650;color:#96690A">Dölj</span>
+                <div style="display:flex;background:#F1F0E9;border:1px solid #DAD8CD;border-radius:12px;padding:2px;gap:3px">
+                  <div style="min-height:26px;padding:0 9px;border-radius:10px;background:#E4E3D9;color:#191C18;font-size:12px;font-weight:600;display:grid;place-items:center">Mark</div>
+                  <div style="min-height:26px;padding:0 9px;border-radius:10px;color:#585E56;font-size:12px;font-weight:600;display:grid;place-items:center">Idag</div>
+                </div>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#686E63" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg>
+              </div>
+
+              <div style="position:relative;margin:9px -14px 10px">
+                <div style="display:flex;gap:7px;padding:2px 14px;overflow:hidden">
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.26);border:1px solid rgba(180,126,0,.6);color:#191C18;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#F1F0E9;border:1px solid #DAD8CD;color:#585E56;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#F1F0E9;border:1px solid #DAD8CD;color:#585E56;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+                </div>
+                <div style="position:absolute;top:0;bottom:0;right:0;width:34px;background:linear-gradient(to right,rgba(255,255,255,0),rgba(255,255,255,.95) 70%);pointer-events:none"></div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="font-size:12px;color:#686E63">Svagt</span>
+                <div style="flex:1;height:8px;border-radius:999px;background:linear-gradient(90deg,rgb(92 126 140) 0%,rgb(156 142 58) 30%,rgb(208 136 16) 60%,rgb(234 162 10) 85%,rgb(246 188 16) 100%)"></div>
+                <span style="font-size:12px;color:#686E63">Starkt</span>
+                <span style="width:1px;height:12px;background:#DAD8CD;margin:0 2px"></span>
+                <span style="font-size:12px;color:#686E63">Ljust till 20:14</span>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:#F1F0E9;border:1px solid #C2C0B1;color:#191C18;display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg></div>
+              <div style="flex:1;height:52px;border-radius:16px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:17px"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v13M5.5 12h13"/></svg>Spara fynd</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;background:rgba(255,255,255,.96);border-top:1px solid #DAD8CD;padding-bottom:20px;flex-shrink:0">
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#96690A;font-size:11px;font-weight:600;position:relative">
+            <div style="position:absolute;top:0;width:30px;height:2.5px;border-radius:0 0 3px 3px;background:#f2b705"></div>
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg><span>Karta</span>
+          </div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#686E63;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg><span>Prognos</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#686E63;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg><span>Fynd</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#686E63;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg><span>Arter</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#686E63;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg><span>Mer</span></div>
+        </div>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#585E56;text-wrap:pretty">Samma layout som <a href="#2a" style="color:#96690A">2a</a>, spegelvänd palett. Kartunderlaget mörkas inte längre ner, så värmekartans guldskala (den som redan är gjord för ljus bakgrund) får arbeta mot en ljus karta i stället för mot en dämpad. Panelerna är vita med 95 % opacitet — samma glasighet, motsatt håll.</p>
+    </div>
+
+    <div id="3b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#191203;background:#f2b705;padding:3px 8px;border-radius:6px">3B</span>
+        <span style="font-size:17px;font-weight:650">Prognosvy</span>
+      </div>
+      <div style="width:390px;border-radius:38px;background:#F7F6F1;border:1px solid #DAD8CD;box-shadow:0 24px 60px rgba(0,0,0,.18);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#191C18;font-size:16px;line-height:1.45;overflow:hidden;padding-bottom:24px">
+        <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600"><span>09:42</span><span>4G 78%</span></div>
+        <div style="padding:14px 16px 0">
+          <div style="position:relative;margin:0 -16px 14px">
+            <div style="display:flex;gap:7px;padding:2px 16px;overflow:hidden">
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.26);border:1px solid rgba(180,126,0,.6);color:#191C18;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#F1F0E9;border:1px solid #DAD8CD;color:#585E56;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#F1F0E9;border:1px solid #DAD8CD;color:#585E56;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+            </div>
+            <div style="position:absolute;top:0;bottom:0;right:0;width:34px;background:linear-gradient(to right,rgba(247,246,241,0),#F7F6F1 70%);pointer-events:none"></div>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #DAD8CD;border-radius:14px;padding:18px 14px 16px;margin-bottom:12px">
+            <div style="position:relative;display:grid;justify-items:center">
+              <svg viewBox="0 0 160 160" width="184" height="184" style="display:block">
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#E4E3D9" stroke-width="13" stroke-linecap="round" stroke-dasharray="292.17 389.56" transform="rotate(135 80 80)"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="rgb(84 120 38)" stroke-width="13" stroke-linecap="round" stroke-dasharray="134.4 389.56" transform="rotate(135 80 80)"/>
+              </svg>
+              <div style="position:absolute;top:78px;left:0;right:0;transform:translateY(-50%);text-align:center">
+                <div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:46px;line-height:1;color:rgb(84 120 38)">46<span style="font-size:20px;margin-left:1px">%</span></div>
+                <div style="font-weight:650;color:rgb(84 120 38);font-size:17px;margin-top:2px">Bra</div>
+              </div>
+              <div style="text-align:center;margin-top:-14px">
+                <div style="font-size:14px;color:#585E56;text-wrap:pretty">Goda odds om du vet var du ska leta</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid #DAD8CD;font-size:13px;color:#686E63">
+              <span style="display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>Ljust till 20:14</span>
+              <span>Toppsäsong till 20 sept</span>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #DAD8CD;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+              <h3 style="margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;flex:1">Kommande dygn</h3>
+              <span style="font-size:13px;color:#96690A">Bäst fre 4 sep · 55 %</span>
+            </div>
+            <div style="display:flex;gap:3px;align-items:flex-end">
+              <sc-for list="{{ dagar12 }}" as="d" hint-placeholder-count="12">
+                <div style="flex:1;min-width:0;text-align:center;display:grid;gap:2px;padding:3px 1px;border-radius:8px;background: {{ d.bakgrund }}; outline: {{ d.kontur }}">
+                  <div style="height:82px;display:flex;align-items:flex-end;justify-content:center"><i style="display:block;width:74%;border-radius:3px 3px 1px 1px;height: {{ d.h }}; background: {{ d.farg }}"></i></div>
+                  <div style="font-size:12px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;color: {{ d.taletsfarg }}">{{ d.pct }}</div>
+                  <div style="font-size:12px;color:#686E63">{{ d.dag }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #DAD8CD;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Regnet som räknas</h3>
+            <p style="margin:0 0 10px;font-size:13.5px;color:#585E56;text-wrap:pretty">Kantarell reagerar på regn som föll för ungefär 16 dygn sedan — det gulmarkerade fönstret. Gårdagens skyfall syns inte i korgen förrän om ett par veckor.</p>
+            <div style="position:relative;height:66px;display:flex;gap:1.6px;align-items:flex-end;border-bottom:1px solid #DAD8CD">
+              <div style="position:absolute;left:37%;width:31%;top:0;bottom:0;background:rgba(242,183,5,.24)"></div>
+              <sc-for list="{{ regn }}" as="r" hint-placeholder-count="53">
+                <i style="position:relative;flex:1;border-radius:1.4px;height: {{ r.h }}; background: {{ r.gammalfarg }}"></i>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:12px;color:#686E63">
+              <span>45 dygn sedan</span><span style="color:#96690A">fönstret som avgör</span><span>idag →</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#DAD8CD;border:1px solid #DAD8CD;border-radius:8px;margin-top:14px;overflow:hidden">
+              <div style="background:#FFFFFF;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#585E56">I fönstret</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em;color:#96690A">41 mm</span></div>
+              <div style="background:#FFFFFF;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#585E56">30 dygn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">88 mm</span></div>
+              <div style="background:#FFFFFF;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#585E56">7 dygn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">12 mm</span></div>
+              <div style="background:#FFFFFF;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#585E56">Sen regn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">6 dygn</span></div>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #DAD8CD;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 12px;font-size:17px;font-weight:650;letter-spacing:-.01em">Marken just nu</h3>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(90 122 32)">31%</div><div style="font-size:11px;color:#686E63;font-weight:600;line-height:1.35">markfukt<br>9–27 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(160 119 6)">13,4°</div><div style="font-size:11px;color:#686E63;font-weight:600;line-height:1.35">marktemp<br>6 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(147 113 8)">62%</div><div style="font-size:11px;color:#686E63;font-weight:600;line-height:1.35">fruktsättning<br>index</div></div>
+            </div>
+            <ul style="margin:0;padding-left:17px;font-size:13.5px;color:#585E56;line-height:1.5">
+              <li style="margin-bottom:3px">41 mm i fördröjningsfönstret, nära artens optimum</li>
+              <li style="margin-bottom:3px">Marktemperaturen 13,4° är strax under optimala 16°</li>
+              <li>Säsongen är i topp till 20 september</li>
+            </ul>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #DAD8CD;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Vad som står i skogen nu</h3>
+            <div style="display:grid;gap:2px">
+              <sc-for list="{{ artlage5 }}" as="a" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px;margin:0 -8px;border-radius:8px;text-align:left">
+                  <span style="font-size:17px;width:22px;text-align:center">{{ a.emoji }}</span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;font-size:13.5px">{{ a.namn }}</span>
+                  <span style="width:74px;height:7px;border-radius:999px;background:#E4E3D9;overflow:hidden"><i style="display:block;height:100%;border-radius:999px;width: {{ a.w }}; background: {{ a.chansfarg }}"></i></span>
+                  <span style="width:34px;text-align:right;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color: {{ a.chansfarg }}">{{ a.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #DAD8CD;font-size:13.5px;font-weight:650;color:#96690A">Visa alla nio arter</div>
+          </div>
+
+          <p style="margin:4px 0 0;text-align:center;font-size:12px;color:#686E63">Väderdata från Open-Meteo (ERA5 och ICON). Position 59.620, 15.200.</p>
+        </div>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#585E56;text-wrap:pretty">Guldet duger inte som textfärg mot vitt — 3,1:1 vore under gränsen. Därför är all guldfärgad text mörkad till #96690A medan knappar, markörer och gradienter behåller exakt samma #f2b705. Chansfärgerna är sänkta ett steg i ljushet av samma skäl.</p>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding:64px 56px 40px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#e9f2e8">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:34px;max-width:760px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#f2b705">Tur 2 · finslipat</div>
+    <h1 style="margin:0;font-size:32px;font-weight:650;letter-spacing:-.02em">Samma gränssnitt, stramare</h1>
+    <p style="margin:0;font-size:15px;line-height:1.55;color:#a0b3a4;text-wrap:pretty">Inga nya färger, inga nya typsnitt, inga flyttade flikar. Bara mindre dubblering, färre rader som säger samma sak, och mer plats till det man faktiskt trycker på. Jämför sida vid sida med <a href="#0a" style="color:#f2b705">0a</a> och <a href="#0b" style="color:#f2b705">0b</a> längst ned.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+    <div id="2a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#191203;background:#f2b705;padding:3px 8px;border-radius:6px">2A</span>
+        <span style="font-size:17px;font-weight:650">Kartvy</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#0d1310;border:1px solid #29392e;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#e9f2e8;font-size:16px;line-height:1.45;display:flex;flex-direction:column">
+        <div style="position:relative;flex:1;min-height:0">
+          <div style="position:absolute;inset:0;background:#101a13 url('https://a.tile.opentopomap.org/14/8856/4872.png') center/165% no-repeat;filter:saturate(.85) brightness(.82)"></div>
+          <canvas data-varme="1" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+
+          <div style="position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.7)">
+            <span>09:42</span><span>4G 78%</span>
+          </div>
+
+          <div style="position:absolute;left:190px;top:392px;width:40px;height:40px">
+            <div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4fa3d9;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))"></div>
+            <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#4fa3d9;border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.5)"></div>
+          </div>
+          <div style="position:absolute;left:96px;top:252px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">1</div>
+          <div style="position:absolute;left:268px;top:316px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">2</div>
+          <div style="position:absolute;left:150px;top:470px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">3</div>
+          <div style="position:absolute;left:238px;top:208px;width:28px;height:28px;border-radius:999px;background:#f2b705;border:2.5px solid rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font-size:13px;line-height:1">🟡</div>
+
+          <div style="position:absolute;left:0;right:0;top:54px;padding:0 12px;display:flex;align-items:flex-start;gap:10px">
+            <div style="flex:1;min-width:0">
+              <div style="background:rgba(21,30,23,.94);border:1px solid #3d5544;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;gap:11px;padding:9px 10px 9px 14px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6f8375">Mot plats 1</div>
+                  <div style="display:flex;align-items:baseline;gap:8px">
+                    <span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:26px;line-height:1.1">820 m</span>
+                    <span style="font-size:13.5px;color:#a0b3a4">NNO · 11 min</span>
+                  </div>
+                </div>
+                <div style="flex-shrink:0;transform:rotate(28deg)"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="#f2b705"/></svg></div>
+                <div style="width:34px;height:34px;flex-shrink:0;border-radius:999px;background:#24332a;color:#a0b3a4;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></svg></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+              <div style="width:44px;height:44px;border-radius:13px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:13px;background:rgba(21,30,23,.92);border:1px solid #3d5544;color:#e9f2e8;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:13px;background:rgba(21,30,23,.92);border:1px solid #3d5544;color:#e9f2e8;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.4 17c4.4-.6 3-4.6 1.2-6.2C7.8 9.2 9.6 6.4 15.5 6"/></svg></div>
+            </div>
+          </div>
+
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(21,30,23,.94);border:1px solid #3d5544;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:9px;min-height:30px;margin:-4px 0 -2px">
+                <span style="width:13px;height:13px;border-radius:999px;flex-shrink:0;border:1.5px solid rgba(255,255,255,.55);background:#f2b705"></span>
+                <span style="font-weight:650;font-size:13.5px">Kantarell</span>
+                <span style="font-size:13.5px;color:rgb(106 152 51)">· bra</span>
+                <span style="flex:1"></span>
+                <span style="font-size:12px;font-weight:650;color:#f2b705">Dölj</span>
+                <div style="display:flex;background:#1c2820;border:1px solid #29392e;border-radius:12px;padding:2px;gap:3px">
+                  <div style="min-height:26px;padding:0 9px;border-radius:10px;background:#24332a;color:#e9f2e8;font-size:12px;font-weight:600;display:grid;place-items:center">Mark</div>
+                  <div style="min-height:26px;padding:0 9px;border-radius:10px;color:#a0b3a4;font-size:12px;font-weight:600;display:grid;place-items:center">Idag</div>
+                </div>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6f8375" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg>
+              </div>
+
+              <div style="position:relative;margin:9px -14px 10px">
+                <div style="display:flex;gap:7px;padding:2px 14px;overflow:hidden">
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.16);border:1px solid rgba(242,183,5,.45);color:#e9f2e8;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+                  <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+                </div>
+                <div style="position:absolute;top:0;bottom:0;right:0;width:34px;background:linear-gradient(to right,rgba(21,30,23,0),rgba(21,30,23,.94) 70%);pointer-events:none"></div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="font-size:12px;color:#6f8375">Svagt</span>
+                <div style="flex:1;height:8px;border-radius:999px;background:linear-gradient(90deg,rgb(92 126 140) 0%,rgb(156 142 58) 30%,rgb(208 136 16) 60%,rgb(234 162 10) 85%,rgb(246 188 16) 100%)"></div>
+                <span style="font-size:12px;color:#6f8375">Starkt</span>
+                <span style="width:1px;height:12px;background:#29392e;margin:0 2px"></span>
+                <span style="font-size:12px;color:#6f8375">Ljust till 20:14</span>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:#1c2820;border:1px solid #3d5544;color:#e9f2e8;display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg></div>
+              <div style="flex:1;height:52px;border-radius:16px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:17px"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v13M5.5 12h13"/></svg>Spara fynd</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;background:rgba(15,23,18,.94);border-top:1px solid #29392e;padding-bottom:20px;flex-shrink:0">
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#f2b705;font-size:11px;font-weight:600;position:relative">
+            <div style="position:absolute;top:0;width:30px;height:2.5px;border-radius:0 0 3px 3px;background:#f2b705"></div>
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg><span>Karta</span>
+          </div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg><span>Prognos</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg><span>Fynd</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg><span>Arter</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg><span>Mer</span></div>
+        </div>
+      </div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:7px;font-size:13.5px;line-height:1.5;color:#a0b3a4">
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">1</span><span><strong style="color:#e9f2e8;font-weight:650">Panelhuvudet visar alltid arten och läget.</strong> Idag står "Svampläge" när panelen är öppen och arten bara när den är stängd. Nu står samma sak i båda tillstånden, och den separata raden "Fruktsättning: bra" kan strykas.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">2</span><span><strong style="color:#e9f2e8;font-weight:650">Mark/Idag flyttat upp till huvudraden.</strong> Legenden trängde ihop gradient, två etiketter och en segmentväljare på samma rad. Nu får gradienten hela bredden och dagsljustexten plats på samma rad.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">3</span><span><strong style="color:#e9f2e8;font-weight:650">Spara fynd får hela bredden, Skanna blir en 52-px-ruta.</strong> Två likadana knappar sa att de är lika viktiga. Det är de inte — man skannar en gång per skogsbesök och sparar fynd varje gång man hittar något.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">4</span><span><strong style="color:#e9f2e8;font-weight:650">Toningen i högerkanten på artraden.</strong> Visar att raden fortsätter — idag ser den bara ut att sluta i ett avhugget namn.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">5</span><span><strong style="color:#e9f2e8;font-weight:650">Navigeringspanelen: avståndet 21 → 26 px, "11 min" tillagt, "Mot ditt mål" → "Mot plats 1".</strong> Panelen är det man tittar på under gång, med utsträckt arm.</span></div>
+      </div>
+    </div>
+
+    <div id="2b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#191203;background:#f2b705;padding:3px 8px;border-radius:6px">2B</span>
+        <span style="font-size:17px;font-weight:650">Prognosvy</span>
+      </div>
+      <div style="width:390px;border-radius:38px;background:#0d1310;border:1px solid #29392e;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#e9f2e8;font-size:16px;line-height:1.45;overflow:hidden;padding-bottom:24px">
+        <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600"><span>09:42</span><span>4G 78%</span></div>
+        <div style="padding:14px 16px 0">
+          <div style="position:relative;margin:0 -16px 14px">
+            <div style="display:flex;gap:7px;padding:2px 16px;overflow:hidden">
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.16);border:1px solid rgba(242,183,5,.45);color:#e9f2e8;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+              <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+            </div>
+            <div style="position:absolute;top:0;bottom:0;right:0;width:34px;background:linear-gradient(to right,rgba(13,19,16,0),#0d1310 70%);pointer-events:none"></div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:18px 14px 16px;margin-bottom:12px">
+            <div style="position:relative;display:grid;justify-items:center">
+              <svg viewBox="0 0 160 160" width="184" height="184" style="display:block">
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#24332a" stroke-width="13" stroke-linecap="round" stroke-dasharray="292.17 389.56" transform="rotate(135 80 80)"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="rgb(106 152 51)" stroke-width="13" stroke-linecap="round" stroke-dasharray="134.4 389.56" transform="rotate(135 80 80)"/>
+              </svg>
+              <div style="position:absolute;top:78px;left:0;right:0;transform:translateY(-50%);text-align:center">
+                <div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:46px;line-height:1;color:rgb(106 152 51)">46<span style="font-size:20px;margin-left:1px">%</span></div>
+                <div style="font-weight:650;color:rgb(106 152 51);font-size:17px;margin-top:2px">Bra</div>
+              </div>
+              <div style="text-align:center;margin-top:-14px">
+                <div style="font-size:14px;color:#a0b3a4;text-wrap:pretty">Goda odds om du vet var du ska leta</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid #29392e;font-size:13px;color:#6f8375">
+              <span style="display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>Ljust till 20:14</span>
+              <span>Toppsäsong till 20 sept</span>
+            </div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+              <h3 style="margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;flex:1">Kommande dygn</h3>
+              <span style="font-size:13px;color:#ffd24a">Bäst fre 4 sep · 55 %</span>
+            </div>
+            <div style="display:flex;gap:3px;align-items:flex-end">
+              <sc-for list="{{ dagar12 }}" as="d" hint-placeholder-count="12">
+                <div style="flex:1;min-width:0;text-align:center;display:grid;gap:2px;padding:3px 1px;border-radius:8px;background: {{ d.bakgrund }}; outline: {{ d.kontur }}">
+                  <div style="height:82px;display:flex;align-items:flex-end;justify-content:center"><i style="display:block;width:74%;border-radius:3px 3px 1px 1px;height: {{ d.h }}; background: {{ d.farg }}"></i></div>
+                  <div style="font-size:12px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;color: {{ d.taletsfarg }}">{{ d.pct }}</div>
+                  <div style="font-size:12px;color:#6f8375">{{ d.dag }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Regnet som räknas</h3>
+            <p style="margin:0 0 10px;font-size:13.5px;color:#a0b3a4;text-wrap:pretty">Kantarell reagerar på regn som föll för ungefär 16 dygn sedan — det gulmarkerade fönstret. Gårdagens skyfall syns inte i korgen förrän om ett par veckor.</p>
+            <div style="position:relative;height:66px;display:flex;gap:1.6px;align-items:flex-end;border-bottom:1px solid #29392e">
+              <div style="position:absolute;left:37%;width:31%;top:0;bottom:0;background:rgba(242,183,5,.13)"></div>
+              <sc-for list="{{ regn }}" as="r" hint-placeholder-count="53">
+                <i style="position:relative;flex:1;border-radius:1.4px;height: {{ r.h }}; background: {{ r.gammalfarg }}"></i>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:12px;color:#6f8375">
+              <span>45 dygn sedan</span><span style="color:#f2b705">fönstret som avgör</span><span>idag →</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#29392e;border:1px solid #29392e;border-radius:8px;margin-top:14px;overflow:hidden">
+              <div style="background:#151e17;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#a0b3a4">I fönstret</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em;color:#f2b705">41 mm</span></div>
+              <div style="background:#151e17;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#a0b3a4">30 dygn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">88 mm</span></div>
+              <div style="background:#151e17;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#a0b3a4">7 dygn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">12 mm</span></div>
+              <div style="background:#151e17;padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#a0b3a4">Sen regn</span><span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;letter-spacing:-.02em">6 dygn</span></div>
+            </div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 12px;font-size:17px;font-weight:650;letter-spacing:-.01em">Marken just nu</h3>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(120 158 43)">31%</div><div style="font-size:11px;color:#6f8375;font-weight:600;line-height:1.35">markfukt<br>9–27 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(214 164 13)">13,4°</div><div style="font-size:11px;color:#6f8375;font-weight:600;line-height:1.35">marktemp<br>6 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;letter-spacing:-.02em;color:rgb(196 154 16)">62%</div><div style="font-size:11px;color:#6f8375;font-weight:600;line-height:1.35">fruktsättning<br>index</div></div>
+            </div>
+            <ul style="margin:0;padding-left:17px;font-size:13.5px;color:#a0b3a4;line-height:1.5">
+              <li style="margin-bottom:3px">41 mm i fördröjningsfönstret, nära artens optimum</li>
+              <li style="margin-bottom:3px">Marktemperaturen 13,4° är strax under optimala 16°</li>
+              <li>Säsongen är i topp till 20 september</li>
+            </ul>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Vad som står i skogen nu</h3>
+            <div style="display:grid;gap:2px">
+              <sc-for list="{{ artlage5 }}" as="a" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px;margin:0 -8px;border-radius:8px;text-align:left">
+                  <span style="font-size:17px;width:22px;text-align:center">{{ a.emoji }}</span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;font-size:13.5px">{{ a.namn }}</span>
+                  <span style="width:74px;height:7px;border-radius:999px;background:#24332a;overflow:hidden"><i style="display:block;height:100%;border-radius:999px;width: {{ a.w }}; background: {{ a.chansfarg }}"></i></span>
+                  <span style="width:34px;text-align:right;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color: {{ a.chansfarg }}">{{ a.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #29392e;font-size:13.5px;font-weight:650;color:#f2b705">Visa alla nio arter</div>
+          </div>
+
+          <p style="margin:4px 0 0;text-align:center;font-size:12px;color:#6f8375">Väderdata från Open-Meteo (ERA5 och ICON). Position 59.620, 15.200.</p>
+        </div>
+      </div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:7px;font-size:13.5px;line-height:1.5;color:#a0b3a4">
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">1</span><span><strong style="color:#e9f2e8;font-weight:650">Chansordet flyttat in i mätaren.</strong> "Bra" hörde ihop med siffran, inte med raden under. Nu står siffra och ord tillsammans, och bara rådet står utanför ringen.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">2</span><span><strong style="color:#e9f2e8;font-weight:650">Dubbleringen borta.</strong> "Bra. Goda odds om du vet var du ska leta." stod både i mätaren och nederst i "Marken just nu". Nu står den en gång.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">3</span><span><strong style="color:#e9f2e8;font-weight:650">Bästa dagen i kortrubriken.</strong> Meningen "Bäst dag: fredag 4 september — 55 %" låg under diagrammet och var den enda anledningen att titta där. Nu står den ovanför, kortare.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">4</span><span><strong style="color:#e9f2e8;font-weight:650">Regnsiffrorna: fyra trånga kolumner → 2×2 med namn och enhet på samma rad.</strong> "mm / 7 d", "mm / 14 d", "mm / 30 d" krävde att man tolkade tre nästan identiska etiketter. Nu står det viktigaste — regnet i fördröjningsfönstret — först och i guld.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">5</span><span><strong style="color:#e9f2e8;font-weight:650">Artlistan visar fem, resten på en knapp.</strong> Nio arter där de fyra sista ligger under 15 % är en lista man ändå inte läser klart.</span></div>
+        <div style="display:flex;gap:9px"><span style="color:#f2b705">6</span><span><strong style="color:#e9f2e8;font-weight:650">Säsongsraden flyttad upp till mätarkortet.</strong> "Toppsäsong" stod som en svag etikett i "Kommande dygn"-rubriken. Den hör ihop med dagens läge.</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding:20px 56px 40px;font-family:'IBM Plex Sans',sans-serif;color:#F2EDE3">
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:34px;max-width:760px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#F0A81E">TUR 1 · NY RIKTNING</div>
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-.02em">Kartvyn i tre layouter, plus en ny prognosvy</h1>
+    <p style="margin:0;font-size:15px;line-height:1.55;color:#A79E8E;text-wrap:pretty">Optimerat för det du valde: en hand, regn på skärmen, och att gå mot ett ställe. Formspråket är nytt — varmt svart i stället för skogsgrönt, IBM Plex Sans med Plex Mono på alla siffror, rakare hörn och solida paneler i stället för genomskinliga. Guldet är kvar men något varmare, och blått är reserverat till position och riktning. Jämför gärna mot <a href="#0a">0a</a> längst ned.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:#F0A81E;padding:3px 8px;border-radius:4px">1A</span>
+        <span style="font-size:17px;font-weight:600">Tumbåge</span>
+        <span style="font-size:13px;color:#A79E8E">allt viktigt inom tummens räckvidd</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#0E0D0B;border:1px solid #35312A;box-shadow:0 24px 60px rgba(0,0,0,.55)">
+        <div style="position:absolute;inset:0;background:#14180F url('https://a.tile.opentopomap.org/14/8856/4872.png') center/165% no-repeat;filter:saturate(.85) brightness(.82)"></div>
+        <canvas data-varme="1" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+
+        <div style="position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#F2EDE3;text-shadow:0 1px 3px rgba(0,0,0,.7)">
+          <span>09:42</span>
+          <span style="display:flex;gap:8px;color:#F2EDE3">4G<span style="opacity:.7">78%</span></span>
+        </div>
+
+        <div style="position:absolute;left:12px;right:12px;top:50px;display:flex;align-items:stretch;gap:8px">
+          <div style="flex:1;background:#1A1815;border:1px solid #35312A;border-left:3px solid #F0A81E;border-radius:4px;padding:9px 12px 10px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+              <div style="font-size:15px;font-weight:600;letter-spacing:-.01em">Kantarell</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#B8C93A">46<span style="font-size:11px;opacity:.75">%</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px">
+              <div style="flex:1;height:5px;border-radius:2px;background:linear-gradient(90deg,rgb(92 126 140) 0%,rgb(156 142 58) 30%,rgb(208 136 16) 60%,rgb(234 162 10) 85%,rgb(246 188 16) 100%)"></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;color:#746D60">MARK</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:190px;top:404px;width:40px;height:40px">
+          <div style="position:absolute;inset:0"><div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4C9BD1;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))"></div></div>
+          <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#4C9BD1;border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.5)"></div>
+        </div>
+        <div style="position:absolute;left:96px;top:268px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">1</div>
+        <div style="position:absolute;left:268px;top:330px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">2</div>
+        <div style="position:absolute;left:150px;top:520px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">3</div>
+        <div style="position:absolute;left:238px;top:222px;width:28px;height:28px;border-radius:999px;background:#F0A81E;border:2.5px solid rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font-size:13px;line-height:1">🟡</div>
+
+        <div style="position:absolute;left:12px;right:12px;bottom:150px;display:flex;flex-direction:column;gap:10px">
+          <div style="background:#1A1815;border:1px solid #35312A;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;flex-shrink:0;display:grid;place-items:center;transform:rotate(28deg)">
+              <svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="#F0A81E"/></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#746D60">MOT PLATS 1</div>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.02em">820<span style="font-size:14px;color:#A79E8E"> m</span></span>
+                <span style="font-size:13px;color:#A79E8E">NNO · 11 min</span>
+              </div>
+            </div>
+            <div style="width:38px;height:38px;border-radius:4px;background:#24211C;color:#A79E8E;display:grid;place-items:center;flex-shrink:0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></svg>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <div style="width:58px;height:58px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#F2EDE3;display:grid;place-items:center;gap:2px;grid-auto-flow:row;text-align:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:#746D60">LAGER</span>
+            </div>
+            <div style="width:58px;height:58px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#F2EDE3;display:grid;place-items:center;gap:2px;grid-auto-flow:row;text-align:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:#746D60">SKANNA</span>
+            </div>
+            <div style="width:58px;height:58px;border-radius:4px;background:#1A1815;border:1px solid #4C9BD1;color:#4C9BD1;display:grid;place-items:center;gap:2px;grid-auto-flow:row;text-align:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:#4C9BD1">GPS</span>
+            </div>
+          </div>
+
+          <div style="height:72px;border-radius:6px;background:#F0A81E;color:#1A1203;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 6px 20px rgba(0,0,0,.45)">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
+            <span style="font-size:21px;font-weight:700;letter-spacing:-.01em">Spara fynd</span>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:0;right:0;bottom:0;height:78px;background:#131210;border-top:1px solid #35312A;display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:20px">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#F0A81E;position:relative">
+            <div style="position:absolute;top:0;width:34px;height:2px;background:#F0A81E"></div>
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">KARTA</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">PROGNOS</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">FYND</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">ARTER</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">MER</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#A79E8E;text-wrap:pretty">En enda stor handling nederst — 72 px hög, träffas med tummen utan att titta. Sekundära verktyg ligger som 58-px-rutor precis ovanför, höger sida där tummen redan är. Artvalet är flyttat till toppremsan: det byts sällan, men behöver alltid gå att läsa.</p>
+    </div>
+
+    <div id="1b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:#F0A81E;padding:3px 8px;border-radius:4px">1B</span>
+        <span style="font-size:17px;font-weight:600">Instrumentpanel</span>
+        <span style="font-size:13px;color:#A79E8E">riktningen är hela skärmens huvudsak</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#0E0D0B;border:1px solid #35312A;box-shadow:0 24px 60px rgba(0,0,0,.55)">
+        <div style="position:absolute;left:0;right:0;top:0;height:496px;background:#14180F url('https://a.tile.opentopomap.org/14/8856/4872.png') center/175% no-repeat;filter:saturate(.85) brightness(.82)"></div>
+        <canvas data-varme="1" style="position:absolute;left:0;right:0;top:0;height:496px;width:100%;pointer-events:none"></canvas>
+        <div style="position:absolute;left:0;right:0;top:436px;height:60px;background:linear-gradient(to bottom,rgba(14,13,11,0),#0E0D0B)"></div>
+
+        <div style="position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.7)">
+          <span>09:42</span>
+          <span style="display:flex;gap:8px">4G<span style="opacity:.7">78%</span></span>
+        </div>
+
+        <div style="position:absolute;right:12px;top:56px;display:flex;flex-direction:column;gap:8px">
+          <div style="width:50px;height:50px;border-radius:4px;background:#1A1815;border:1px solid #4C9BD1;color:#4C9BD1;display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+          <div style="width:50px;height:50px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#F2EDE3;display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg></div>
+          <div style="width:50px;height:50px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#F2EDE3;display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.4 17c4.4-.6 3-4.6 1.2-6.2C7.8 9.2 9.6 6.4 15.5 6"/></svg></div>
+        </div>
+
+        <div style="position:absolute;left:12px;top:56px;background:#1A1815;border:1px solid #35312A;border-radius:4px;padding:7px 11px;display:flex;align-items:center;gap:9px">
+          <span style="width:11px;height:11px;border-radius:999px;background:#F0A81E"></span>
+          <span style="font-size:14px;font-weight:600">Kantarell</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#746D60" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg>
+        </div>
+
+        <div style="position:absolute;left:186px;top:300px;width:40px;height:40px">
+          <div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4C9BD1"></div>
+          <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#4C9BD1;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)"></div>
+        </div>
+        <div style="position:absolute;left:120px;top:150px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">1</div>
+        <div style="position:absolute;left:276px;top:214px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">2</div>
+        <div style="position:absolute;left:62px;top:352px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">3</div>
+
+        <div style="position:absolute;left:0;right:0;bottom:78px;background:#131210;border-top:1px solid #35312A;padding:16px 16px 18px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:96px;height:96px;flex-shrink:0;border-radius:999px;border:1px solid #35312A;background:#0E0D0B;display:grid;place-items:center;position:relative">
+              <div style="position:absolute;inset:6px;border-radius:999px;border:1px dashed #24211C"></div>
+              <div style="transform:rotate(28deg)"><svg viewBox="0 0 24 24" width="52" height="52"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="#F0A81E"/></svg></div>
+              <span style="position:absolute;top:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;color:#746D60">N</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#746D60;margin-bottom:2px">MOT PLATS 1 · NNO</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:52px;font-weight:600;line-height:.95;letter-spacing:-.03em">820<span style="font-size:20px;color:#A79E8E;letter-spacing:0"> m</span></div>
+              <div style="font-size:14px;color:#A79E8E;margin-top:4px">11 min gång · uppför, 24 m</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:1px;background:#35312A;border:1px solid #35312A;border-radius:4px;overflow:hidden">
+            <div style="flex:1;background:#0E0D0B;padding:9px 11px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#746D60">FRUKTSÄTTNING</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#B8C93A">46%</div>
+            </div>
+            <div style="flex:1;background:#0E0D0B;padding:9px 11px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#746D60">MARKFUKT</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600">31%</div>
+            </div>
+            <div style="flex:1;background:#0E0D0B;padding:9px 11px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#746D60">SKANNAD</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600">2 h</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <div style="width:96px;height:60px;border-radius:6px;background:#1A1815;border:1px solid #35312A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#F2EDE3" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;color:#A79E8E">SKANNA OM</span>
+            </div>
+            <div style="flex:1;height:60px;border-radius:6px;background:#F0A81E;color:#1A1203;display:flex;align-items:center;justify-content:center;gap:10px">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
+              <span style="font-size:20px;font-weight:700">Spara fynd</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:0;right:0;bottom:0;height:78px;background:#0E0D0B;border-top:1px solid #24211C;display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:20px">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#F0A81E;position:relative">
+            <div style="position:absolute;top:0;width:34px;height:2px;background:#F0A81E"></div>
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">KARTA</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">PROGNOS</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">FYND</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">ARTER</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#746D60"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em">MER</span></div>
+        </div>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#A79E8E;text-wrap:pretty">Kartan får 60 % av höjden, panelen resten. Avståndet sätts i 52 px Plex Mono med kompassnålen som roterar mot telefonens riktning — läsbart med utsträckt arm i regn. Siffrorna under är de tre man faktiskt kollar, ingen mer.</p>
+    </div>
+
+    <div id="1c" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:#F0A81E;padding:3px 8px;border-radius:4px">1C</span>
+        <span style="font-size:17px;font-weight:600">Enhandsratt</span>
+        <span style="font-size:13px;color:#A79E8E">maximal karta, verktygen i en båge</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#0E0D0B;border:1px solid #35312A;box-shadow:0 24px 60px rgba(0,0,0,.55)">
+        <div style="position:absolute;inset:0;background:#14180F url('https://a.tile.opentopomap.org/14/8856/4872.png') center/190% no-repeat;filter:saturate(.85) brightness(.82)"></div>
+        <canvas data-varme="1" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+
+        <div style="position:absolute;left:0;right:0;top:0;height:6px;background:#F0A81E"></div>
+        <div style="position:absolute;left:0;right:0;top:6px;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.7)">
+          <span>09:42</span>
+          <span style="display:flex;gap:8px">4G<span style="opacity:.7">78%</span></span>
+        </div>
+
+        <div style="position:absolute;left:12px;right:12px;top:56px;display:flex;align-items:center;gap:8px;background:#1A1815;border:1px solid #35312A;border-radius:4px;padding:8px 10px 8px 12px">
+          <span style="width:11px;height:11px;border-radius:999px;background:#F0A81E;flex-shrink:0"></span>
+          <span style="font-size:14px;font-weight:600">Kantarell</span>
+          <span style="font-size:14px;color:#B8C93A">· bra</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#F0A81E">820 m NNO ↑</span>
+        </div>
+
+        <div style="position:absolute;left:190px;top:430px;width:40px;height:40px">
+          <div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4C9BD1"></div>
+          <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#4C9BD1;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)"></div>
+        </div>
+        <div style="position:absolute;left:104px;top:246px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">1</div>
+        <div style="position:absolute;left:272px;top:318px;width:26px;height:26px;border-radius:999px;background:#F0A81E;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px">2</div>
+        <div style="position:absolute;left:112px;top:452px;width:28px;height:28px;border-radius:999px;background:#F0A81E;border:2.5px solid rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font-size:13px;line-height:1">🟡</div>
+
+        <div style="position:absolute;left:14px;bottom:96px;background:#1A1815;border:1px solid #35312A;border-radius:4px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:7px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:#746D60">STARKT</span>
+          <div style="width:8px;height:132px;border-radius:2px;background:linear-gradient(to top,rgb(92 126 140) 0%,rgb(156 142 58) 30%,rgb(208 136 16) 60%,rgb(234 162 10) 85%,rgb(246 188 16) 100%)"></div>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:#746D60">SVAGT</span>
+        </div>
+
+        <div style="position:absolute;right:-26px;bottom:52px;width:250px;height:250px">
+          <div style="position:absolute;inset:0;border-radius:999px;background:radial-gradient(circle at 100% 100%,rgba(14,13,11,.9) 0%,rgba(14,13,11,.72) 46%,rgba(14,13,11,.34) 72%,rgba(14,13,11,0) 100%)"></div>
+          <div style="position:absolute;right:26px;bottom:26px;width:88px;height:88px;border-radius:999px;background:#F0A81E;color:#1A1203;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
+            <span style="font-size:12px;font-weight:700;letter-spacing:.01em">FYND</span>
+          </div>
+          <div style="position:absolute;right:132px;bottom:32px;width:62px;height:62px;border-radius:999px;background:#1A1815;border:1px solid #35312A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#F2EDE3">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.06em;color:#A79E8E">SKANNA</span>
+          </div>
+          <div style="position:absolute;right:106px;bottom:114px;width:62px;height:62px;border-radius:999px;background:#1A1815;border:1px solid #4C9BD1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#4C9BD1">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.06em">GPS</span>
+          </div>
+          <div style="position:absolute;right:26px;bottom:142px;width:62px;height:62px;border-radius:999px;background:#1A1815;border:1px solid #35312A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#F2EDE3">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.06em;color:#A79E8E">LAGER</span>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:0;right:0;bottom:0;height:52px;background:rgba(14,13,11,.92);border-top:1px solid #24211C;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding-bottom:16px">
+          <div style="display:grid;place-items:center;color:#F0A81E;position:relative"><div style="position:absolute;top:-1px;width:30px;height:2px;background:#F0A81E"></div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg></div>
+          <div style="display:grid;place-items:center;color:#746D60"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg></div>
+          <div style="display:grid;place-items:center;color:#746D60"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg></div>
+          <div style="display:grid;place-items:center;color:#746D60"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg></div>
+          <div style="display:grid;place-items:center;color:#746D60"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+        </div>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#A79E8E;text-wrap:pretty">Kartan är nästan hel. Verktygen ligger i en båge kring tummen nere till höger, med fyndknappen längst ut där tummen vilar. Guldremsan i överkanten pekar mot målet — den syns i periferin utan att man behöver läsa något. Flikraden krymper till ikoner.</p>
+    </div>
+
+    <div id="1d" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:#F0A81E;padding:3px 8px;border-radius:4px">1D</span>
+        <span style="font-size:17px;font-weight:600">Prognos</span>
+        <span style="font-size:13px;color:#A79E8E">svaret först, underlaget efter</span>
+      </div>
+      <div style="position:relative;width:390px;overflow:hidden;border-radius:38px;background:#0E0D0B;border:1px solid #35312A;box-shadow:0 24px 60px rgba(0,0,0,.55);padding-bottom:20px">
+        <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">
+          <span>09:42</span>
+          <span style="display:flex;gap:8px">4G<span style="opacity:.7">78%</span></span>
+        </div>
+
+        <div style="padding:8px 16px 0;display:flex;gap:7px;overflow:hidden">
+          <div style="height:34px;padding:0 12px;border-radius:4px;background:#2A2415;border:1px solid #6B5A20;color:#F2EDE3;display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;flex-shrink:0">Kantarell</div>
+          <div style="height:34px;padding:0 12px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#A79E8E;display:flex;align-items:center;font-size:13.5px;font-weight:600;flex-shrink:0">Trattkantarell</div>
+          <div style="height:34px;padding:0 12px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#A79E8E;display:flex;align-items:center;font-size:13.5px;font-weight:600;flex-shrink:0">Karl Johan</div>
+          <div style="height:34px;padding:0 12px;border-radius:4px;background:#1A1815;border:1px solid #35312A;color:#A79E8E;display:flex;align-items:center;font-size:13.5px;font-weight:600;flex-shrink:0">Svart trumpetsvamp</div>
+        </div>
+
+        <div style="margin:14px 16px 0;background:#131210;border:1px solid #35312A;border-top:3px solid #B8C93A;border-radius:4px;padding:18px 18px 20px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;color:#746D60">KANTARELL · SÖNDAG 30 AUGUSTI</div>
+          <div style="display:flex;align-items:flex-end;gap:14px;margin-top:6px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:76px;font-weight:600;line-height:.9;letter-spacing:-.04em;color:#B8C93A">46<span style="font-size:28px">%</span></div>
+            <div style="padding-bottom:8px">
+              <div style="font-size:22px;font-weight:700;letter-spacing:-.01em;color:#B8C93A">Bra</div>
+              <div style="font-size:14px;color:#A79E8E">chans i din skog</div>
+            </div>
+          </div>
+          <p style="margin:12px 0 0;font-size:15px;line-height:1.5;color:#F2EDE3;text-wrap:pretty">Goda odds om du vet var du ska leta. Marken är fuktig efter regnet för sexton dygn sedan, och säsongen är i topp.</p>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid #24211C;font-size:13.5px;color:#A79E8E">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F0A81E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+            Ljust till 20:14 · 10 h 32 min kvar
+          </div>
+        </div>
+
+        <div style="margin:12px 16px 0;background:#131210;border:1px solid #35312A;border-radius:4px;padding:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px">
+            <h3 style="margin:0;font-size:17px;font-weight:600">Bästa dagen framåt</h3>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#746D60">16 DYGN</span>
+          </div>
+          <div style="font-size:14px;color:#F0A81E;margin-bottom:14px">Fredag 4 september — 55 %</div>
+          <div style="display:flex;gap:3px;align-items:flex-end">
+            <sc-for list="{{ dagar16 }}" as="d" hint-placeholder-count="16">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px">
+                <div style="height:96px;width:100%;display:flex;align-items:flex-end;justify-content:center">
+                  <i style="display:block;width:82%;border-radius:2px 2px 0 0;height: {{ d.h }}; background: {{ d.farg }}"></i>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;color: {{ d.etikettfarg }}">{{ d.dag }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin:12px 16px 0;background:#131210;border:1px solid #35312A;border-radius:4px;padding:16px">
+          <h3 style="margin:0 0 6px;font-size:17px;font-weight:600">Regnet som räknas</h3>
+          <p style="margin:0 0 14px;font-size:13.5px;line-height:1.5;color:#A79E8E;text-wrap:pretty">Kantarellen svarar på regn som föll för ungefär 16 dygn sedan — det gulmarkerade fönstret. Gårdagens skyfall syns inte i korgen förrän om ett par veckor.</p>
+          <div style="position:relative;height:80px;display:flex;gap:1.6px;align-items:flex-end">
+            <div style="position:absolute;left:37%;width:31%;top:0;bottom:0;background:rgba(240,168,30,.14);border-left:1px solid rgba(240,168,30,.4);border-right:1px solid rgba(240,168,30,.4)"></div>
+            <sc-for list="{{ regn }}" as="r" hint-placeholder-count="53">
+              <i style="position:relative;flex:1;border-radius:1px 1px 0 0;height: {{ r.h }}; background: {{ r.farg }}"></i>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;color:#746D60">
+            <span>45 DYGN SEDAN</span>
+            <span style="color:#F0A81E">FÖNSTRET SOM AVGÖR</span>
+            <span>IDAG →</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#35312A;border:1px solid #35312A;border-radius:4px;margin-top:16px;overflow:hidden">
+            <div style="background:#0E0D0B;padding:10px 8px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600">12</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.06em;color:#746D60">MM/7 D</div></div>
+            <div style="background:#0E0D0B;padding:10px 8px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600">41</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.06em;color:#746D60">MM/14 D</div></div>
+            <div style="background:#0E0D0B;padding:10px 8px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600">88</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.06em;color:#746D60">MM/30 D</div></div>
+            <div style="background:#0E0D0B;padding:10px 8px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600">6</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.06em;color:#746D60">D SEN REGN</div></div>
+          </div>
+        </div>
+
+        <div style="margin:12px 16px 0;background:#131210;border:1px solid #35312A;border-radius:4px;padding:16px">
+          <h3 style="margin:0 0 14px;font-size:17px;font-weight:600">Marken just nu</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#B8C93A">31%</div><div style="font-size:12px;line-height:1.3;color:#746D60">markfukt<br>9–27 cm</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#F0A81E">13.4°</div><div style="font-size:12px;line-height:1.3;color:#746D60">marktemp<br>6 cm</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#B8C93A">62%</div><div style="font-size:12px;line-height:1.3;color:#746D60">fruktsättning<br>index</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid #24211C">
+            <div style="display:flex;gap:9px;font-size:13.5px;line-height:1.45;color:#A79E8E"><span style="color:#F0A81E">—</span><span>41 mm i fördröjningsfönstret, nära artens optimum</span></div>
+            <div style="display:flex;gap:9px;font-size:13.5px;line-height:1.45;color:#A79E8E"><span style="color:#F0A81E">—</span><span>Marktemperaturen 13,4° är strax under optimala 16°</span></div>
+            <div style="display:flex;gap:9px;font-size:13.5px;line-height:1.45;color:#A79E8E"><span style="color:#F0A81E">—</span><span>Säsongen är i topp till 20 september</span></div>
+          </div>
+        </div>
+
+        <div style="margin:12px 16px 0;background:#131210;border:1px solid #35312A;border-radius:4px;padding:16px">
+          <h3 style="margin:0 0 12px;font-size:17px;font-weight:600">Vad som står i skogen nu</h3>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ artlage }}" as="a" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #1E1B17">
+                <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background: {{ a.farg }}"></span>
+                <span style="flex:1;min-width:0;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.namn }}</span>
+                <span style="width:78px;height:6px;border-radius:2px;background:#24211C;overflow:hidden;flex-shrink:0"><i style="display:block;height:100%;border-radius:2px;width: {{ a.w }}; background: {{ a.chansfarg }}"></i></span>
+                <span style="width:38px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;color: {{ a.chansfarg }}">{{ a.pct }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <p style="margin:14px 16px 0;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.04em;color:#5C564C">OPEN-METEO ERA5 + ICON · 59.620, 15.200</p>
+      </div>
+      <p style="margin:0;width:390px;font-size:13.5px;line-height:1.5;color:#A79E8E;text-wrap:pretty">Mätaren är borta. Den tog 200 px och sa samma sak som en siffra och ett ord gör bättre. I stället: verdikt högst upp, sedan bästa dagen framåt, sedan bevisen. Rubriken "Bästa dagen framåt" svarar på frågan man faktiskt ställer när man planerar kvällen.</p>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding:20px 56px 90px;font-family:'IBM Plex Sans',sans-serif;color:#F2EDE3">
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:30px;max-width:700px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#746D60">NULÄGE · ÅTERSKAPAT UR KODEN</div>
+    <h2 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-.02em">Dagens gränssnitt</h2>
+    <p style="margin:0;font-size:14.5px;line-height:1.55;color:#A79E8E;text-wrap:pretty">Byggt på <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">global.css</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">KartVy.tsx</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">PrognosVy.tsx</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">Ikoner.tsx</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">Poang.tsx</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">Diagram.tsx</code> och färgskalorna i <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#F0A81E">farg.ts</code>. Samma tokens, samma ikonvägar, samma text.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+    <div id="0a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#A79E8E;border:1px solid #35312A;padding:3px 8px;border-radius:4px">0A</span>
+        <span style="font-size:16px;font-weight:600">Kartvy — som den är idag</span>
+      </div>
+      <div style="position:relative;width:390px;height:844px;overflow:hidden;border-radius:38px;background:#0d1310;border:1px solid #29392e;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#e9f2e8;font-size:16px;line-height:1.45;display:flex;flex-direction:column">
+        <div style="position:relative;flex:1;min-height:0">
+          <div style="position:absolute;inset:0;background:#101a13 url('https://a.tile.opentopomap.org/14/8856/4872.png') center/165% no-repeat"></div>
+          <canvas data-varme="1" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+
+          <div style="position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.7)">
+            <span>09:42</span><span>4G 78%</span>
+          </div>
+
+          <div style="position:absolute;left:190px;top:392px;width:40px;height:40px">
+            <div style="position:absolute;left:50%;top:1px;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #4fa3d9;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))"></div>
+            <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;background:#4fa3d9;border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.5)"></div>
+          </div>
+          <div style="position:absolute;left:96px;top:252px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">1</div>
+          <div style="position:absolute;left:268px;top:316px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">2</div>
+          <div style="position:absolute;left:150px;top:470px;width:26px;height:26px;border-radius:999px;background:#f2b705;color:#1a1203;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.6);display:grid;place-items:center;font-weight:800;font-size:13px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif">3</div>
+          <div style="position:absolute;left:238px;top:208px;width:28px;height:28px;border-radius:999px;background:#f2b705;border:2.5px solid rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font-size:13px;line-height:1">🟡</div>
+
+          <div style="position:absolute;inset:0;padding:54px 12px 12px;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="flex:1;min-width:0">
+                <div style="background:rgba(21,30,23,.94);border:1px solid #3d5544;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;gap:12px;padding:10px 12px">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6f8375">Mot ditt mål</div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:21px">820 m</span>
+                      <span style="font-size:13.5px;color:#a0b3a4">NNO</span>
+                    </div>
+                  </div>
+                  <div style="flex-shrink:0;transform:rotate(28deg)"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3 19 20l-7-4-7 4 7-17Z" fill="#f2b705"/></svg></div>
+                  <div style="width:34px;height:34px;flex-shrink:0;border-radius:999px;background:#24332a;color:#a0b3a4;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></svg></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="width:44px;height:44px;border-radius:13px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+                <div style="width:44px;height:44px;border-radius:13px;background:rgba(21,30,23,.92);border:1px solid #3d5544;color:#e9f2e8;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/><path d="m3.5 16.5 8.5 4.7 8.5-4.7"/></svg></div>
+                <div style="width:44px;height:44px;border-radius:13px;background:rgba(21,30,23,.92);border:1px solid #3d5544;color:#e9f2e8;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.4 17c4.4-.6 3-4.6 1.2-6.2C7.8 9.2 9.6 6.4 15.5 6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(21,30,23,.94);border:1px solid #3d5544;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:7px;min-height:30px;margin:-4px 0 -2px;color:#a0b3a4">
+                <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6f8375">Svampläge</span>
+                <span style="flex:1"></span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6f8375" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg>
+              </div>
+              <div style="display:flex;gap:7px;margin:8px -14px 10px;padding:2px 14px;overflow:hidden">
+                <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.16);border:1px solid rgba(242,183,5,.45);color:#e9f2e8;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+                <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+                <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+                <div style="font-size:13.5px;flex:1"><span style="color:#a0b3a4">Fruktsättning: </span><span style="font-weight:650;color:rgb(106 152 51)">bra</span></div>
+                <div style="font-size:12px;font-weight:650;color:#f2b705;flex-shrink:0">Dölj</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;color:#6f8375">
+                <span>Ljust till 20:14</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="font-size:12px;color:#6f8375">Svagt</span>
+                <div style="flex:1;height:8px;border-radius:999px;background:linear-gradient(90deg,rgb(92 126 140) 0%,rgb(156 142 58) 30%,rgb(208 136 16) 60%,rgb(234 162 10) 85%,rgb(246 188 16) 100%)"></div>
+                <span style="font-size:12px;color:#6f8375">Starkt</span>
+                <div style="display:flex;background:#1c2820;border:1px solid #29392e;border-radius:14px;padding:2px;gap:3px;margin-left:4px">
+                  <div style="min-height:28px;padding:0 9px;border-radius:10px;background:#24332a;color:#e9f2e8;font-size:12px;font-weight:600;display:grid;place-items:center">Mark</div>
+                  <div style="min-height:28px;padding:0 9px;border-radius:10px;color:#a0b3a4;font-size:12px;font-weight:600;display:grid;place-items:center">Idag</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;min-height:46px;border-radius:14px;background:#1c2820;border:1px solid #3d5544;color:#e9f2e8;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M12 12 18 6.2"/></svg>Skanna om</div>
+              <div style="flex:1;min-height:46px;border-radius:14px;background:#f2b705;border:1px solid #f2b705;color:#191203;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v13M5.5 12h13"/></svg>Spara fynd</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;background:rgba(15,23,18,.94);border-top:1px solid #29392e;padding-bottom:20px;flex-shrink:0">
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#f2b705;font-size:11px;font-weight:600;position:relative">
+            <div style="position:absolute;top:0;width:30px;height:2.5px;border-radius:0 0 3px 3px;background:#f2b705"></div>
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z"/><path d="M9 4v13M15 7v13"/></svg><span>Karta</span>
+          </div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15.5a3.8 3.8 0 0 1 .5-7.6 5.2 5.2 0 0 1 9.9 1.2A3.4 3.4 0 0 1 17 15.5H7Z"/><path d="M8.5 18.5 7.5 21M12 18.5 11 21M15.5 18.5 14.5 21"/></svg><span>Prognos</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9h17l-1.6 9.2a2 2 0 0 1-2 1.8H7.1a2 2 0 0 1-2-1.8L3.5 9Z"/><path d="M8 9 10 4.5M16 9 14 4.5M9 12.5v4M15 12.5v4M12 12.5v4"/></svg><span>Fynd</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3"/><path d="M8.5 8h6M8.5 11.5h4"/></svg><span>Arter</span></div>
+          <div style="flex:1;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6f8375;font-size:11px;font-weight:600"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></svg><span>Mer</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="0b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#A79E8E;border:1px solid #35312A;padding:3px 8px;border-radius:4px">0B</span>
+        <span style="font-size:16px;font-weight:600">Prognosvy — utrullad</span>
+      </div>
+      <div style="width:390px;border-radius:38px;background:#0d1310;border:1px solid #29392e;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#e9f2e8;font-size:16px;line-height:1.45;overflow:hidden;padding-bottom:24px">
+        <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600"><span>09:42</span><span>4G 78%</span></div>
+        <div style="padding:14px 16px 0">
+          <div style="display:flex;gap:7px;margin:0 -16px 14px;padding:2px 16px;overflow:hidden">
+            <div style="min-height:36px;padding:0 13px;border-radius:999px;background:rgba(242,183,5,.16);border:1px solid rgba(242,183,5,.45);color:#e9f2e8;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟡</span>Kantarell</div>
+            <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟤</span>Trattkantarell</div>
+            <div style="min-height:36px;padding:0 13px;border-radius:999px;background:#1c2820;border:1px solid #29392e;color:#a0b3a4;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;flex-shrink:0"><span>🟫</span>Karl Johan</div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:18px 14px 14px;margin-bottom:12px">
+            <div style="position:relative;display:grid;justify-items:center">
+              <svg viewBox="0 0 160 160" width="184" height="184" style="display:block">
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#24332a" stroke-width="13" stroke-linecap="round" stroke-dasharray="292.17 389.56" transform="rotate(135 80 80)"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="rgb(106 152 51)" stroke-width="13" stroke-linecap="round" stroke-dasharray="134.4 389.56" transform="rotate(135 80 80)"/>
+              </svg>
+              <div style="position:absolute;top:78px;left:0;right:0;transform:translateY(-50%);text-align:center">
+                <div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.02em;font-size:46px;line-height:1;color:rgb(106 152 51)">46<span style="font-size:20px;margin-left:1px">%</span></div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6f8375;margin-top:4px">KANTARELL</div>
+              </div>
+              <div style="text-align:center;margin-top:-10px">
+                <div style="font-weight:650;color:rgb(106 152 51);font-size:17px">Bra</div>
+                <div style="font-size:13.5px;color:#a0b3a4">Goda odds om du vet var du ska leta</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;font-size:13.5px;color:#a0b3a4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>Ljust till 20:14</div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+              <h3 style="margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;flex:1">Kommande dygn</h3>
+              <span style="font-size:13.5px;color:#a0b3a4">Toppsäsong</span>
+            </div>
+            <div style="display:flex;gap:3px;align-items:flex-end">
+              <sc-for list="{{ dagar12 }}" as="d" hint-placeholder-count="12">
+                <div style="flex:1;min-width:0;text-align:center;display:grid;gap:2px;padding:3px 1px;border-radius:8px;background: {{ d.bakgrund }}; outline: {{ d.kontur }}">
+                  <div style="height:82px;display:flex;align-items:flex-end;justify-content:center"><i style="display:block;width:74%;border-radius:3px 3px 1px 1px;height: {{ d.h }}; background: {{ d.farg }}"></i></div>
+                  <div style="font-size:12px;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;color: {{ d.taletsfarg }}">{{ d.pct }}</div>
+                  <div style="font-size:12px;color:#6f8375">{{ d.dag }}</div>
+                  <div style="font-size:12px;color:#6f8375;opacity:.6">{{ d.datum }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:13.5px;margin-top:12px;color:#ffd24a">Bäst dag: fredag 4 september — 55 %</div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Regnet som räknas</h3>
+            <p style="margin:0 0 10px;font-size:13.5px;color:#a0b3a4">Kantarell reagerar på regn som föll för ungefär 16 dygn sedan — det är det gulmarkerade fönstret. Gårdagens skyfall syns inte i korgen förrän om ett par veckor.</p>
+            <div style="position:relative;height:66px;display:flex;gap:1.6px;align-items:flex-end;border-bottom:1px solid #29392e">
+              <div style="position:absolute;left:37%;width:31%;top:0;bottom:0;background:rgba(242,183,5,.13)"></div>
+              <sc-for list="{{ regn }}" as="r" hint-placeholder-count="53">
+                <i style="position:relative;flex:1;border-radius:1.4px;height: {{ r.h }}; background: {{ r.gammalfarg }}"></i>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:12px;color:#6f8375">
+              <span>45 dygn sedan</span><span style="color:#f2b705">fönstret som avgör</span><span>idag →</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:10px;margin-top:14px">
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em">12</div><div style="font-size:11px;color:#6f8375;font-weight:600">mm / 7 d</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em">41</div><div style="font-size:11px;color:#6f8375;font-weight:600">mm / 14 d</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em">88</div><div style="font-size:11px;color:#6f8375;font-weight:600">mm / 30 d</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em">6</div><div style="font-size:11px;color:#6f8375;font-weight:600">dygn sen regn</div></div>
+            </div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Marken just nu</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:10px;margin-bottom:12px">
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em;color:rgb(120 158 43)">31%</div><div style="font-size:11px;color:#6f8375;font-weight:600">markfukt 9–27 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em;color:rgb(214 164 13)">13.4°</div><div style="font-size:11px;color:#6f8375;font-weight:600">marktemp 6 cm</div></div>
+              <div style="text-align:center"><div style="font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;letter-spacing:-.02em;color:rgb(196 154 16)">62%</div><div style="font-size:11px;color:#6f8375;font-weight:600">fruktsättning</div></div>
+            </div>
+            <ul style="margin:0;padding-left:17px;font-size:13.5px;color:#a0b3a4;line-height:1.5">
+              <li style="margin-bottom:3px">41 mm i fördröjningsfönstret, nära artens optimum</li>
+              <li style="margin-bottom:3px">Marktemperaturen 13,4° är strax under optimala 16°</li>
+              <li style="margin-bottom:3px">Säsongen är i topp till 20 september</li>
+            </ul>
+            <div style="font-size:13.5px;margin-top:12px;color:rgb(106 152 51)">Bra. Goda odds om du vet var du ska leta.</div>
+          </div>
+
+          <div style="background:#151e17;border:1px solid #29392e;border-radius:14px;padding:14px;margin-bottom:12px">
+            <h3 style="margin:0 0 10px;font-size:17px;font-weight:650;letter-spacing:-.01em">Vad som står i skogen nu</h3>
+            <div style="display:grid;gap:2px">
+              <sc-for list="{{ artlage }}" as="a" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px;margin:0 -8px;border-radius:8px;text-align:left">
+                  <span style="font-size:17px;width:22px;text-align:center">{{ a.emoji }}</span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;font-size:13.5px">{{ a.namn }}</span>
+                  <span style="width:74px;height:7px;border-radius:999px;background:#24332a;overflow:hidden"><i style="display:block;height:100%;border-radius:999px;width: {{ a.w }}; background: {{ a.chansfarg }}"></i></span>
+                  <span style="width:34px;text-align:right;font-family:ui-rounded,-apple-system,'SF Pro Rounded',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color: {{ a.chansfarg }}">{{ a.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <p style="margin:4px 0 0;text-align:center;font-size:12px;color:#6f8375">Väderdata från Open-Meteo (ERA5 och ICON). Position 59.620, 15.200.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1800,&quot;height&quot;:1200}}">
+const SKALA = [
+  [0.0, [30, 46, 62]], [0.15, [42, 84, 82]], [0.32, [58, 122, 74]],
+  [0.48, [113, 156, 48]], [0.62, [196, 154, 16]], [0.75, [242, 183, 5]], [1.0, [255, 216, 87]],
+];
+const VARME_LJUS = [
+  [0.0, [92, 126, 140]], [0.3, [156, 142, 58]], [0.6, [208, 136, 16]],
+  [0.85, [234, 162, 10]], [1.0, [246, 188, 16]],
+];
+
+function ramp(r, v) {
+  const t = Math.max(0, Math.min(1, v));
+  for (let i = 0; i < r.length - 1; i++) {
+    const [a, fa] = r[i], [b, fb] = r[i + 1];
+    if (t <= b) {
+      const k = b === a ? 0 : (t - a) / (b - a);
+      return [0, 1, 2].map((j) => Math.round(fa[j] + (fb[j] - fa[j]) * k));
+    }
+  }
+  return r[r.length - 1][1];
+}
+const chansfarg = (v) => { const c = ramp(SKALA, v); return `rgb(${c[0]} ${c[1]} ${c[2]})`; };
+
+/* Determinstisk pseudoterräng — samma bild varje gång. */
+function brus(x, y) {
+  const v = Math.sin(x * 0.9 + 1.3) * Math.cos(y * 0.7 - 0.4)
+    + 0.6 * Math.sin(x * 0.31 - y * 0.42 + 2.1)
+    + 0.4 * Math.cos(x * 1.9 + y * 1.4);
+  return (v / 2 + 0.5);
+}
+
+class Component extends DCLogic {
+  componentDidMount() {
+    requestAnimationFrame(() => this.mala());
+  }
+
+  mala() {
+    document.querySelectorAll('canvas[data-varme]').forEach((c) => {
+      const w = c.clientWidth, h = c.clientHeight;
+      if (!w || !h) return;
+      const dpr = 2;
+      c.width = w * dpr; c.height = h * dpr;
+      const g = c.getContext('2d');
+      g.scale(dpr, dpr);
+      const cell = 16;
+      const cx = w / 2, cy = h * 0.46, R = Math.min(w, h) * 0.52;
+      for (let y = 0; y < h; y += cell) {
+        for (let x = 0; x < w; x += cell) {
+          const mx = x + cell / 2, my = y + cell / 2;
+          const d = Math.hypot(mx - cx, my - cy) / R;
+          if (d > 1) continue;
+          let t = brus(x / cell, y / cell);
+          t = Math.max(0, Math.min(1, t * (1 - 0.35 * d * d)));
+          const rgb = ramp(VARME_LJUS, t);
+          g.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.22 + 0.66 * Math.pow(t, 0.85)})`;
+          g.fillRect(x, y, cell, cell);
+        }
+      }
+    });
+  }
+
+  renderVals() {
+    const mm = [0, 0, 2, 11, 4, 0, 0, 1, 0, 6, 14, 9, 0, 0, 0, 3, 0, 0, 8, 22, 5, 1, 0, 0, 0,
+      2, 0, 0, 0, 4, 1, 0, 0, 0, 9, 3, 0, 0, 0, 0, 6, 2, 0, 0, 0, 3, 0, 7, 1, 0, 0, 4, 0];
+    const idag = 44;
+    const max = Math.max(...mm);
+    const regn = mm.map((v, i) => ({
+      h: `${Math.max(v > 0 ? 2 : 0, (v / max) * 100)}%`,
+      farg: i > idag ? 'rgba(76,155,209,.45)' : '#4C9BD1',
+      gammalfarg: i > idag ? 'rgba(79,163,217,0.5)' : '#4fa3d9',
+    }));
+
+    const veckodagar = ['sö', 'må', 'ti', 'on', 'to', 'fr', 'lö'];
+    const serie16 = [0.46, 0.47, 0.49, 0.52, 0.54, 0.55, 0.53, 0.50, 0.47, 0.45, 0.44, 0.42,
+      0.41, 0.39, 0.37, 0.35];
+    const bast = serie16.indexOf(Math.max(...serie16));
+    const dagar16 = serie16.map((v, i) => ({
+      h: `${Math.max(5, (v / 0.6) * 100)}%`,
+      farg: chansfarg(v),
+      dag: i === 0 ? 'IDAG' : veckodagar[(i) % 7].toUpperCase(),
+      etikettfarg: i === bast ? '#F0A81E' : '#746D60',
+    }));
+
+    const dagar12 = serie16.slice(0, 12).map((v, i) => ({
+      h: `${Math.max(4, v * 100)}%`,
+      farg: chansfarg(v),
+      pct: String(Math.round(v * 100)),
+      dag: i === 0 ? 'idag' : veckodagar[i % 7],
+      datum: String(30 + i > 31 ? 30 + i - 31 : 30 + i),
+      bakgrund: i === bast ? 'rgba(242,183,5,0.14)' : 'transparent',
+      kontur: i === bast ? '1px solid rgba(242,183,5,0.4)' : 'none',
+      taletsfarg: i === bast ? '#f2b705' : '#a0b3a4',
+    }));
+
+    const rader = [
+      ['Kantarell', '🟡', '#f2b705', 46],
+      ['Karl Johan', '🟫', '#8b5e34', 41],
+      ['Blodriska', '🟠', '#d2691e', 33],
+      ['Fårticka', '🐑', '#d8cfae', 29],
+      ['Sandsopp', '🟨', '#c9a227', 24],
+      ['Trattkantarell', '🟤', '#c98a3c', 18],
+      ['Blek taggsvamp', '🤍', '#e8dcc0', 15],
+      ['Svart trumpetsvamp', '⚫', '#4a4a52', 11],
+      ['Brunsopp', '🌰', '#6f4e2e', 9],
+    ];
+    const artlage = rader.map(([namn, emoji, farg, pct]) => ({
+      namn, emoji, farg,
+      pct: `${pct}%`,
+      w: `${Math.max(2, pct)}%`,
+      chansfarg: chansfarg(pct / 100),
+    }));
+
+    return { regn, dagar16, dagar12, artlage, artlage5: artlage.slice(0, 5) };
+  }
+}
+</script>
+</body>
+</html>
