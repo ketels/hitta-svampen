@@ -11,8 +11,15 @@ import { cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
 import { ringBBox } from '../lib/geo.ts'
 import type { BBox, Host, LatLng, Marktyp } from '../lib/types.ts'
 
-/** Flera speglar — om en är överbelastad tar vi nästa. Huvudservern först;
- *  den är snabbast och de andra går ofta ned i timeout. */
+/**
+ * Appens egen proxy. Måste komma först: Overpass svarar 406 på webbläsarlika
+ * User-Agents, och en webbläsare får inte sätta den headern själv, så de
+ * direkta speglarna nedan är oanvändbara från telefonen hur många de än är.
+ * Proxyn identifierar sig korrekt och cachar dessutom svaret i en vecka.
+ */
+const PROXY = '/api/overpass'
+
+/** Direkta speglar. Fungerar utanför webbläsaren — tester och skript. */
 const SPEGLAR = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
@@ -183,32 +190,39 @@ export async function hamtaLandtacke(
   const cachad = await cacheLas<Landtacke>(nyckel)
   if (cachad) return cachad
 
-  const kropp = 'data=' + encodeURIComponent(fraga(box))
+  const text = fraga(box)
+  const kropp = 'data=' + encodeURIComponent(text)
   let sistaFel: unknown = null
 
-  // Overpass är gratis och därefter belastad. Ett 502 betyder oftast bara
-  // "kom tillbaka om en stund", så vi går varvet runt två gånger.
-  const forsok: string[] = [...SPEGLAR, ...SPEGLAR]
+  // I webbläsaren finns bara en väg som fungerar. Utanför den — tester,
+  // skript — går vi direkt mot speglarna, två varv eftersom ett 502 från
+  // Overpass oftast bara betyder "kom tillbaka om en stund".
+  const iWebblasare = typeof window !== 'undefined' && typeof document !== 'undefined'
+  const forsok: string[] = iWebblasare ? [PROXY, PROXY] : [...SPEGLAR, ...SPEGLAR]
+  const varvLangd = iWebblasare ? 1 : SPEGLAR.length
   const slutTid = Date.now() + budgetMs
 
-  for (const [i, spegel] of forsok.entries()) {
+  for (const [i, mal] of forsok.entries()) {
     const kvar = slutTid - Date.now()
     if (kvar <= 1500) break
-    if (i === SPEGLAR.length) await new Promise((r) => setTimeout(r, Math.min(2000, kvar / 4)))
+    if (i === varvLangd) await new Promise((r) => setTimeout(r, Math.min(2000, kvar / 4)))
     const klocka = new AbortController()
     const avbryt = setTimeout(() => klocka.abort(), Math.min(SPEGEL_TIMEOUT_MS, slutTid - Date.now()))
     const koppla = () => klocka.abort()
     signal?.addEventListener('abort', koppla)
     try {
-      const svar = await fetch(spegel, {
-        method: 'POST',
-        body: kropp,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': AGENT },
-        signal: klocka.signal,
-      })
+      const svar =
+        mal === PROXY
+          ? await fetch(`${PROXY}?data=${encodeURIComponent(text)}`, { signal: klocka.signal })
+          : await fetch(mal, {
+              method: 'POST',
+              body: kropp,
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': AGENT },
+              signal: klocka.signal,
+            })
       if (!svar.ok) {
-        const text = await svar.text().catch(() => '')
-        throw new Error(`Overpass ${svar.status}: ${text.slice(0, 300).replace(/\s+/g, ' ')}`)
+        const felText = await svar.text().catch(() => '')
+        throw new Error(`Overpass ${svar.status}: ${felText.slice(0, 200).replace(/\s+/g, ' ')}`)
       }
       const j = (await svar.json()) as { elements: OverpassEl[] }
       const res = tolka(j.elements, box)

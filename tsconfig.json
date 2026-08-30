@@ -18,5 +18,5 @@
     "types": ["vite/client"],
     "useDefineForClassFields": true
   },
-  "include": ["src"]
+  "include": ["src", "api"]
 }
