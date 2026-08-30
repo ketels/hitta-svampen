@@ -7,7 +7,7 @@
  * försiktiga antaganden i stället för att gissa fel.
  */
 
-import { cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
+import { cacheHittaTackande, cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
 import { ringBBox } from '../lib/geo.ts'
 import type { BBox, Host, LatLng, Marktyp } from '../lib/types.ts'
 
@@ -190,6 +190,12 @@ export async function hamtaLandtacke(
   const cachad = await cacheLas<Landtacke>(nyckel)
   if (cachad) return cachad
 
+  /* En förhämtad trakt täcker de skanningar man sedan gör inuti den. Extra
+     ytor utanför den efterfrågade rutan gör ingen skada — rastreringen läser
+     bara det som hamnar i rutnätet ändå. */
+  const tackande = await cacheHittaTackande<Landtacke>('osm:', box)
+  if (tackande) return tackande
+
   const text = fraga(box)
   const kropp = 'data=' + encodeURIComponent(text)
   let sistaFel: unknown = null
@@ -302,4 +308,78 @@ export const MARKTYP_NAMN: Record<Marktyp, string> = {
   bebyggt: 'Bebyggt',
   hygge: 'Hygge',
   okant: 'Okänt',
+}
+
+/* ---------- Förhämtning ---------- */
+
+/**
+ * Hur brett område som förhämtas, i meter. Ytan — och därmed svarets storlek
+ * och Overpass belastning — växer kvadratiskt, så det här är en avvägning.
+ * Sex och en halv kilometer täcker en normal runda runt bilen och håller
+ * svaret i en storlek som går igenom.
+ */
+export const FORHAMTNING_BREDD_M = 6_500
+
+/** Tålmodiga omförsök. Det här körs vid köksbordet, inte i skogen. */
+const OMFORSOK_MS = [4_000, 20_000, 45_000, 90_000]
+
+export type ForhamtningsLage = {
+  forsok: number
+  avForsok: number
+  vantar: boolean
+  sekunderKvar: number
+}
+
+/**
+ * Hämtar hem landtäcket för trakten i förväg och lägger det i cachen.
+ *
+ * Overpass släpper igenom ungefär två anrop per adress innan den stryper, och
+ * en delad moln-adress ligger ofta redan på taket. Realtidshämtning ute i
+ * skogen är därför ett lotteri. Det här gör den till ett förberedelsesteg som
+ * får ta tid: fyra försök över ett par minuter, med växande paus emellan.
+ *
+ * Lyckas det ligger svaret i cachen en vecka, och skanningar inuti området
+ * hittar det utan att gå ut på nätet — se `cacheHittaTackande`.
+ */
+export async function forhamtaLandtacke(
+  centrum: { lat: number; lon: number },
+  signal: AbortSignal,
+  framsteg: (lage: ForhamtningsLage) => void,
+): Promise<boolean> {
+  const halva = FORHAMTNING_BREDD_M / 2
+  const dLat = halva / 111_320
+  const dLon = halva / (111_320 * Math.cos((centrum.lat * Math.PI) / 180))
+  const box: BBox = {
+    south: centrum.lat - dLat,
+    north: centrum.lat + dLat,
+    west: centrum.lon - dLon,
+    east: centrum.lon + dLon,
+  }
+
+  for (let i = 0; i < OMFORSOK_MS.length; i++) {
+    if (signal.aborted) return false
+    framsteg({ forsok: i + 1, avForsok: OMFORSOK_MS.length, vantar: false, sekunderKvar: 0 })
+    try {
+      // Generös budget: ingen väntar i regnet på den här.
+      await hamtaLandtacke(box, signal, 40_000)
+      return true
+    } catch {
+      if (i === OMFORSOK_MS.length - 1 || signal.aborted) return false
+    }
+
+    // Nedräkning under pausen, så det syns att appen inte hängt sig.
+    const paus = OMFORSOK_MS[i]!
+    const slut = Date.now() + paus
+    while (Date.now() < slut) {
+      if (signal.aborted) return false
+      framsteg({
+        forsok: i + 1,
+        avForsok: OMFORSOK_MS.length,
+        vantar: true,
+        sekunderKvar: Math.ceil((slut - Date.now()) / 1000),
+      })
+      await new Promise((r) => setTimeout(r, 500))
+    }
+  }
+  return false
 }

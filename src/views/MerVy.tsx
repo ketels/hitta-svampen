@@ -6,6 +6,7 @@ import {
   sparaFynd, sparaSpar,
 } from '../lib/db.ts'
 import { LAGER, laddaNedOmrade, raknaRutor } from '../components/kartlager.ts'
+import { FORHAMTNING_BREDD_M, forhamtaLandtacke } from '../data/overpass.ts'
 import { Hojdmosaik } from '../data/hojdkakel.ts'
 import { antal } from '../lib/geo.ts'
 import { larandeOversikt } from '../model/personlig.ts'
@@ -23,6 +24,7 @@ export function MerVy() {
   const [lagring, setLagring] = useState({ anvant: 0, kvot: 0 })
   const [radie, setRadie] = useState(5)
   const [laddar, setLaddar] = useState<{ klara: number; totalt: number; vad: string } | null>(null)
+  const [skogsdata, setSkogsdata] = useState<'vantar' | 'klar' | 'misslyckades' | null>(null)
   const [klarText, setKlarText] = useState<string | null>(null)
   const [bekraftaRensa, setBekraftaRensa] = useState(false)
   const [kallstart, setKallstart] = useState<'ja' | 'nej' | 'okand'>('okand')
@@ -88,6 +90,27 @@ export function MerVy() {
         ctrl.signal,
         (klara, totalt) => setLaddar({ klara, totalt, vad: 'Höjddata' }),
       )
+
+      /* Skogsdatan sist, och med tålamod. Overpass stryper hårt och är det
+         enda steget som brukar strula ute i skogen — här får den i stället
+         några minuter vid köksbordet, och sedan ligger den i cachen. */
+      if (plats) {
+        setSkogsdata('vantar')
+        const lyckades = await forhamtaLandtacke(
+          { lat: plats.lat, lon: plats.lon },
+          ctrl.signal,
+          (l) =>
+            setLaddar({
+              klara: l.forsok,
+              totalt: l.avForsok,
+              vad: l.vantar
+                ? `Skogsdata — väntar ${l.sekunderKvar} s före försök ${l.forsok + 1}`
+                : `Skogsdata, försök ${l.forsok} av ${l.avForsok}`,
+            }),
+        )
+        setSkogsdata(lyckades ? 'klar' : 'misslyckades')
+      }
+
       setKlarText(
         `Klart. ${res.hamtade} nya rutor sparade${res.hoppade ? `, ${res.hoppade} fanns redan` : ''}.`,
       )
@@ -97,7 +120,7 @@ export function MerVy() {
       setLaddar(null)
       void uppdateraStatus()
     }
-  }, [bounds, uppskattat, app.kartlager, uppdateraStatus])
+  }, [bounds, uppskattat, app.kartlager, uppdateraStatus, plats])
 
   const exportera = useCallback(() => {
     const data = {
@@ -153,8 +176,14 @@ export function MerVy() {
       <div className="kort">
         <div className="kort-rubrik"><h3>Kartor för offline</h3></div>
         <p className="liten svag">
-          Det finns sällan mobilnät där svampen står. Ladda hem kartan och höjddatan i
-          förväg så fungerar kartan, GPS:en och punktanalysen ändå.
+          Det finns sällan mobilnät där svampen står. Ladda hem karta, höjddata och
+          skogstyper i förväg så fungerar kartan, GPS:en, skanningen och punktanalysen
+          ändå.
+        </p>
+        <p className="mini svagast" style={{ marginTop: 8 }}>
+          Skogsdatan kommer från Overpass, som stryper hårt och ofta failar om man
+          frågar ute i skogen. Här får den några minuter och flera försök i stället —
+          och sedan ligger den kvar i en vecka.
         </p>
 
         {plats ? (
@@ -197,6 +226,19 @@ export function MerVy() {
         )}
 
         {klarText ? <div className="liten" style={{ marginTop: 10, color: 'var(--guld-ljus)' }}>{klarText}</div> : null}
+
+        {skogsdata === 'klar' ? (
+          <div className="liten" style={{ marginTop: 8, color: 'var(--gron)' }}>
+            Skogsdata hämtad för {(FORHAMTNING_BREDD_M / 1000).toFixed(1)} km runt din position.
+            Skanningar där hittar den utan nät.
+          </div>
+        ) : skogsdata === 'misslyckades' ? (
+          <div className="liten" style={{ marginTop: 8, color: 'var(--orange)' }}>
+            Skogsdatan gick inte att hämta — Overpass stryper hårt just nu. Kartan och
+            höjddatan finns ändå, och du kan försöka igen om en stund. Utan den bygger
+            skanningen bara på terrängen.
+          </div>
+        ) : null}
 
         <hr className="skiljare" />
         <div className="rad mellan liten" style={{ marginBottom: 6 }}>
