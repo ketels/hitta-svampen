@@ -15,7 +15,13 @@
  * koordinatruta, och den passerar bara genom din egen Vercel-instans.
  */
 
-export const config = { runtime: 'edge' }
+/*
+ * Node-runtime, inte edge. Edge-miljön är Workers-baserad och får skriva om
+ * utgående headers — inklusive `User-Agent`, som är själva anledningen till
+ * att den här funktionen finns. Node kör vanlig fetch och skickar det man ber
+ * den skicka.
+ */
+export const config = { runtime: 'nodejs' }
 
 const SPEGLAR = [
   'https://overpass-api.de/api/interpreter',
@@ -63,7 +69,7 @@ export default async function handler(req: Request): Promise<Response> {
   // uppenbart missbruk utan att komma i vägen.
   if (fraga.length > 8000) return json({ fel: 'Frågan är för lång.' }, 413)
 
-  let sistaFel = 'Ingen spegel svarade.'
+  const kedja: string[] = []
   const slutTid = Date.now() + TOTAL_BUDGET_MS
 
   for (const spegel of SPEGLAR) {
@@ -78,7 +84,11 @@ export default async function handler(req: Request): Promise<Response> {
         signal: klocka.signal,
       })
       if (!svar.ok) {
-        sistaFel = `${new URL(spegel).host} svarade ${svar.status}`
+        // Statuskoden avslöjar vad som är fel: 406 betyder att User-Agenten
+        // inte accepteras, 429 att vi kör för hårt, 403 att adressen är
+        // blockerad. Utan den skillnaden går problemet inte att laga.
+        const detalj = (await svar.text().catch(() => '')).slice(0, 80).replace(/\s+/g, ' ')
+        kedja.push(`${new URL(spegel).host}=${svar.status}${detalj ? ` (${detalj})` : ''}`)
         continue
       }
       const kropp = await svar.text()
@@ -92,14 +102,15 @@ export default async function handler(req: Request): Promise<Response> {
         },
       })
     } catch (e) {
-      sistaFel =
-        e instanceof Error && e.name === 'AbortError'
-          ? `${new URL(spegel).host} svarade inte i tid`
-          : `${new URL(spegel).host} gick inte att nå`
+      kedja.push(
+        `${new URL(spegel).host}=${
+          e instanceof Error && e.name === 'AbortError' ? 'timeout' : 'onåbar'
+        }`,
+      )
     } finally {
       clearTimeout(avbryt)
     }
   }
 
-  return json({ fel: sistaFel }, 502, { 'Cache-Control': 'no-store' })
+  return json({ fel: 'Ingen spegel svarade.', speglar: kedja }, 502, { 'Cache-Control': 'no-store' })
 }
