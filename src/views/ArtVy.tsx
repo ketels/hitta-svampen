@@ -6,6 +6,7 @@ import { anpassaArt } from '../model/personlig.ts'
 import { useApp } from '../state/app.tsx'
 import { Ark } from '../components/Ark.tsx'
 import { IkonNed, IkonVarning } from '../components/Ikoner.tsx'
+import { artIkon, artfarg } from '../components/Artikoner.tsx'
 import type { Species } from '../lib/types.ts'
 
 const MANADER = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
@@ -77,7 +78,7 @@ export function ArtVy() {
       {arter.map(({ a, sasong }) => (
         <button key={a.id} className="kort artkort" onClick={() => setOppen(a.id)}>
           <div className="rad" style={{ gap: 12, marginBottom: 10 }}>
-            <span style={{ fontSize: 26 }}>{a.emoji}</span>
+            {(() => { const Ikon = artIkon(a.id); return <Ikon size={26} style={{ color: artfarg(a.id) }} /> })()}
             <span className="vaxa" style={{ minWidth: 0 }}>
               <span className="rad" style={{ gap: 8 }}>
                 <h3 className="trunka">{a.namn}</h3>
@@ -93,7 +94,16 @@ export function ArtVy() {
       ))}
 
       {vald ? (
-        <Ark titel={`${vald.emoji} ${vald.namn}`} underrubrik={vald.latin} onStang={() => setOppen(null)}>
+        <Ark
+          titel={
+            <span className="rad" style={{ gap: 9 }}>
+              {(() => { const Ikon = artIkon(vald.id); return <Ikon size={22} style={{ color: artfarg(vald.id) }} /> })()}
+              {vald.namn}
+            </span>
+          }
+          underrubrik={vald.latin}
+          onStang={() => setOppen(null)}
+        >
           <div className="kort">
             <div className="etikett" style={{ marginBottom: 6 }}>Var den växer</div>
             <p className="liten">{vald.var}</p>

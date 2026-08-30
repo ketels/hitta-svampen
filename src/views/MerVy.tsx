@@ -13,10 +13,17 @@ import { larandeOversikt } from '../model/personlig.ts'
 import { useApp } from '../state/app.tsx'
 import { IkonNedladdning, IkonVarning } from '../components/Ikoner.tsx'
 import type { Find, Spar } from '../lib/types.ts'
+import type { Tema } from '../lib/tema.ts'
 
 const mb = (bytes: number) => `${(bytes / 1048576).toFixed(bytes > 104857600 ? 0 : 1)} MB`
 
 const RADIER = [2, 5, 10]
+
+const TEMAN: { id: Tema; namn: string }[] = [
+  { id: 'auto', namn: 'Auto' },
+  { id: 'ljus', namn: 'Ljust' },
+  { id: 'mork', namn: 'Mörkt' },
+]
 
 export function MerVy() {
   const app = useApp()
@@ -171,6 +178,24 @@ export function MerVy() {
         Habitatanalys, väderprognos och dina egna svampställen. Allt ligger på den
         här telefonen — inga konton, ingen server, inget som delas.
       </p>
+
+      {/* --- Utseende --- */}
+      <div className="kort">
+        <div className="kort-rubrik"><h3>Utseende</h3></div>
+        <div className="segment">
+          {TEMAN.map((t) => (
+            <button key={t.id} aria-pressed={app.tema === t.id} onClick={() => app.setTema(t.id)}>
+              {t.namn}
+            </button>
+          ))}
+        </div>
+        <p className="liten svag" style={{ marginTop: 10 }}>
+          Auto följer telefonens eget läge. Ljust läge är samma gränssnitt med omvänd
+          palett — gjort för motljus, när solen står i skärmen och det mörka blir en
+          spegel. Kartan dämpas inte i ljust läge, så värmekartans guldskala får arbeta
+          mot en ljus karta som den är byggd för.
+        </p>
+      </div>
 
       {/* --- Offline --- */}
       <div className="kort">

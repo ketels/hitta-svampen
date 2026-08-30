@@ -5,6 +5,7 @@ import { useApp } from '../state/app.tsx'
 import { Ark } from '../components/Ark.tsx'
 import { FyndDetalj } from '../components/FyndDetalj.tsx'
 import { IkonNal, IkonSpar, IkonStjarna } from '../components/Ikoner.tsx'
+import { artIkon, artfarg, ikonblack } from '../components/Artikoner.tsx'
 import type { Find, SpeciesId } from '../lib/types.ts'
 
 type Sortering = 'tid' | 'narhet'
@@ -88,24 +89,27 @@ export function FyndVy() {
         </div>
       </div>
 
-      <div className="chips rad" style={{ marginBottom: 10 }}>
-        <button className="chip" aria-pressed={filter === 'alla'} onClick={() => setFilter('alla')}>
-          Alla
-        </button>
-        {statistik.favoriter > 0 ? (
-          <button className="chip" aria-pressed={filter === 'favoriter'} onClick={() => setFilter('favoriter')}>
-            ⭐ Guldställen
+      <div className="chipsrad" style={{ marginBottom: 10 }}>
+        <div className="chips rad">
+          <button className="chip" aria-pressed={filter === 'alla'} onClick={() => setFilter('alla')}>
+            Alla
           </button>
-        ) : null}
-        {arterMedFynd.map((id) => {
-          const a = art(id)
-          return (
-            <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>
-              <span>{a.emoji}</span>
-              {a.namn}
+          {statistik.favoriter > 0 ? (
+            <button className="chip" aria-pressed={filter === 'favoriter'} onClick={() => setFilter('favoriter')}>
+              ⭐ Guldställen
             </button>
-          )
-        })}
+          ) : null}
+          {arterMedFynd.map((id) => {
+            const a = art(id)
+            const Ikon = artIkon(id)
+            return (
+              <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>
+                <Ikon size={17} style={{ color: artfarg(id) }} />
+                {a.namn}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {plats ? (
@@ -121,7 +125,9 @@ export function FyndVy() {
           const d = plats ? avstand(plats, f) : null
           return (
             <button key={f.id} className="fyndrad" onClick={() => setValt(f)}>
-              <span className="fyndprick" style={{ background: a.farg }}>{a.emoji}</span>
+              <span className="fyndprick" style={{ background: a.farg, color: ikonblack(a.farg) }}>
+                {(() => { const Ikon = artIkon(f.art); return <Ikon size={19} /> })()}
+              </span>
               <span className="vaxa" style={{ minWidth: 0 }}>
                 <span className="rad" style={{ gap: 6 }}>
                   <span className="fet trunka">{a.namn}</span>
@@ -151,7 +157,7 @@ export function FyndVy() {
             <div className="fyndlista" style={{ marginTop: 10 }}>
               {app.spar.map((s) => (
                 <div key={s.id} className="fyndrad" style={{ cursor: 'default' }}>
-                  <span className="fyndprick" style={{ background: '#4fa3d9' }}><IkonSpar size={15} /></span>
+                  <span className="fyndprick" style={{ background: 'var(--bla)' }}><IkonSpar size={15} /></span>
                   <span className="vaxa" style={{ minWidth: 0 }}>
                     <span className="fet trunka" style={{ display: 'block' }}>{s.namn}</span>
                     <span className="mini svagast">
@@ -160,7 +166,9 @@ export function FyndVy() {
                   </span>
                   <button
                     className="mini svag"
-                    onClick={() => { app.gaTill(s.punkter[0]!.lat, s.punkter[0]!.lon) }}
+                    onClick={() => {
+                      app.gaTill({ lat: s.punkter[0]!.lat, lon: s.punkter[0]!.lon, etikett: 'Mot spårstart' })
+                    }}
                     aria-label="Visa på kartan"
                   >
                     <IkonNal size={17} />
@@ -184,7 +192,14 @@ export function FyndVy() {
           <FyndDetalj
             fynd={valt}
             onStang={() => setValt(null)}
-            onNavigera={() => { app.gaTill(valt.lat, valt.lon); setValt(null) }}
+            onNavigera={() => {
+              app.gaTill({
+                lat: valt.lat,
+                lon: valt.lon,
+                etikett: valt.art === 'annat' ? 'Mot fyndplats' : `Mot ${art(valt.art).namn}`,
+              })
+              setValt(null)
+            }}
           />
         </Ark>
       ) : null}

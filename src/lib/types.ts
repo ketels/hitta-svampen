@@ -25,7 +25,6 @@ export type Species = {
   id: SpeciesId
   namn: string
   latin: string
-  emoji: string
   farg: string
   /** Trädslag den lever i symbios med, viktigast först. */
   vardar: Host[]

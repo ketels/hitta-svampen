@@ -4,10 +4,11 @@ import 'leaflet/dist/leaflet.css'
 import { useApp } from '../state/app.tsx'
 import { LAGER, skapaLager } from './kartlager.ts'
 import { art } from '../data/arter.ts'
+import { artSvgMarkup, ikonblack } from './Artikoner.tsx'
 import { varmeAlfa, varmeRGB } from '../lib/farg.ts'
 import type { Find, LatLng } from '../lib/types.ts'
 import type { Skanning } from '../model/skanning.ts'
-import { bastaStallen } from '../model/skanning.ts'
+import { numreradeToppstallen } from '../model/skanning.ts'
 
 export type KartHandtag = {
   karta: L.Map | null
@@ -93,7 +94,7 @@ function fyndIkon(f: Find): L.DivIcon {
   return L.divIcon({
     className: '',
     html: `<div class="m-fynd${stor ? ' stor' : ''}${f.favorit ? ' favorit' : ''}" style="--f:${a.farg}">
-             <span>${a.emoji}</span></div>`,
+             ${artSvgMarkup(f.art, ikonblack(a.farg), stor ? 19 : 15)}</div>`,
     iconSize: [stor ? 34 : 28, stor ? 34 : 28],
     iconAnchor: [stor ? 17 : 14, stor ? 17 : 14],
   })
@@ -274,9 +275,7 @@ export function Karta(p: Props) {
     g.clearLayers()
     const s = app.skanning
     if (!s || p.varmelager === 'av') return
-    const basta = bastaStallen(s, 6, s.radieM / 6, app.fynd)
-    const grans = (basta[0]?.poang ?? 0) * 0.82
-    basta.filter((c) => c.poang >= grans).forEach((c, i) => {
+    numreradeToppstallen(s, app.fynd).forEach((c, i) => {
       L.marker([c.lat, c.lon], { icon: toppIkon(i + 1), zIndexOffset: 500 })
         .on('click', (e) => {
           L.DomEvent.stopPropagation(e)

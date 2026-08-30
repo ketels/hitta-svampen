@@ -3,6 +3,11 @@ import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import { App } from './App.tsx'
 import { AppProvider } from './state/app.tsx'
+import { lasTema, loserTema, tillampaTema } from './lib/tema.ts'
+
+/* Temat sätts före första målningen. AppProvider tar sedan över och håller det
+   i takt med inställningen och med systemet. */
+tillampaTema(loserTema(lasTema()))
 
 createRoot(document.getElementById('rot')!).render(
   <StrictMode>
