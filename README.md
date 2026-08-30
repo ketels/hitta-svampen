@@ -1,5 +1,7 @@
 # Hitta Svampen
 
+**[hitta-svampen.vercel.app](https://hitta-svampen.vercel.app)**
+
 En kantarellapp. Den sparar var du hittat svamp, analyserar skogen omkring dig
 utifrån öppna kartdata och terrängmodeller, och räknar ut om det faktiskt står
 något i skogen just nu.
@@ -63,7 +65,8 @@ på hemskärmen så beter den sig som en app.
 
 ### Deploy
 
-Ligger på Vercel. Push till `main` bygger och publicerar automatiskt.
+Ligger på [hitta-svampen.vercel.app](https://hitta-svampen.vercel.app). Push
+till `main` bygger och publicerar automatiskt.
 
 ```bash
 git push
