@@ -1,6 +1,6 @@
 import { chansfarg } from '../lib/farg.ts'
 import type { VaderDag } from '../lib/types.ts'
-import type { Dagsprognos } from '../model/fruktsattning.ts'
+import { kernvikt, type Dagsprognos } from '../model/fruktsattning.ts'
 
 const veckodag = (datum: string) =>
   new Date(datum + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'short' }).slice(0, 2)
@@ -36,11 +36,11 @@ export function Regndiagram({
   return (
     <div className="diagram">
       <svg viewBox={`0 0 ${bredd_px} ${H + 16}`} width="100%" height={H + 16} preserveAspectRatio="none">
-        {/* Kärnvikten dag för dag — samma gauss som driver modellen. */}
+        {/* Kärnvikten dag för dag — exakt den funktion som driver modellen. */}
         {del.map((d, i) => {
           const alder = idag - (fran + i)
           if (alder < 0) return null
-          const w = Math.exp(-0.5 * ((alder - topp) / bredd) ** 2)
+          const w = kernvikt(alder, { topp, bredd })
           if (w < 0.03) return null
           return (
             <rect
@@ -83,7 +83,7 @@ export function Regndiagram({
       <div className="diagram-fot mini svagast">
         <span>{dagar} dygn sedan</span>
         <span style={{ color: 'var(--guld-text)' }}>mörkare gult = tyngre vikt</span>
-        <span>idag →</span>
+        <span>prognos →</span>
       </div>
     </div>
   )

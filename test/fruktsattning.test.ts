@@ -1,4 +1,4 @@
-import { beraknaFruktsattning, sasongsfaktor } from '../src/model/fruktsattning.ts'
+import { beraknaFruktsattning, kernvikt, sasongsfaktor } from '../src/model/fruktsattning.ts'
 import { art } from '../src/data/arter.ts'
 import type { VaderDag } from '../src/lib/types.ts'
 
@@ -131,6 +131,19 @@ console.log('\n— Kantarell, olika vädersituationer (mitten av augusti) —')
      `${fB.index.toFixed(3)} -> ${fT.index.toFixed(3)}`)
   ok('  men svängrummet är begränsat', fT.index > fB.index * 0.7,
      `kvot=${(fT.index / fB.index).toFixed(2)}`)
+}
+
+// J. Skev kärna och händelsekänslighet: framsidan väger tyngre än baksidan på
+//    samma avstånd från toppen, och ett enda rejält regn i rätt fönster
+//    räcker för god drivning.
+{
+  const v7 = kernvikt(7, kantarell.regnfordrojning)
+  const v25 = kernvikt(25, kantarell.regnfordrojning)
+  ok('kärnan är framtung', v7 > v25 * 1.5, `w(7)=${v7.toFixed(2)} w(25)=${v25.toFixed(2)}`)
+  const s = serie('2026-08-15', (a) => (a === 16 ? 36 : 0), () => 0.25, 16)
+  const f = beraknaFruktsattning(s, kantarell, '2026-08-15')
+  ok('ett enskilt 36 mm-regn i fönstret driver ordentligt', f.regnDriv > 0.6,
+     `regnDriv=${f.regnDriv.toFixed(2)}`)
 }
 
 // I. Blöt yta men noll initiering — färskt regn trollar inte fram svamp ur torka

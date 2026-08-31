@@ -24,6 +24,37 @@ export function klocka(v: number, min: number, opt: number, max: number): number
 /** Mättande kurva: 0 vid 0, ~0.63 vid `skala`, närmar sig 1. */
 const mattnad = (v: number, skala: number) => 1 - Math.exp(-Math.max(0, v) / skala)
 
+/**
+ * Fördröjningskärnans vikt för regn som föll `alder` dygn före måldatumet.
+ * Skev klocka med toppen på artens `topp`: bredare framsida så att regn
+ * 4–10 dygn bakåt väger tungt, snävare baksida så att svansen bortom
+ * ~25 dygn klingar av snabbt. Asymmetrin är en modellkonstant — vi har
+ * ingen artvis evidens för olika skevhet. Regndiagrammet ritar sin gula
+ * gradient med samma funktion, så bilden visar exakt det modellen räknar på.
+ */
+export function kernvikt(alder: number, fordrojning: { topp: number; bredd: number }): number {
+  const sigma = alder < fordrojning.topp ? fordrojning.bredd * 1.15 : fordrojning.bredd * 0.65
+  return Math.exp(-0.5 * ((alder - fordrojning.topp) / sigma) ** 2)
+}
+
+/** Bortom den här åldern är kärnvikten försumbar (< ~1 %). */
+export function kernMaxAlder(fordrojning: { topp: number; bredd: number }): number {
+  return Math.ceil(fordrojning.topp + 3 * 0.65 * fordrojning.bredd)
+}
+
+/** Kroninterception: så här många mm av varje regndygn når aldrig marken
+    (fastnar i trädkronorna och avdunstar). Avdraget gör drivningen
+    händelsekänslig — ett rejält regn står kvar nästan orört medan en månad
+    duggregn nästan försvinner — utan att kräva artparametrar. */
+const REGNAVDRAG = 1.0
+
+/** Regndrivningens mättnadsskala (viktat mm/dygn, efter interception).
+    Sänkt från 2.3 — kalibrerad GEMENSAMT med REGNAVDRAG mot sex svenska
+    platser (31 dygn vardera, n=186) så att indexets aggregatmedian ligger
+    neutralt (+0.003) mot modellen före den skeva kärnan. Enskilt kalibrerade
+    jagar konstanterna varandras svans. */
+const REGNSKALA = 1.8
+
 export type Fruktsattning = {
   /** Slutligt index 0–1. */
   index: number
@@ -39,7 +70,8 @@ export type Fruktsattning = {
   marktemp: number
   frostfaktor: number
   torkfaktor: number
-  /** Viktad nederbörd enligt artens fördröjningskärna, mm/dygn. */
+  /** Viktad nederbörd enligt artens fördröjningskärna, mm/dygn,
+      efter kroninterceptionsavdraget. Det är den här siffran som driver. */
   regnIFonster: number
   regn7: number
   regn14: number
@@ -67,19 +99,18 @@ export function beraknaFruktsattning(
   const tom = i + 1 // dagar t.o.m. måldatumet
 
   /* --- 1. Regndrivning: nederbörd viktad med artens fördröjningskärna --- */
-  const { topp, bredd } = artData.regnfordrojning
   let viktatRegn = 0
   let viktSumma = 0
-  const maxAlder = Math.ceil(topp + 3 * bredd)
+  const maxAlder = kernMaxAlder(artData.regnfordrojning)
   for (let alder = 0; alder <= maxAlder; alder++) {
     const j = i - alder
     if (j < 0) continue
-    const w = Math.exp(-0.5 * ((alder - topp) / bredd) ** 2)
+    const w = kernvikt(alder, artData.regnfordrojning)
     viktSumma += w
-    viktatRegn += (serie[j]!.nederbord || 0) * w
+    viktatRegn += Math.max(0, (serie[j]!.nederbord || 0) - REGNAVDRAG) * w
   }
   const regnIFonster = viktSumma > 0 ? viktatRegn / viktSumma : 0
-  const regnDriv = mattnad(regnIFonster, 2.3)
+  const regnDriv = mattnad(regnIFonster, REGNSKALA)
 
   /* --- 2. Markfukt i mycelets djup, medel över tio dygn ---
      Det tröga tiodygnsmedlet är avsiktligt: 9–27 cm är initieringssignalen
