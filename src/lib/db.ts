@@ -93,7 +93,7 @@ export async function hamtaBild(id: string): Promise<Blob | undefined> {
  * Kartrutor och höjdkakel berörs inte; de ligger i en egen lagringsplats
  * och är råa bilder som aldrig ändrar form.
  */
-const CACHE_VERSION = 3
+const CACHE_VERSION = 4
 
 const versionerad = (nyckel: string) => `v${CACHE_VERSION}:${nyckel}`
 

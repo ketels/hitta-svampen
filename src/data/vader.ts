@@ -8,6 +8,7 @@
  */
 
 import { cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
+import { hamtaKlimatologi, tillRew } from './klimatologi.ts'
 import type { VaderDag } from '../lib/types.ts'
 
 const BAS = 'https://api.open-meteo.com/v1'
@@ -80,6 +81,10 @@ export async function hamtaVader(lat: number, lon: number): Promise<Vaderserie> 
   const cachad = await cacheLas<Vaderserie>(nyckel)
   if (cachad) return cachad
 
+  /* Klimatologin hämtas parallellt med vädret. Utan den räknar modellen i
+     absoluta fuktvärden precis som före normaliseringen. */
+  const klimatLofte = hamtaKlimatologi(lat, lon).catch(() => null)
+
   const url =
     `${BAS}/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
     `&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
@@ -128,6 +133,21 @@ export async function hamtaVader(lat: number, lon: number): Promise<Vaderserie> 
       soluppgang: j.daily.sunrise[i] ?? null,
       solnedgang: j.daily.sunset[i] ?? null,
     }))
+
+    /* REW-fälten sätts allt-eller-inget: modellens initiering och modulator
+       måste räkna i samma rymd, så en delvis ifylld serie vore värre än
+       ingen. Guarden är isFinite, inte nullish — 0 är en giltig REW. */
+    const klimat = await klimatLofte
+    if (klimat) {
+      const djupRew = serie.map((d) => tillRew(d.markfukt, klimat.djup))
+      const ytRew = serie.map((d) => tillRew(d.ytfukt ?? d.markfukt, klimat.yta))
+      if (djupRew.every(isFinite) && ytRew.every(isFinite)) {
+        serie.forEach((d, k) => {
+          d.markfuktRew = djupRew[k]!
+          d.ytfuktRew = ytRew[k]!
+        })
+      }
+    }
 
     const idagStr = nuDatum()
     let idag = serie.findIndex((d) => d.datum === idagStr)

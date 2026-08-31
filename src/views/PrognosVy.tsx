@@ -168,6 +168,7 @@ export function PrognosVy() {
             <p className="liten svag">
               Allt regn räknas, men med olika vikt: tyngst väger det som föll för ungefär{' '}
               {artData.regnfordrojning.topp} dygn sedan — gradienten visar vikten dag för dag.
+              Första millimetern varje regndygn stannar i trädkronorna och räknas bort.
               Gårdagens skyfall väger lätt för ny fruktsättning men håller ytan fuktig och
               gynnar svamp som redan är på väg upp.
             </p>

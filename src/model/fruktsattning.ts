@@ -48,6 +48,25 @@ export function kernMaxAlder(fordrojning: { topp: number; bredd: number }): numb
     duggregn nästan försvinner — utan att kräva artparametrar. */
 const REGNAVDRAG = 1.0
 
+/** Notionell referensjord ("typisk svensk skogsmark") som arternas absoluta
+    fukttrösklar tolkas mot när de översätts till relativt uttagbart vatten
+    (REW, 0 = vissningsgräns, 1 = fältkapacitet). Motsvarar ingen riktig
+    plats — verkliga platsers p2–p98-spann är smalare än arternas
+    tröskelspann, vilket är precis den felkalibrering normaliseringen
+    rättar, så ankring mot en riktig plats är matematiskt omöjlig.
+    Paret är i stället kalibrerat mot tre hela svampsäsonger (jul–okt
+    2023–2025) på sex platser: långtidsmedianen ligger neutral mot
+    absolutvägen (+0.006) medan spridningen mellan platser nära halveras
+    (0.174 → 0.096). Nedre gränsen 0.12 håller även den torrast tunade
+    artens min-tröskel strikt över REW 0. */
+const REF_WP = 0.12
+const REF_FC = 0.48
+const rewTrosklar = (m: { min: number; opt: number; max: number }) => ({
+  min: (m.min - REF_WP) / (REF_FC - REF_WP),
+  opt: (m.opt - REF_WP) / (REF_FC - REF_WP),
+  max: (m.max - REF_WP) / (REF_FC - REF_WP),
+})
+
 /** Regndrivningens mättnadsskala (viktat mm/dygn, efter interception).
     Sänkt från 2.3 — kalibrerad GEMENSAMT med REGNAVDRAG mot sex svenska
     platser (31 dygn vardera, n=186) så att indexets aggregatmedian ligger
@@ -82,6 +101,8 @@ export type Fruktsattning = {
   medelMarktemp: number
   /** Dagar sedan senaste dygn med minst 5 mm. */
   dagarSedanRegn: number | null
+  /** True när fukten poängsattes i REW-rymd mot platsens klimatologi. */
+  normaliserad: boolean
   forklaring: string[]
 }
 
@@ -112,7 +133,19 @@ export function beraknaFruktsattning(
   const regnIFonster = viktSumma > 0 ? viktatRegn / viktSumma : 0
   const regnDriv = mattnad(regnIFonster, REGNSKALA)
 
-  /* --- 2. Markfukt i mycelets djup, medel över tio dygn ---
+  /* --- 2. Fuktrymd: REW mot platsens klimatologi när den finns ---
+     Med klimatologi jämförs relativt uttagbart vatten mot artens trösklar
+     översatta till samma rymd — då betyder "torrt" torrt för DEN marken,
+     oavsett jordart. Utan klimatologi räknas absoluta m³/m³ som förut. */
+  const normaliserad = serie[i]!.markfuktRew !== undefined
+  const trosk = normaliserad ? rewTrosklar(artData.markfukt) : artData.markfukt
+  const djupAv = (d: VaderDag) => (normaliserad ? d.markfuktRew! : d.markfukt) || 0
+  const ytAv = (d: VaderDag) =>
+    (normaliserad ? (d.ytfuktRew ?? d.markfuktRew!) : (d.ytfukt ?? d.markfukt)) || 0
+  /* Golvets avklingningsskala är 0.03 m³/m³; i REW-rymden motsvarande andel. */
+  const golvSkala = normaliserad ? 0.03 / (REF_FC - REF_WP) : 0.03
+
+  /* --- 2a. Markfukt i mycelets djup, medel över tio dygn ---
      Det tröga tiodygnsmedlet är avsiktligt: 9–27 cm är initieringssignalen
      och ska inte rycka till av gårdagens skyfall. Nedåt får klockan ett mjukt
      golv i stället för en nollklippa — exakt på artens minimum är marken
@@ -122,29 +155,25 @@ export function beraknaFruktsattning(
   const fuktFonster = serie.slice(Math.max(0, i - 9), tom)
   const medelMarkfukt =
     fuktFonster.reduce((s, d) => s + (d.markfukt || 0), 0) / Math.max(1, fuktFonster.length)
-  const markfuktKlocka = klocka(
-    medelMarkfukt,
-    artData.markfukt.min,
-    artData.markfukt.opt,
-    artData.markfukt.max,
-  )
+  const medelDjup = fuktFonster.reduce((s, d) => s + djupAv(d), 0) / Math.max(1, fuktFonster.length)
+  const markfuktKlocka = klocka(medelDjup, trosk.min, trosk.opt, trosk.max)
   const markfukt =
-    medelMarkfukt > artData.markfukt.opt
+    medelDjup > trosk.opt
       ? markfuktKlocka
-      : medelMarkfukt >= artData.markfukt.min
+      : medelDjup >= trosk.min
         ? 0.15 + 0.85 * markfuktKlocka
-        : 0.15 * Math.exp(-(artData.markfukt.min - medelMarkfukt) / 0.03)
+        : 0.15 * Math.exp(-(trosk.min - medelDjup) / golvSkala)
 
   /* --- 2b. Ytfukt 3–9 cm, medel över två dygn — den snabba kanalen ---
      Ytskiktet svarar på regn inom timmar, så här är ett kort fönster rätt.
-     Äldre sparade serier saknar fältet; då får djupfukten vikariera. */
+     I REW-rymden mäts ytan mot sin egen klimatologi (0–7 cm), vilket tar
+     bort felcentreringen av att låna djuplagrets trösklar rakt av. Äldre
+     sparade serier saknar fälten; då får djupfukten vikariera. */
   const ytFonster = serie.slice(Math.max(0, i - 1), tom)
   const medelYtfukt =
     ytFonster.reduce((s, d) => s + (d.ytfukt ?? d.markfukt), 0) / Math.max(1, ytFonster.length)
-  const ytfukt = Math.max(
-    0,
-    Math.min(1, (medelYtfukt - artData.markfukt.min) / (artData.markfukt.opt - artData.markfukt.min)),
-  )
+  const medelYt = ytFonster.reduce((s, d) => s + ytAv(d), 0) / Math.max(1, ytFonster.length)
+  const ytfukt = Math.max(0, Math.min(1, (medelYt - trosk.min) / (trosk.opt - trosk.min)))
 
   /* --- 3. Marktemperatur på 6 cm, medel över en vecka --- */
   const tempFonster = serie.slice(Math.max(0, i - 6), tom)
@@ -172,7 +201,7 @@ export function beraknaFruktsattning(
 
   /* --- 5. Torka: efter en lång torrperiod behöver mycelet extra tid --- */
   const torkFonster = serie.slice(Math.max(0, i - 34), Math.max(0, i - 14))
-  const torraDagar = torkFonster.filter((d) => d.markfukt < artData.markfukt.min).length
+  const torraDagar = torkFonster.filter((d) => djupAv(d) < trosk.min).length
   const torkfaktor =
     torkFonster.length === 0 ? 1 : Math.max(0.55, 1 - (torraDagar / torkFonster.length) * 0.45)
 
@@ -208,14 +237,16 @@ export function beraknaFruktsattning(
   }
 
   const forklaring: string[] = []
+  /* Trösklarna uttrycks i regnDriv (0–1), inte råa mm/dygn — då följer
+     texten med automatiskt när avdrag eller mättnadsskala omkalibreras. */
   if (regnDriv > 0.7) forklaring.push('Rejält med regn i det fönster arten reagerar på')
   else if (regnDriv > 0.4) forklaring.push('Hyfsat med regn i rätt tidsfönster')
-  else if (regnIFonster < 0.6) forklaring.push('För lite regn för två–tre veckor sen')
+  else if (regnDriv < 0.15) forklaring.push('För lite regn för två–tre veckor sen')
   else forklaring.push('Knappt med regn där kärnan väger tungt')
 
   if (markfukt > 0.7) forklaring.push('Markfukten ligger mitt i artens optimum')
-  else if (medelMarkfukt < artData.markfukt.min) forklaring.push('Marken är för torr på mycelets djup')
-  else if (medelMarkfukt > artData.markfukt.max) forklaring.push('Marken är vattensjuk')
+  else if (medelDjup < trosk.min) forklaring.push('Marken är för torr på mycelets djup')
+  else if (medelDjup > trosk.max) forklaring.push('Marken är vattensjuk')
   else forklaring.push('Markfukten är godtagbar men inte optimal')
 
   if (ytfukt > 0.7 && dagarSedanRegn !== null && dagarSedanRegn <= 2)
@@ -262,6 +293,7 @@ export function beraknaFruktsattning(
     medelYtfukt,
     medelMarktemp,
     dagarSedanRegn,
+    normaliserad,
     forklaring,
   }
 }

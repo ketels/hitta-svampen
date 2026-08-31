@@ -134,6 +134,12 @@ export type VaderDag = {
   markfukt: number
   /** Markfukt 3–9 cm (ytan), dygnsmedel. Saknas i äldre sparade serier. */
   ytfukt?: number
+  /** Djupfukten som relativt uttagbart vatten (0 = platsens torraste,
+      1 = dess blötaste) mot 15-årsklimatologin. Saknas utan klimatologi —
+      modellen räknar då i absoluta värden. */
+  markfuktRew?: number
+  /** Ytfukten i samma REW-rymd, mot ytlagrets egen klimatologi. */
+  ytfuktRew?: number
   /** Marktemp 6 cm, dygnsmedel. */
   marktemp: number
   /** Lokal tid, ISO utan zon. Null när solen inte går upp eller ned alls. */
