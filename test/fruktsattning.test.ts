@@ -1,4 +1,4 @@
-import { beraknaFruktsattning, sasongsfaktor } from '../src/model/fruktsattning.ts'
+import { beraknaFruktsattning, kernvikt, sasongsfaktor } from '../src/model/fruktsattning.ts'
 import { art } from '../src/data/arter.ts'
 import type { VaderDag } from '../src/lib/types.ts'
 
@@ -18,6 +18,7 @@ function serie(
   fukt: (dagarBakat: number) => number,
   temp: number,
   minTemp: (dagarBakat: number) => number = () => 10,
+  ytfukt: (dagarBakat: number) => number = fukt,
 ): VaderDag[] {
   const ut: VaderDag[] = []
   const slut = new Date(slutdatum + 'T12:00:00Z')
@@ -29,6 +30,7 @@ function serie(
       tempMax: temp + 5,
       tempMin: minTemp(alder),
       markfukt: fukt(alder),
+      ytfukt: ytfukt(alder),
       marktemp: temp,
     })
   }
@@ -108,6 +110,90 @@ console.log('\n— Kantarell, olika vädersituationer (mitten av augusti) —')
   const f2 = beraknaFruktsattning(efterTorka, kantarell, '2026-08-15')
   ok('lång torka innan sänker indexet', f2.index < f1.index * 0.92,
      `${f1.index.toFixed(3)} -> ${f2.index.toFixed(3)}`)
+}
+
+// H. Ytfukten modulerar kring initieringen, [0.85, 1.15]: blöt yta LYFTER
+//    över initieringens nivå (färskt regn ger omedelbar effekt), torr yta
+//    hämmar pågående utveckling utan att döda den.
+{
+  const regn = (a: number) => (a >= 14 && a <= 19 ? 12 : a % 6 === 0 ? 2 : 0)
+  const blot = serie('2026-08-15', regn, () => 0.30, 16)
+  const torrYta = serie('2026-08-15', regn, () => 0.30, 16, undefined, (a) => (a <= 4 ? 0.10 : 0.30))
+  const fB = beraknaFruktsattning(blot, kantarell, '2026-08-15')
+  const fT = beraknaFruktsattning(torrYta, kantarell, '2026-08-15')
+  const initB = 0.45 * fB.regnDriv + 0.55 * fB.markfukt
+  const initT = 0.45 * fT.regnDriv + 0.55 * fT.markfukt
+  ok('blöt yta lyfter vattnet ÖVER initieringen', fB.vatten > initB * 1.05,
+     `initiering=${initB.toFixed(3)} -> vatten=${fB.vatten.toFixed(3)}`)
+  ok('  torr yta trycker det under', fT.vatten < initT * 0.95,
+     `initiering=${initT.toFixed(3)} -> vatten=${fT.vatten.toFixed(3)}`)
+  ok('  torr yta sänker indexet mot blöt', fT.index < fB.index * 0.85,
+     `${fB.index.toFixed(3)} -> ${fT.index.toFixed(3)}`)
+  ok('  men svängrummet är begränsat', fT.index > fB.index * 0.7,
+     `kvot=${(fT.index / fB.index).toFixed(2)}`)
+}
+
+// I. Blöt yta men noll initiering — färskt regn trollar inte fram svamp ur torka
+{
+  const s = serie('2026-08-15', () => 0, () => 0.10, 19, undefined, (a) => (a <= 1 ? 0.35 : 0.10))
+  const f = beraknaFruktsattning(s, kantarell, '2026-08-15')
+  ok('blöt yta utan initiering ger nära noll', f.index < 0.08, `index=${f.index.toFixed(3)}`)
+}
+
+// J. Skev kärna och händelsekänslighet: framsidan väger tyngre än baksidan på
+//    samma avstånd från toppen, och ett enda rejält regn i rätt fönster
+//    räcker för god drivning.
+{
+  const v7 = kernvikt(7, kantarell.regnfordrojning)
+  const v25 = kernvikt(25, kantarell.regnfordrojning)
+  ok('kärnan är framtung', v7 > v25 * 1.5, `w(7)=${v7.toFixed(2)} w(25)=${v25.toFixed(2)}`)
+  const s = serie('2026-08-15', (a) => (a === 16 ? 36 : 0), () => 0.25, 16)
+  const f = beraknaFruktsattning(s, kantarell, '2026-08-15')
+  ok('ett enskilt 36 mm-regn i fönstret driver ordentligt', f.regnDriv > 0.6,
+     `regnDriv=${f.regnDriv.toFixed(2)}`)
+}
+
+/** Fyll i REW-fält mot en given klimatologi, som vader.ts gör. */
+function medKlimatologi(
+  s: VaderDag[],
+  djup: { wp: number; fc: number },
+  yta: { wp: number; fc: number } = djup,
+): VaderDag[] {
+  const rew = (v: number, l: { wp: number; fc: number }) =>
+    Math.max(0, Math.min(1.05, (v - l.wp) / (l.fc - l.wp)))
+  return s.map((d) => ({
+    ...d,
+    markfuktRew: rew(d.markfukt, djup),
+    ytfuktRew: rew(d.ytfukt ?? d.markfukt, yta),
+  }))
+}
+
+// K. REW-rymden mot referensjorden (wp 0.12, fc 0.48) är exakt ekvivalent
+//    med absolutvägen — siffran hoppar inte när klimatologin laddas för en
+//    plats som liknar referensen.
+{
+  const abs = serie('2026-08-15', (a) => (a >= 14 && a <= 19 ? 6 : 0), () => 0.22, 12)
+  const rew = medKlimatologi(abs, { wp: 0.12, fc: 0.48 })
+  const fA = beraknaFruktsattning(abs, kantarell, '2026-08-15')
+  const fR = beraknaFruktsattning(rew, kantarell, '2026-08-15')
+  ok('referensklimat ger samma index som absolutvägen', Math.abs(fA.index - fR.index) < 1e-9 && fA.index > 0.1 && fA.index < 0.9,
+     `abs=${fA.index.toFixed(4)} rew=${fR.index.toFixed(4)}`)
+  ok('  och flaggar normaliserad', fR.normaliserad && !fA.normaliserad)
+}
+
+// L. Sandig tallmo: absolut 0.16 m³/m³ är exakt kantarellens absoluta min —
+//    men för en mark vars eget spann är 0.05–0.25 är 0.16 mitt i det
+//    uttagbara vattnet. Normaliserat ska samma väder ge god fuktpoäng.
+{
+  const regn = (a: number) => (a >= 14 && a <= 19 ? 12 : 0)
+  const abs = serie('2026-08-15', regn, () => 0.16, 15)
+  const tallmo = medKlimatologi(abs, { wp: 0.05, fc: 0.25 })
+  const fAbs = beraknaFruktsattning(abs, kantarell, '2026-08-15')
+  const fNorm = beraknaFruktsattning(tallmo, kantarell, '2026-08-15')
+  ok('tallmon får god fuktpoäng normaliserat', fNorm.markfukt > 0.8,
+     `markfukt-poäng ${fAbs.markfukt.toFixed(2)} (absolut) -> ${fNorm.markfukt.toFixed(2)} (REW)`)
+  ok('  och klart högre index än absolutvägen', fNorm.index > fAbs.index * 1.5,
+     `${fAbs.index.toFixed(3)} -> ${fNorm.index.toFixed(3)}`)
 }
 
 console.log('\n— Säsongskurva, kantarell på 59°N —')

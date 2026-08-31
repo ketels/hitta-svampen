@@ -1,14 +1,15 @@
 import { chansfarg } from '../lib/farg.ts'
 import type { VaderDag } from '../lib/types.ts'
-import type { Dagsprognos } from '../model/fruktsattning.ts'
+import { kernvikt, type Dagsprognos } from '../model/fruktsattning.ts'
 
 const veckodag = (datum: string) =>
   new Date(datum + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'short' }).slice(0, 2)
 
 /**
- * Nederbörd dag för dag, med artens känslighetsfönster utmärkt.
- * Det är den mest talande bilden i hela appen: den visar att regnet som spelar
- * roll föll för två veckor sedan, inte igår.
+ * Nederbörd dag för dag, med artens fördröjningskärna som gul gradient.
+ * Det är den mest talande bilden i hela appen: den visar att regnet väger
+ * tyngst kring två veckor bakåt men att även gårdagens regn räknas — bandet
+ * tonar, det klipper inte.
  */
 export function Regndiagram({
   serie,
@@ -32,20 +33,27 @@ export function Regndiagram({
   const H = 66
   const bredd_px = del.length * (B + G)
 
-  // Fönstret är centrerat kring `topp` dygn bakåt.
-  const fonsterStart = idag - (topp + bredd) - fran
-  const fonsterSlut = idag - Math.max(0, topp - bredd) - fran
-
   return (
     <div className="diagram">
       <svg viewBox={`0 0 ${bredd_px} ${H + 16}`} width="100%" height={H + 16} preserveAspectRatio="none">
-        <rect
-          x={Math.max(0, fonsterStart) * (B + G)}
-          y={0}
-          width={Math.max(0, fonsterSlut - Math.max(0, fonsterStart) + 1) * (B + G)}
-          height={H}
-          fill="var(--gulmark)"
-        />
+        {/* Kärnvikten dag för dag — exakt den funktion som driver modellen. */}
+        {del.map((d, i) => {
+          const alder = idag - (fran + i)
+          if (alder < 0) return null
+          const w = kernvikt(alder, { topp, bredd })
+          if (w < 0.03) return null
+          return (
+            <rect
+              key={'vikt-' + d.datum}
+              x={i * (B + G) - G / 2}
+              y={0}
+              width={B + G}
+              height={H}
+              fill="var(--gulmark)"
+              opacity={w}
+            />
+          )
+        })}
         {del.map((d, i) => {
           const h = Math.max(d.nederbord > 0 ? 1.5 : 0, (d.nederbord / max) * H)
           const framtid = fran + i > idag
@@ -74,8 +82,8 @@ export function Regndiagram({
       </svg>
       <div className="diagram-fot mini svagast">
         <span>{dagar} dygn sedan</span>
-        <span style={{ color: 'var(--guld-text)' }}>fönstret som avgör</span>
-        <span>idag →</span>
+        <span style={{ color: 'var(--guld-text)' }}>mörkare gult = tyngre vikt</span>
+        <span>prognos →</span>
       </div>
     </div>
   )

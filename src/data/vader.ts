@@ -1,12 +1,14 @@
 /**
  * Väderdata från Open-Meteo (ERA5 + ICON/ECMWF).
  * Fritt, utan nyckel, med CORS. Ett anrop ger 60 dygn bakåt och 16 framåt,
- * inklusive markfukt på 9–27 cm — precis det djup mycelet lever på.
+ * inklusive markfukt på 9–27 cm — precis det djup mycelet lever på — och
+ * 3–9 cm, ytskiktet där fruktkroppar under utveckling känner av färskt regn.
  *
  * Höjddata hämtas inte här utan som terrängkakel, se `hojdkakel.ts`.
  */
 
 import { cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
+import { hamtaKlimatologi, tillRew } from './klimatologi.ts'
 import type { VaderDag } from '../lib/types.ts'
 
 const BAS = 'https://api.open-meteo.com/v1'
@@ -79,10 +81,14 @@ export async function hamtaVader(lat: number, lon: number): Promise<Vaderserie> 
   const cachad = await cacheLas<Vaderserie>(nyckel)
   if (cachad) return cachad
 
+  /* Klimatologin hämtas parallellt med vädret. Utan den räknar modellen i
+     absoluta fuktvärden precis som före normaliseringen. */
+  const klimatLofte = hamtaKlimatologi(lat, lon).catch(() => null)
+
   const url =
     `${BAS}/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
     `&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
-    `&hourly=soil_moisture_9_to_27cm,soil_temperature_6cm` +
+    `&hourly=soil_moisture_9_to_27cm,soil_moisture_3_to_9cm,soil_temperature_6cm` +
     `&past_days=${DAGAR_BAKAT}&forecast_days=${DAGAR_FRAMAT}&timezone=auto`
 
   try {
@@ -103,14 +109,17 @@ export async function hamtaVader(lat: number, lon: number): Promise<Vaderserie> 
       hourly: {
         time: string[]
         soil_moisture_9_to_27cm: (number | null)[]
+        soil_moisture_3_to_9cm: (number | null)[]
         soil_temperature_6cm: (number | null)[]
       }
     }
 
     const dagar = j.daily.time
     const fukt = dygnsmedel(j.hourly.time, j.hourly.soil_moisture_9_to_27cm, dagar)
+    const ytfukt = dygnsmedel(j.hourly.time, j.hourly.soil_moisture_3_to_9cm, dagar)
     const temp = dygnsmedel(j.hourly.time, j.hourly.soil_temperature_6cm, dagar)
     const fuktL = laga(dagar.map((d) => fukt.get(d) ?? NaN))
+    const ytfuktL = laga(dagar.map((d) => ytfukt.get(d) ?? NaN))
     const tempL = laga(dagar.map((d) => temp.get(d) ?? NaN))
 
     const serie: VaderDag[] = dagar.map((d, i) => ({
@@ -119,10 +128,26 @@ export async function hamtaVader(lat: number, lon: number): Promise<Vaderserie> 
       tempMax: j.daily.temperature_2m_max[i] ?? 0,
       tempMin: j.daily.temperature_2m_min[i] ?? 0,
       markfukt: fuktL[i]!,
+      ytfukt: ytfuktL[i]!,
       marktemp: tempL[i]!,
       soluppgang: j.daily.sunrise[i] ?? null,
       solnedgang: j.daily.sunset[i] ?? null,
     }))
+
+    /* REW-fälten sätts allt-eller-inget: modellens initiering och modulator
+       måste räkna i samma rymd, så en delvis ifylld serie vore värre än
+       ingen. Guarden är isFinite, inte nullish — 0 är en giltig REW. */
+    const klimat = await klimatLofte
+    if (klimat) {
+      const djupRew = serie.map((d) => tillRew(d.markfukt, klimat.djup))
+      const ytRew = serie.map((d) => tillRew(d.ytfukt ?? d.markfukt, klimat.yta))
+      if (djupRew.every(isFinite) && ytRew.every(isFinite)) {
+        serie.forEach((d, k) => {
+          d.markfuktRew = djupRew[k]!
+          d.ytfuktRew = ytRew[k]!
+        })
+      }
+    }
 
     const idagStr = nuDatum()
     let idag = serie.findIndex((d) => d.datum === idagStr)
