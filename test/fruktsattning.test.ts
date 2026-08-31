@@ -18,6 +18,7 @@ function serie(
   fukt: (dagarBakat: number) => number,
   temp: number,
   minTemp: (dagarBakat: number) => number = () => 10,
+  ytfukt: (dagarBakat: number) => number = fukt,
 ): VaderDag[] {
   const ut: VaderDag[] = []
   const slut = new Date(slutdatum + 'T12:00:00Z')
@@ -29,6 +30,7 @@ function serie(
       tempMax: temp + 5,
       tempMin: minTemp(alder),
       markfukt: fukt(alder),
+      ytfukt: ytfukt(alder),
       marktemp: temp,
     })
   }
@@ -108,6 +110,27 @@ console.log('\n— Kantarell, olika vädersituationer (mitten av augusti) —')
   const f2 = beraknaFruktsattning(efterTorka, kantarell, '2026-08-15')
   ok('lång torka innan sänker indexet', f2.index < f1.index * 0.92,
      `${f1.index.toFixed(3)} -> ${f2.index.toFixed(3)}`)
+}
+
+// H. God initiering men uttorkad yta — pågående utveckling hämmas, dör inte.
+//    Ytfukten modulerar inom [0.75, 1] av initieringens tak, aldrig mer.
+{
+  const regn = (a: number) => (a >= 14 && a <= 19 ? 12 : a % 6 === 0 ? 2 : 0)
+  const blot = serie('2026-08-15', regn, () => 0.30, 16)
+  const torrYta = serie('2026-08-15', regn, () => 0.30, 16, undefined, (a) => (a <= 4 ? 0.10 : 0.30))
+  const fB = beraknaFruktsattning(blot, kantarell, '2026-08-15')
+  const fT = beraknaFruktsattning(torrYta, kantarell, '2026-08-15')
+  ok('torr yta sänker indexet', fT.index < fB.index * 0.85,
+     `${fB.index.toFixed(3)} -> ${fT.index.toFixed(3)}`)
+  ok('  men taket är en fjärdedel', fT.index > fB.index * 0.7,
+     `kvot=${(fT.index / fB.index).toFixed(2)}`)
+}
+
+// I. Blöt yta men noll initiering — färskt regn trollar inte fram svamp ur torka
+{
+  const s = serie('2026-08-15', () => 0, () => 0.10, 19, undefined, (a) => (a <= 1 ? 0.35 : 0.10))
+  const f = beraknaFruktsattning(s, kantarell, '2026-08-15')
+  ok('blöt yta utan initiering ger nära noll', f.index < 0.08, `index=${f.index.toFixed(3)}`)
 }
 
 console.log('\n— Säsongskurva, kantarell på 59°N —')

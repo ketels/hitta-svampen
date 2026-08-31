@@ -166,9 +166,10 @@ export function PrognosVy() {
               <h3>Regnet som räknas</h3>
             </div>
             <p className="liten svag">
-              {artData.namn} reagerar på regn som föll för ungefär {artData.regnfordrojning.topp} dygn
-              sedan — det är det gulmarkerade fönstret. Gårdagens skyfall syns inte i korgen förrän
-              om ett par veckor.
+              Allt regn räknas, men med olika vikt: tyngst väger det som föll för ungefär{' '}
+              {artData.regnfordrojning.topp} dygn sedan — gradienten visar vikten dag för dag.
+              Gårdagens skyfall väger lätt för ny fruktsättning men håller ytan fuktig och
+              gynnar svamp som redan är på väg upp.
             </p>
             <Regndiagram
               serie={vader.serie}
@@ -176,13 +177,13 @@ export function PrognosVy() {
               topp={artData.regnfordrojning.topp}
               bredd={artData.regnfordrojning.bredd}
             />
-            {/* Regnet i fördröjningsfönstret är den siffra hela modellen
-                bygger på och den enda som förtjänar guld. */}
+            {/* Det viktade regnet är den siffra hela modellen bygger på och
+                den enda som förtjänar guld. */}
             <div className="varderutor" style={{ marginTop: 14 }}>
               <div className="varderuta">
-                <span className="e">I fönstret</span>
+                <span className="e">Viktat regn</span>
                 <span className="v" style={{ color: 'var(--guld-text)' }}>
-                  {Math.round(analys.f.regnFonsterMm)} mm
+                  {analys.f.regnIFonster.toFixed(1)} mm/d
                 </span>
               </div>
               <div className="varderuta">
@@ -208,10 +209,16 @@ export function PrognosVy() {
             </div>
             <div className="matvarden" style={{ marginBottom: 12 }}>
               <div className="matvarde">
+                <div className="v" style={{ color: chansfarg(analys.f.ytfukt) }}>
+                  {(analys.f.medelYtfukt * 100).toFixed(0)}%
+                </div>
+                <div className="e">ytfukt 3–9 cm</div>
+              </div>
+              <div className="matvarde">
                 <div className="v" style={{ color: chansfarg(analys.f.markfukt) }}>
                   {(analys.f.medelMarkfukt * 100).toFixed(0)}%
                 </div>
-                <div className="e">markfukt 9–27 cm</div>
+                <div className="e">djupfukt 9–27 cm</div>
               </div>
               <div className="matvarde">
                 <div className="v" style={{ color: chansfarg(analys.f.marktemp) }}>

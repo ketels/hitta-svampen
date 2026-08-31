@@ -32,7 +32,7 @@ export type Species = {
   lovtyp: { needleleaved: number; broadleaved: number; mixed: number }
   /** Optimal marktemperatur på 6 cm djup (°C). */
   marktemp: { min: number; opt: number; max: number }
-  /** Optimal markfuktighet 7–28 cm (m³/m³). */
+  /** Optimal markfuktighet 9–27 cm (m³/m³). */
   markfukt: { min: number; opt: number; max: number }
   /** Dagar från regn till fruktkropp — kärnans tyngdpunkt och bredd. */
   regnfordrojning: { topp: number; bredd: number }
@@ -130,8 +130,10 @@ export type VaderDag = {
   nederbord: number
   tempMax: number
   tempMin: number
-  /** Markfukt 7–28 cm, dygnsmedel. */
+  /** Markfukt 9–27 cm (mycelets djup), dygnsmedel. */
   markfukt: number
+  /** Markfukt 3–9 cm (ytan), dygnsmedel. Saknas i äldre sparade serier. */
+  ytfukt?: number
   /** Marktemp 6 cm, dygnsmedel. */
   marktemp: number
   /** Lokal tid, ISO utan zon. Null när solen inte går upp eller ned alls. */

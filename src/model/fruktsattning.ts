@@ -1,11 +1,14 @@
 /**
  * Fruktsättningsmodell: från väderhistorik till "kommer det stå svamp i skogen?"
  *
- * Grundtanken är att en svamp inte reagerar på gårdagens regn utan på ett
- * fuktigt tidsfönster ett par veckor tillbaka. Vi viktar därför nederbörden med
- * en fördröjningskärna per art (kantarellen har tyngdpunkt kring sexton dagar),
- * lägger till faktisk markfukt och marktemperatur från reanalysdata, och
- * stänger av allt när säsongen är slut eller frosten kommit.
+ * Grundtanken är att ny fruktsättning drivs av ett fuktigt tidsfönster ett par
+ * veckor tillbaka: nederbörden viktas med en fördröjningskärna per art
+ * (kantarellen har tyngdpunkt kring sexton dagar) och kombineras med markfukt
+ * på mycelets djup. Ovanpå det ligger en snabb kanal — ytfukten på 3–9 cm —
+ * som avgör hur väl fruktkroppar under utveckling mår just nu: färskt regn
+ * ger omedelbar men begränsad effekt, och kan aldrig trolla fram svamp ur
+ * torka. Marktemperaturen modulerar takten, och allt stängs av när säsongen
+ * är slut eller frosten kommit.
  */
 
 import type { Species, VaderDag } from '../lib/types.ts'
@@ -30,17 +33,19 @@ export type Fruktsattning = {
   begransning: 'vatten' | 'temperatur' | 'frost' | 'torka' | 'inget'
   regnDriv: number
   markfukt: number
+  /** Ytfuktens poäng 0–1 — den snabba kanalen som modulerar nuläget. */
+  ytfukt: number
   marktemp: number
   frostfaktor: number
   torkfaktor: number
-  /** Viktad nederbörd i det kritiska fönstret, mm/dygn. */
+  /** Viktad nederbörd enligt artens fördröjningskärna, mm/dygn. */
   regnIFonster: number
-  /** Summerad nederbörd över samma fönster som regndiagrammet markerar, mm. */
-  regnFonsterMm: number
   regn7: number
   regn14: number
   regn30: number
   medelMarkfukt: number
+  /** Rå ytfukt 3–9 cm (m³/m³), medel över de två senaste dygnen. */
+  medelYtfukt: number
   medelMarktemp: number
   /** Dagar sedan senaste dygn med minst 5 mm. */
   dagarSedanRegn: number | null
@@ -75,24 +80,33 @@ export function beraknaFruktsattning(
   const regnIFonster = viktSumma > 0 ? viktatRegn / viktSumma : 0
   const regnDriv = mattnad(regnIFonster, 2.3)
 
-  /* Samma fönster som regndiagrammet målar gult, men summerat i millimeter i
-     stället för viktat dygnsmedel. Det viktade medlet driver modellen; den
-     här siffran är den man kan läsa och känna igen sig i. */
-  let regnFonsterMm = 0
-  for (let alder = Math.max(0, Math.round(topp - bredd)); alder <= Math.round(topp + bredd); alder++) {
-    const j = i - alder
-    if (j >= 0) regnFonsterMm += serie[j]!.nederbord || 0
-  }
-
-  /* --- 2. Markfukt i mycelets djup, medel över tio dygn --- */
+  /* --- 2. Markfukt i mycelets djup, medel över tio dygn ---
+     Det tröga tiodygnsmedlet är avsiktligt: 9–27 cm är initieringssignalen
+     och ska inte rycka till av gårdagens skyfall. Nedåt får klockan ett mjukt
+     golv i stället för en nollklippa — exakt på artens minimum är marken
+     marginell, inte omöjlig. Golvet gäller bara den torra sidan; vattensjuk
+     mark är fortfarande noll. */
   const fuktFonster = serie.slice(Math.max(0, i - 9), tom)
   const medelMarkfukt =
     fuktFonster.reduce((s, d) => s + (d.markfukt || 0), 0) / Math.max(1, fuktFonster.length)
-  const markfukt = klocka(
+  const markfuktKlocka = klocka(
     medelMarkfukt,
     artData.markfukt.min,
     artData.markfukt.opt,
     artData.markfukt.max,
+  )
+  const golv = 0.15 * Math.exp(-Math.max(0, artData.markfukt.min - medelMarkfukt) / 0.03)
+  const markfukt = medelMarkfukt <= artData.markfukt.opt ? Math.max(markfuktKlocka, golv) : markfuktKlocka
+
+  /* --- 2b. Ytfukt 3–9 cm, medel över två dygn — den snabba kanalen ---
+     Ytskiktet svarar på regn inom timmar, så här är ett kort fönster rätt.
+     Äldre sparade serier saknar fältet; då får djupfukten vikariera. */
+  const ytFonster = serie.slice(Math.max(0, i - 1), tom)
+  const medelYtfukt =
+    ytFonster.reduce((s, d) => s + (d.ytfukt ?? d.markfukt ?? 0), 0) / Math.max(1, ytFonster.length)
+  const ytfukt = Math.max(
+    0,
+    Math.min(1, (medelYtfukt - artData.markfukt.min) / (artData.markfukt.opt - artData.markfukt.min)),
   )
 
   /* --- 3. Marktemperatur på 6 cm, medel över en vecka --- */
@@ -129,8 +143,14 @@ export function beraknaFruktsattning(
      Vatten och värme är båda nödvändiga, inte utbytbara. En knastertorr skog
      ger noll svamp hur varm marken än är, så faktorerna multipliceras i
      stället för att medelvärdesbildas. Exponenterna gör vattnet till den
-     hårdaste begränsningen och låter temperaturen modulera takten. */
-  const vatten = 0.45 * regnDriv + 0.55 * markfukt
+     hårdaste begränsningen och låter temperaturen modulera takten.
+
+     Initieringen (fördröjt regn + djupfukt) sätter taket; ytfukten modulerar
+     bara inom det. Färskt regn lyfter alltså nuläget direkt — fruktkroppar
+     under utveckling mår bra av det — men utan initiering finns inget att
+     lyfta, och en uttorkad yta kostar som mest en fjärdedel. */
+  const initiering = 0.45 * regnDriv + 0.55 * markfukt
+  const vatten = initiering * (0.75 + 0.25 * ytfukt)
   const index = Math.max(
     0,
     Math.min(1, Math.pow(vatten, 0.9) * Math.pow(marktemp, 0.6) * frostfaktor * torkfaktor),
@@ -153,12 +173,17 @@ export function beraknaFruktsattning(
   if (regnDriv > 0.7) forklaring.push('Rejält med regn i det fönster arten reagerar på')
   else if (regnDriv > 0.4) forklaring.push('Hyfsat med regn i rätt tidsfönster')
   else if (regnIFonster < 0.6) forklaring.push('För lite regn för två–tre veckor sen')
-  else forklaring.push('Knappt med regn i det avgörande fönstret')
+  else forklaring.push('Knappt med regn där kärnan väger tungt')
 
   if (markfukt > 0.7) forklaring.push('Markfukten ligger mitt i artens optimum')
   else if (medelMarkfukt < artData.markfukt.min) forklaring.push('Marken är för torr på mycelets djup')
   else if (medelMarkfukt > artData.markfukt.max) forklaring.push('Marken är vattensjuk')
   else forklaring.push('Markfukten är godtagbar men inte optimal')
+
+  if (ytfukt > 0.7 && dagarSedanRegn !== null && dagarSedanRegn <= 2)
+    forklaring.push('Färskt regn håller ytan fuktig — bra för fruktkroppar under utveckling')
+  else if (ytfukt < 0.35 && initiering > 0.3)
+    forklaring.push('Ytan har torkat upp — färskt regn skulle ge snabb effekt')
 
   if (marktemp > 0.7) forklaring.push(`Marktemperaturen ${medelMarktemp.toFixed(1)}° är precis rätt`)
   else if (medelMarktemp < artData.marktemp.min)
@@ -187,15 +212,16 @@ export function beraknaFruktsattning(
     begransning,
     regnDriv,
     markfukt,
+    ytfukt,
     marktemp,
     frostfaktor,
     torkfaktor,
     regnIFonster,
-    regnFonsterMm,
     regn7: summera(7),
     regn14: summera(14),
     regn30: summera(30),
     medelMarkfukt,
+    medelYtfukt,
     medelMarktemp,
     dagarSedanRegn,
     forklaring,
