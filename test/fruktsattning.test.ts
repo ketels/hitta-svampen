@@ -160,7 +160,7 @@ function medKlimatologi(
   yta: { wp: number; fc: number } = djup,
 ): VaderDag[] {
   const rew = (v: number, l: { wp: number; fc: number }) =>
-    Math.max(0, Math.min(1.05, (v - l.wp) / (l.fc - l.wp)))
+    Math.min(1.05, (v - l.wp) / (l.fc - l.wp))
   return s.map((d) => ({
     ...d,
     markfuktRew: rew(d.markfukt, djup),
@@ -194,6 +194,20 @@ function medKlimatologi(
      `markfukt-poäng ${fAbs.markfukt.toFixed(2)} (absolut) -> ${fNorm.markfukt.toFixed(2)} (REW)`)
   ok('  och klart högre index än absolutvägen', fNorm.index > fAbs.index * 1.5,
      `${fAbs.index.toFixed(3)} -> ${fNorm.index.toFixed(3)}`)
+}
+
+// M. Extremtorka under platsens p2 ger negativ REW och fortsatt avtagande
+//    poäng — ingen platå vid REW 0.
+{
+  const regn = (a: number) => (a >= 14 && a <= 19 ? 12 : 0)
+  const vidP2 = medKlimatologi(serie('2026-08-15', regn, () => 0.2, 15), { wp: 0.2, fc: 0.4 })
+  const underP2 = medKlimatologi(serie('2026-08-15', regn, () => 0.1, 15), { wp: 0.2, fc: 0.4 })
+  const f0 = beraknaFruktsattning(vidP2, kantarell, '2026-08-15')
+  const fU = beraknaFruktsattning(underP2, kantarell, '2026-08-15')
+  ok('torka under p2 fortsätter sänka poängen', fU.markfukt < f0.markfukt * 0.3,
+     `markfukt-poäng ${f0.markfukt.toFixed(3)} (REW 0) -> ${fU.markfukt.toFixed(3)} (REW -0.5)`)
+  ok('  och REW-medlen exponeras för UI:t', f0.medelDjupRew === 0 && fU.medelDjupRew !== null && fU.medelDjupRew < 0,
+     `medelDjupRew=${fU.medelDjupRew?.toFixed(2)}`)
 }
 
 console.log('\n— Säsongskurva, kantarell på 59°N —')
