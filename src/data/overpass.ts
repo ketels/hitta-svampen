@@ -1,126 +1,128 @@
 /**
- * Landtäcke från OpenStreetMap via Overpass.
+ * Land cover from OpenStreetMap via Overpass.
  *
- * OSM är den enda fritt tillgängliga källan som täcker hela Sverige med
- * skogstyp (`leaf_type`), myrar, vattendrag och stigar. Taggningen är ojämn —
- * ibland står det bara "skog" — så klassificeringen faller tillbaka på
- * försiktiga antaganden i stället för att gissa fel.
+ * OSM is the only freely available source covering all of Sweden with forest
+ * type (`leaf_type`), bogs, watercourses and paths. The tagging is uneven —
+ * sometimes it just says "forest" — so classification falls back on cautious
+ * assumptions rather than guessing wrong.
  */
 
-import { cacheHittaTackande, cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
+import { cacheFindCovering, cacheRead, cacheWrite, cacheReadStale } from '../lib/db.ts'
 import { ringBBox } from '../lib/geo.ts'
-import type { BBox, Host, LatLng, Marktyp } from '../lib/types.ts'
+import type { BBox, Host, LandType, LatLng } from '../lib/types.ts'
 
 /**
- * Appens egen proxy. Måste komma först: Overpass svarar 406 på webbläsarlika
- * User-Agents, och en webbläsare får inte sätta den headern själv, så de
- * direkta speglarna nedan är oanvändbara från telefonen hur många de än är.
- * Proxyn identifierar sig korrekt och cachar dessutom svaret i en vecka.
+ * The app's own proxy. Must come first: Overpass answers 406 to browser-like
+ * User-Agents, and a browser may not set that header itself, so the direct
+ * mirrors below are unusable from the phone however many of them there are.
+ * The proxy identifies itself correctly and also caches the response for a
+ * week.
  */
 const PROXY = '/api/overpass'
 
-/** Direkta speglar. Fungerar utanför webbläsaren — tester och skript. */
-const SPEGLAR = [
+/** Direct mirrors. Work outside the browser — tests and scripts. */
+const MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
 ]
 
-/** Overpass svarar 406 på anrop utan User-Agent. Webbläsaren sätter den själv
- *  och ignorerar vår, men i andra körmiljöer behövs den. */
+/** Overpass answers 406 to calls without a User-Agent. The browser sets its
+ *  own and ignores ours, but other runtimes need it. */
 const AGENT = 'hitta-svampen/1.0 (personlig svampapp)'
 
-/** En frisk spegel svarar på under fem sekunder. Tio räcker gott. */
-const SPEGEL_TIMEOUT_MS = 10_000
+/** A healthy mirror answers in under five seconds. Ten is plenty. */
+const MIRROR_TIMEOUT_MS = 10_000
 
 /**
- * Tak för hela försöket, inklusive omtagningar.
+ * Ceiling for the whole attempt, retries included.
  *
- * Utan det multipliceras timeouterna: tre speglar i två varv à 25 sekunder
- * blir över två minuter innan appen ger upp — en evighet för någon som just
- * tryckt på kartan. Budgeten gör att man snabbt får ett ärligt "kartdatan
- * saknas" i stället för en snurra som aldrig slutar.
+ * Without it the timeouts multiply: three mirrors over two rounds at 25
+ * seconds is more than two minutes before the app gives up — an eternity for
+ * someone who just tapped the map. The budget means you quickly get an honest
+ * "no map data" instead of a spinner that never stops.
  */
-const STANDARD_BUDGET_MS = 27_000
+const DEFAULT_BUDGET_MS = 27_000
 
-export type Yta = {
-  marktyp: Marktyp
+export type Area = {
+  landType: LandType
   ring: LatLng[]
   box: BBox
-  tradslag: Host[]
-  /** Högre vinner när ytor överlappar. */
-  prioritet: number
+  treeSpecies: Host[]
+  /** Higher wins when areas overlap. */
+  priority: number
 }
 
-export type Landtacke = {
+export type LandCover = {
   box: BBox
-  ytor: Yta[]
-  vattendrag: LatLng[][]
-  stigar: LatLng[][]
+  areas: Area[]
+  waterways: LatLng[][]
+  paths: LatLng[][]
 }
 
-/* ---------- Klassificering ---------- */
+/* ---------- Classification ---------- */
 
-const ARTNYCKLAR: [RegExp, Host][] = [
-  [/picea|gran(?!it)/i, 'gran'],
-  [/pinus|\btall\b|\bfuru\b/i, 'tall'],
-  [/betula|björk|bjork/i, 'bjork'],
-  [/quercus|\bek\b|\bekar\b/i, 'ek'],
-  [/fagus|\bbok\b/i, 'bok'],
-  [/corylus|hassel/i, 'hassel'],
-  [/populus|\basp\b/i, 'asp'],
+const SPECIES_PATTERNS: [RegExp, Host][] = [
+  [/picea|gran(?!it)/i, 'spruce'],
+  [/pinus|\btall\b|\bfuru\b/i, 'pine'],
+  [/betula|björk|bjork/i, 'birch'],
+  [/quercus|\bek\b|\bekar\b/i, 'oak'],
+  [/fagus|\bbok\b/i, 'beech'],
+  [/corylus|hassel/i, 'hazel'],
+  [/populus|\basp\b/i, 'aspen'],
 ]
 
-function tradslagFranTaggar(t: Record<string, string>): Host[] {
+function treeSpeciesFromTags(t: Record<string, string>): Host[] {
   const text = [t.species, t.genus, t.taxon, t['species:sv'], t.name, t.wood]
     .filter(Boolean)
     .join(' ')
-  const ut = new Set<Host>()
-  for (const [re, h] of ARTNYCKLAR) if (re.test(text)) ut.add(h)
-  return [...ut]
+  const out = new Set<Host>()
+  for (const [re, h] of SPECIES_PATTERNS) if (re.test(text)) out.add(h)
+  return [...out]
 }
 
-/** Översätter OSM-taggar till en marktyp vi kan poängsätta. */
-export function klassa(
+/** Translates OSM tags into a land type we can score. */
+export function classify(
   t: Record<string, string>,
-): { marktyp: Marktyp; prioritet: number } | null {
+): { landType: LandType; priority: number } | null {
   const lu = t.landuse
   const na = t.natural
   const lc = t.landcover
 
-  if (na === 'water' || lu === 'reservoir' || lu === 'basin') return { marktyp: 'vatten', prioritet: 90 }
-  if (t.building) return { marktyp: 'bebyggt', prioritet: 85 }
+  if (na === 'water' || lu === 'reservoir' || lu === 'basin') return { landType: 'water', priority: 90 }
+  if (t.building) return { landType: 'built', priority: 85 }
   if (lu === 'residential' || lu === 'industrial' || lu === 'commercial' || lu === 'retail' ||
       lu === 'quarry' || lu === 'landfill' || lu === 'cemetery' || lu === 'railway')
-    return { marktyp: 'bebyggt', prioritet: 80 }
+    return { landType: 'built', priority: 80 }
   if (na === 'wetland') {
-    // Mossar och kärr är för blöta för kantarell, men trattkantarellen tål kanterna.
-    return { marktyp: 'myr', prioritet: 75 }
+    // Bogs and fens are too wet for chanterelles, but the funnel chanterelle
+    // tolerates the edges.
+    return { landType: 'bog', priority: 75 }
   }
   if (lu === 'farmland' || lu === 'allotments' || lu === 'greenhouse_horticulture' ||
       lu === 'orchard' || lu === 'vineyard' || lu === 'plant_nursery')
-    return { marktyp: 'aker', prioritet: 70 }
+    return { landType: 'farmland', priority: 70 }
   if (lu === 'meadow' || lu === 'grass' || lu === 'village_green' || na === 'grassland' ||
       lu === 'recreation_ground' || lu === 'greenfield')
-    return { marktyp: 'ang', prioritet: 65 }
+    return { landType: 'meadow', priority: 65 }
   if (na === 'scrub' || na === 'heath' || lc === 'scrub')
-    return { marktyp: 'busksnar', prioritet: 60 }
+    return { landType: 'scrub', priority: 60 }
   if (na === 'bare_rock' || na === 'scree' || na === 'sand' || na === 'glacier')
-    return { marktyp: 'okant', prioritet: 60 }
+    return { landType: 'unknown', priority: 60 }
 
   if (lu === 'forest' || na === 'wood' || lu === 'forestry' || lc === 'trees') {
     const lt = t.leaf_type
-    if (lt === 'needleleaved') return { marktyp: 'barrskog', prioritet: 45 }
-    if (lt === 'broadleaved') return { marktyp: 'lovskog', prioritet: 45 }
-    if (lt === 'mixed') return { marktyp: 'blandskog', prioritet: 45 }
-    return { marktyp: 'skog', prioritet: 40 }
+    if (lt === 'needleleaved') return { landType: 'coniferous', priority: 45 }
+    if (lt === 'broadleaved') return { landType: 'deciduous', priority: 45 }
+    if (lt === 'mixed') return { landType: 'mixed', priority: 45 }
+    return { landType: 'forest', priority: 40 }
   }
   return null
 }
 
-/* ---------- Hämtning ---------- */
+/* ---------- Fetching ---------- */
 
-function fraga(box: BBox): string {
+function query(box: BBox): string {
   const b = `${box.south.toFixed(5)},${box.west.toFixed(5)},${box.north.toFixed(5)},${box.east.toFixed(5)}`
   return `[out:json][timeout:60];
 (
@@ -139,38 +141,38 @@ out geom;`
 }
 
 /**
- * Multipolygonrelationer levereras som lösa bitar av ringen, inte som färdiga
- * ringar. Att behandla varje bit som en egen polygon ger vansinniga resultat —
- * en sjö med tvåhundra delsträckor blir tvåhundra jättepolygoner som täcker
- * halva skogen. Här fogas bitarna ihop ände mot ände till slutna ringar.
+ * Multipolygon relations arrive as loose pieces of the ring, not as finished
+ * rings. Treating each piece as its own polygon gives insane results — a lake
+ * with two hundred segments becomes two hundred giant polygons covering half
+ * the forest. Here the pieces are joined end to end into closed rings.
  */
-function fogaRingar(bitar: LatLng[][]): LatLng[][] {
-  const nyckel = (p: LatLng) => `${p.lat.toFixed(7)},${p.lon.toFixed(7)}`
-  const kvar = bitar.filter((b) => b.length >= 2).map((b) => b.slice())
-  const ringar: LatLng[][] = []
+function joinRings(pieces: LatLng[][]): LatLng[][] {
+  const key = (p: LatLng) => `${p.lat.toFixed(7)},${p.lon.toFixed(7)}`
+  const remaining = pieces.filter((b) => b.length >= 2).map((b) => b.slice())
+  const rings: LatLng[][] = []
 
-  while (kvar.length) {
-    const ring = kvar.pop()!
-    let vaxte = true
-    while (vaxte && nyckel(ring[0]!) !== nyckel(ring[ring.length - 1]!)) {
-      vaxte = false
-      const slut = nyckel(ring[ring.length - 1]!)
-      for (let i = 0; i < kvar.length; i++) {
-        const b = kvar[i]!
-        if (nyckel(b[0]!) === slut) {
+  while (remaining.length) {
+    const ring = remaining.pop()!
+    let grew = true
+    while (grew && key(ring[0]!) !== key(ring[ring.length - 1]!)) {
+      grew = false
+      const tail = key(ring[ring.length - 1]!)
+      for (let i = 0; i < remaining.length; i++) {
+        const b = remaining[i]!
+        if (key(b[0]!) === tail) {
           ring.push(...b.slice(1))
-        } else if (nyckel(b[b.length - 1]!) === slut) {
+        } else if (key(b[b.length - 1]!) === tail) {
           ring.push(...b.slice(0, -1).reverse())
         } else continue
-        kvar.splice(i, 1)
-        vaxte = true
+        remaining.splice(i, 1)
+        grew = true
         break
       }
     }
-    // Bitar som inte går att sluta kastas hellre än att gissas ihop.
-    if (ring.length >= 4 && nyckel(ring[0]!) === nyckel(ring[ring.length - 1]!)) ringar.push(ring)
+    // Pieces that cannot be closed are discarded rather than guessed together.
+    if (ring.length >= 4 && key(ring[0]!) === key(ring[ring.length - 1]!)) rings.push(ring)
   }
-  return ringar
+  return rings
 }
 
 type OverpassEl = {
@@ -181,202 +183,203 @@ type OverpassEl = {
   members?: { type: string; role: string; geometry?: { lat: number; lon: number }[] }[]
 }
 
-export async function hamtaLandtacke(
+export async function fetchLandCover(
   box: BBox,
   signal?: AbortSignal,
-  budgetMs = STANDARD_BUDGET_MS,
-): Promise<Landtacke> {
-  const nyckel = `osm:${box.south.toFixed(3)},${box.west.toFixed(3)},${box.north.toFixed(3)},${box.east.toFixed(3)}`
-  const cachad = await cacheLas<Landtacke>(nyckel)
-  if (cachad) return cachad
+  budgetMs = DEFAULT_BUDGET_MS,
+): Promise<LandCover> {
+  const cacheKey = `osm:${box.south.toFixed(3)},${box.west.toFixed(3)},${box.north.toFixed(3)},${box.east.toFixed(3)}`
+  const cached = await cacheRead<LandCover>(cacheKey)
+  if (cached) return cached
 
-  /* En förhämtad trakt täcker de skanningar man sedan gör inuti den. Extra
-     ytor utanför den efterfrågade rutan gör ingen skada — rastreringen läser
-     bara det som hamnar i rutnätet ändå. */
-  const tackande = await cacheHittaTackande<Landtacke>('osm:', box)
-  if (tackande) return tackande
+  /* A prefetched area covers the scans you then make inside it. Extra areas
+     outside the requested box do no harm — the rasteriser only reads what
+     lands in the grid anyway. */
+  const covering = await cacheFindCovering<LandCover>('osm:', box)
+  if (covering) return covering
 
-  const text = fraga(box)
-  const kropp = 'data=' + encodeURIComponent(text)
-  let sistaFel: unknown = null
+  const text = query(box)
+  const body = 'data=' + encodeURIComponent(text)
+  let lastError: unknown = null
 
-  // I webbläsaren finns bara en väg som fungerar. Utanför den — tester,
-  // skript — går vi direkt mot speglarna, två varv eftersom ett 502 från
-  // Overpass oftast bara betyder "kom tillbaka om en stund".
-  const iWebblasare = typeof window !== 'undefined' && typeof document !== 'undefined'
-  const forsok: string[] = iWebblasare ? [PROXY, PROXY] : [...SPEGLAR, ...SPEGLAR]
-  const varvLangd = iWebblasare ? 1 : SPEGLAR.length
-  const slutTid = Date.now() + budgetMs
+  // In the browser there is only one path that works. Outside it — tests,
+  // scripts — we go straight to the mirrors, two rounds since a 502 from
+  // Overpass usually just means "come back in a moment".
+  const inBrowser = typeof window !== 'undefined' && typeof document !== 'undefined'
+  const attempts: string[] = inBrowser ? [PROXY, PROXY] : [...MIRRORS, ...MIRRORS]
+  const roundLength = inBrowser ? 1 : MIRRORS.length
+  const deadline = Date.now() + budgetMs
 
-  for (const [i, mal] of forsok.entries()) {
-    const kvar = slutTid - Date.now()
-    if (kvar <= 1500) break
-    if (i === varvLangd) await new Promise((r) => setTimeout(r, Math.min(2000, kvar / 4)))
-    const klocka = new AbortController()
-    const avbryt = setTimeout(() => klocka.abort(), Math.min(SPEGEL_TIMEOUT_MS, slutTid - Date.now()))
-    const koppla = () => klocka.abort()
-    signal?.addEventListener('abort', koppla)
+  for (const [i, target] of attempts.entries()) {
+    const left = deadline - Date.now()
+    if (left <= 1500) break
+    if (i === roundLength) await new Promise((r) => setTimeout(r, Math.min(2000, left / 4)))
+    const clock = new AbortController()
+    const timer = setTimeout(() => clock.abort(), Math.min(MIRROR_TIMEOUT_MS, deadline - Date.now()))
+    const relay = () => clock.abort()
+    signal?.addEventListener('abort', relay)
     try {
-      const svar =
-        mal === PROXY
-          ? await fetch(`${PROXY}?data=${encodeURIComponent(text)}`, { signal: klocka.signal })
-          : await fetch(mal, {
+      const res =
+        target === PROXY
+          ? await fetch(`${PROXY}?data=${encodeURIComponent(text)}`, { signal: clock.signal })
+          : await fetch(target, {
               method: 'POST',
-              body: kropp,
+              body,
               headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': AGENT },
-              signal: klocka.signal,
+              signal: clock.signal,
             })
-      if (!svar.ok) {
-        const felText = await svar.text().catch(() => '')
-        throw new Error(`Overpass ${svar.status}: ${felText.slice(0, 200).replace(/\s+/g, ' ')}`)
+      if (!res.ok) {
+        const detail = await res.text().catch(() => '')
+        throw new Error(`Overpass ${res.status}: ${detail.slice(0, 200).replace(/\s+/g, ' ')}`)
       }
-      const j = (await svar.json()) as { elements: OverpassEl[] }
-      const res = tolka(j.elements, box)
-      if (res.ytor.length === 0 && res.stigar.length === 0 && res.vattendrag.length === 0) {
+      const j = (await res.json()) as { elements: OverpassEl[] }
+      const parsed = parse(j.elements, box)
+      if (parsed.areas.length === 0 && parsed.paths.length === 0 && parsed.waterways.length === 0) {
         throw new Error('Overpass svarade tomt')
       }
-      // Landtäcke ändrar sig långsamt. En vecka är gott om färskhet.
-      await cacheSkriv(nyckel, res, 7 * 24 * 3600e3)
-      return res
+      // Land cover changes slowly. A week is plenty fresh.
+      await cacheWrite(cacheKey, parsed, 7 * 24 * 3600e3)
+      return parsed
     } catch (e) {
       if (signal?.aborted) throw e
-      sistaFel = e
+      lastError = e
     } finally {
-      clearTimeout(avbryt)
-      signal?.removeEventListener('abort', koppla)
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', relay)
     }
   }
 
-  const gammal = await cacheLasGammal<Landtacke>(nyckel)
-  if (gammal) return gammal
-  throw sistaFel ?? new Error('Kunde inte nå Overpass')
+  const stale = await cacheReadStale<LandCover>(cacheKey)
+  if (stale) return stale
+  throw lastError ?? new Error('Kunde inte nå Overpass')
 }
 
-function tolka(element: OverpassEl[], box: BBox): Landtacke {
-  const ytor: Yta[] = []
-  const vattendrag: LatLng[][] = []
-  const stigar: LatLng[][] = []
+function parse(elements: OverpassEl[], box: BBox): LandCover {
+  const areas: Area[] = []
+  const waterways: LatLng[][] = []
+  const paths: LatLng[][] = []
 
-  for (const el of element) {
+  for (const el of elements) {
     const t = el.tags ?? {}
 
     if (t.waterway) {
-      if (el.geometry && el.geometry.length > 1) vattendrag.push(el.geometry)
+      if (el.geometry && el.geometry.length > 1) waterways.push(el.geometry)
       continue
     }
     if (t.highway) {
-      if (el.geometry && el.geometry.length > 1) stigar.push(el.geometry)
+      if (el.geometry && el.geometry.length > 1) paths.push(el.geometry)
       continue
     }
 
-    const k = klassa(t)
+    const k = classify(t)
     if (!k) continue
-    const tradslag = tradslagFranTaggar(t)
+    const treeSpecies = treeSpeciesFromTags(t)
 
-    const ringar: LatLng[][] = []
+    const rings: LatLng[][] = []
     if (el.type === 'way' && el.geometry && el.geometry.length > 2) {
-      ringar.push(el.geometry)
+      rings.push(el.geometry)
     } else if (el.type === 'relation' && el.members) {
-      // Yttre ringar räcker för vårt ändamål. Hål i skogsytor är sällsynta nog
-      // att inte vara värda komplexiteten. Tom roll tolkas som yttre, vilket
-      // en del äldre multipolygoner i Sverige använder.
-      const bitar = el.members
+      // Outer rings are enough for our purposes. Holes in forest areas are
+      // rare enough not to be worth the complexity. An empty role is read as
+      // outer, which some older Swedish multipolygons use.
+      const pieces = el.members
         .filter((m) => (m.role === 'outer' || m.role === '') && m.geometry && m.geometry.length >= 2)
         .map((m) => m.geometry!)
-      ringar.push(...fogaRingar(bitar))
+      rings.push(...joinRings(pieces))
     }
 
-    for (const ring of ringar) {
-      ytor.push({ marktyp: k.marktyp, ring, box: ringBBox(ring), tradslag, prioritet: k.prioritet })
+    for (const ring of rings) {
+      areas.push({ landType: k.landType, ring, box: ringBBox(ring), treeSpecies, priority: k.priority })
     }
   }
 
-  // Vattenlinjer räknas också som "vatten att vara nära".
-  return { box, ytor, vattendrag, stigar }
+  // Water lines also count as "water to be near".
+  return { box, areas, waterways, paths }
 }
 
-export const MARKTYP_NAMN: Record<Marktyp, string> = {
-  barrskog: 'Barrskog',
-  lovskog: 'Lövskog',
-  blandskog: 'Blandskog',
-  skog: 'Skog',
-  busksnar: 'Busksnår / hed',
-  myr: 'Myr eller kärr',
-  ang: 'Äng eller gräsmark',
-  aker: 'Åker',
-  vatten: 'Vatten',
-  bebyggt: 'Bebyggt',
-  hygge: 'Hygge',
-  okant: 'Okänt',
+export const LAND_TYPE_NAME: Record<LandType, string> = {
+  coniferous: 'Barrskog',
+  deciduous: 'Lövskog',
+  mixed: 'Blandskog',
+  forest: 'Skog',
+  scrub: 'Busksnår / hed',
+  bog: 'Myr eller kärr',
+  meadow: 'Äng eller gräsmark',
+  farmland: 'Åker',
+  water: 'Vatten',
+  built: 'Bebyggt',
+  clearcut: 'Hygge',
+  unknown: 'Okänt',
 }
 
-/* ---------- Förhämtning ---------- */
+/* ---------- Prefetching ---------- */
 
 /**
- * Hur brett område som förhämtas, i meter. Ytan — och därmed svarets storlek
- * och Overpass belastning — växer kvadratiskt, så det här är en avvägning.
- * Sex och en halv kilometer täcker en normal runda runt bilen och håller
- * svaret i en storlek som går igenom.
+ * How wide an area is prefetched, in metres. The area — and therefore the
+ * response size and the load on Overpass — grows quadratically, so this is a
+ * trade-off. Six and a half kilometres covers a normal round trip from the car
+ * and keeps the response to a size that gets through.
  */
-export const FORHAMTNING_BREDD_M = 6_500
+export const PREFETCH_WIDTH_M = 6_500
 
-/** Tålmodiga omförsök. Det här körs vid köksbordet, inte i skogen. */
-const OMFORSOK_MS = [4_000, 20_000, 45_000, 90_000]
+/** Patient retries. This runs at the kitchen table, not in the forest. */
+const RETRY_DELAYS_MS = [4_000, 20_000, 45_000, 90_000]
 
-export type ForhamtningsLage = {
-  forsok: number
-  avForsok: number
-  vantar: boolean
-  sekunderKvar: number
+export type PrefetchState = {
+  attempt: number
+  ofAttempts: number
+  waiting: boolean
+  secondsLeft: number
 }
 
 /**
- * Hämtar hem landtäcket för trakten i förväg och lägger det i cachen.
+ * Fetches the area's land cover in advance and puts it in the cache.
  *
- * Overpass släpper igenom ungefär två anrop per adress innan den stryper, och
- * en delad moln-adress ligger ofta redan på taket. Realtidshämtning ute i
- * skogen är därför ett lotteri. Det här gör den till ett förberedelsesteg som
- * får ta tid: fyra försök över ett par minuter, med växande paus emellan.
+ * Overpass lets roughly two calls per address through before it throttles, and
+ * a shared cloud address is often already at the ceiling. Fetching in real
+ * time out in the forest is therefore a lottery. This turns it into a
+ * preparation step that is allowed to take time: four attempts over a couple
+ * of minutes, with a growing pause in between.
  *
- * Lyckas det ligger svaret i cachen en vecka, och skanningar inuti området
- * hittar det utan att gå ut på nätet — se `cacheHittaTackande`.
+ * If it succeeds the response sits in the cache for a week, and scans inside
+ * the area find it without going to the network — see `cacheFindCovering`.
  */
-export async function forhamtaLandtacke(
-  centrum: { lat: number; lon: number },
+export async function prefetchLandCover(
+  center: { lat: number; lon: number },
   signal: AbortSignal,
-  framsteg: (lage: ForhamtningsLage) => void,
+  progress: (state: PrefetchState) => void,
 ): Promise<boolean> {
-  const halva = FORHAMTNING_BREDD_M / 2
-  const dLat = halva / 111_320
-  const dLon = halva / (111_320 * Math.cos((centrum.lat * Math.PI) / 180))
+  const half = PREFETCH_WIDTH_M / 2
+  const dLat = half / 111_320
+  const dLon = half / (111_320 * Math.cos((center.lat * Math.PI) / 180))
   const box: BBox = {
-    south: centrum.lat - dLat,
-    north: centrum.lat + dLat,
-    west: centrum.lon - dLon,
-    east: centrum.lon + dLon,
+    south: center.lat - dLat,
+    north: center.lat + dLat,
+    west: center.lon - dLon,
+    east: center.lon + dLon,
   }
 
-  for (let i = 0; i < OMFORSOK_MS.length; i++) {
+  for (let i = 0; i < RETRY_DELAYS_MS.length; i++) {
     if (signal.aborted) return false
-    framsteg({ forsok: i + 1, avForsok: OMFORSOK_MS.length, vantar: false, sekunderKvar: 0 })
+    progress({ attempt: i + 1, ofAttempts: RETRY_DELAYS_MS.length, waiting: false, secondsLeft: 0 })
     try {
-      // Generös budget: ingen väntar i regnet på den här.
-      await hamtaLandtacke(box, signal, 40_000)
+      // A generous budget: nobody is standing in the rain waiting for this one.
+      await fetchLandCover(box, signal, 40_000)
       return true
     } catch {
-      if (i === OMFORSOK_MS.length - 1 || signal.aborted) return false
+      if (i === RETRY_DELAYS_MS.length - 1 || signal.aborted) return false
     }
 
-    // Nedräkning under pausen, så det syns att appen inte hängt sig.
-    const paus = OMFORSOK_MS[i]!
-    const slut = Date.now() + paus
-    while (Date.now() < slut) {
+    // A countdown during the pause, so it is visible that the app has not hung.
+    const pause = RETRY_DELAYS_MS[i]!
+    const until = Date.now() + pause
+    while (Date.now() < until) {
       if (signal.aborted) return false
-      framsteg({
-        forsok: i + 1,
-        avForsok: OMFORSOK_MS.length,
-        vantar: true,
-        sekunderKvar: Math.ceil((slut - Date.now()) / 1000),
+      progress({
+        attempt: i + 1,
+        ofAttempts: RETRY_DELAYS_MS.length,
+        waiting: true,
+        secondsLeft: Math.ceil((until - Date.now()) / 1000),
       })
       await new Promise((r) => setTimeout(r, 500))
     }

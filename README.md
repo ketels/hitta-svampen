@@ -100,14 +100,16 @@ npm run build      # typkontroll och produktionsbygge
 npm run typecheck  # bara typkontroll
 ```
 
-Testerna kör mot skarpa API:er och behöver uppkoppling:
+Testerna kör mot skarpa API:er och behöver uppkoppling (`migration.test.ts`
+och `prefetch.test.ts` klarar sig utan):
 
 ```bash
-node --experimental-strip-types test/terrang.test.ts        # terrängmatte
-node --experimental-strip-types test/fruktsattning.test.ts  # vädermodell
-node --experimental-strip-types test/hojdkakel.test.ts      # höjddata
-node --experimental-strip-types test/skanning.test.ts       # hela kedjan
-node --experimental-strip-types test/fordelning.ts          # poängfördelning
+node --experimental-strip-types test/terrain.test.ts         # terrängmatte
+node --experimental-strip-types test/fruiting.test.ts       # vädermodell
+node --experimental-strip-types test/elevationTiles.test.ts # höjddata
+node --experimental-strip-types test/scan.test.ts           # hela kedjan
+node --experimental-strip-types test/migration.test.ts      # databasmigrering
+node --experimental-strip-types test/distribution.ts        # poängfördelning
 ```
 
 ---

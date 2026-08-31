@@ -1,171 +1,173 @@
-/* Hitta Svampen — formspråk.
-   Mörk skogspalett med kantarellgult som accent. Stora träffytor, hög
-   kontrast och tjock text, för att fungera i regn, motljus och med kalla
-   fingrar.
+/* Hitta Svampen — design language.
+   A dark forest palette with chanterelle gold as the accent. Large touch
+   targets, high contrast and heavy text, so it works in rain, in glare and
+   with cold fingers.
 
-   Ljust läge är samma formspråk speglat: identisk layout, identiska mått,
-   bara tokens som byts ut. Allt som skiljer lägena åt står i de två blocken
-   här nedanför — resten av filen känner bara till variabelnamnen. */
+   Light mode is the same design language mirrored: identical layout, identical
+   measurements, only the tokens are swapped. Everything that differs between
+   the modes is in the two blocks just below — the rest of the file only knows
+   the variable names. */
 
 :root {
-  --bakgrund: #0d1310;
-  --yta: #151e17;
-  --yta-2: #1c2820;
-  --yta-3: #24332a;
-  --kant: #29392e;
-  --kant-stark: #3d5544;
+  --bg: #0d1310;
+  --surface: #151e17;
+  --surface-2: #1c2820;
+  --surface-3: #24332a;
+  --border: #29392e;
+  --border-strong: #3d5544;
 
   --text: #e9f2e8;
-  --text-svag: #a0b3a4;
-  --text-svagast: #6f8375;
+  --text-dim: #a0b3a4;
+  --text-dimmer: #6f8375;
 
-  --guld: #f2b705;
-  --guld-ljus: #ffd24a;
-  --guld-mork: #a87f06;
-  --gron: #5fbf6f;
+  --gold: #f2b705;
+  --gold-light: #ffd24a;
+  --gold-dark: #a87f06;
+  --green: #5fbf6f;
   --orange: #e8913c;
-  --rod: #e05a55;
-  --bla: #4fa3d9;
+  --red: #e05a55;
+  --blue: #4fa3d9;
 
-  /* Guld som text respektive som ikon. Mot skogssvart är båda helt enkelt
-     guldet självt; mot vitt ger #f2b705 bara 1,7:1 och måste mörkas. */
-  --guld-text: var(--guld);
-  --guld-ikon: var(--guld);
+  /* Gold as text and gold as an icon. Against forest black both are simply
+     the gold itself; against white #f2b705 gives only 1.7:1 and must be
+     darkened. */
+  --gold-text: var(--gold);
+  --gold-icon: var(--gold);
 
   --r-s: 8px;
   --r-m: 14px;
   --r-l: 20px;
   --r-xl: 28px;
 
-  --skugga: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --skugga-hog: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-high: 0 -8px 32px rgba(0, 0, 0, 0.55);
 
-  --sidled: 16px;
-  --nav-hojd: 62px;
+  --gutter: 16px;
+  --nav-height: 62px;
 
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --siffror: ui-rounded, -apple-system, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
+  --num-font: ui-rounded, -apple-system, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
 
-  /* Genomskinliga ytor. Kan inte härledas ur --yta, eftersom det är just
-     genomskinligheten som gör dem till glas. */
+  /* Translucent surfaces. Cannot be derived from --surface, since it is
+     precisely the translucency that makes them glass. */
   --panel-bg: rgba(21, 30, 23, 0.94);
   --panel-bg-0: rgba(21, 30, 23, 0);
-  --kart-knapp-bg: rgba(21, 30, 23, 0.92);
+  --map-btn-bg: rgba(21, 30, 23, 0.92);
   --nav-bg: rgba(15, 23, 18, 0.94);
   --attribution-bg: rgba(13, 19, 16, 0.78);
 
-  /* Toningen i högerkanten på en vågrätt rullande rad. Två variabler i
-     stället för `transparent`, som i en gradient tolkas som genomskinligt
-     *svart* och ger ett grått stråk mitt i toningen. */
-  --tona-start: rgba(13, 19, 16, 0);
-  --tona-slut: #0d1310;
+  /* The fade at the right edge of a horizontally scrolling row. Two variables
+     instead of `transparent`, which in a gradient is interpreted as
+     transparent *black* and produces a grey band in the middle of the fade. */
+  --fade-start: rgba(13, 19, 16, 0);
+  --fade-end: #0d1310;
 
-  /* Kartunderlagets bottenfärg, bakom kartrutorna. */
-  --kartbotten: #101a13;
+  /* The map's base colour, behind the map tiles. */
+  --map-bg: #101a13;
 
-  /* Gula genomskinliga markeringar: regnfönstret i diagrammet, bästa dagen
-     i prognosen och det valda artchipset. */
-  --gulmark: rgba(242, 183, 5, 0.13);
-  --bast-bg: rgba(242, 183, 5, 0.14);
-  --bast-kant: rgba(242, 183, 5, 0.4);
-  --chip-vald-bg: color-mix(in srgb, var(--guld) 16%, var(--yta-2));
-  --chip-vald-kant: color-mix(in srgb, var(--guld) 45%, var(--kant));
+  /* Translucent gold highlights: the rain window in the chart, the best day in
+     the forecast and the selected species chip. */
+  --gold-wash: rgba(242, 183, 5, 0.13);
+  --best-bg: rgba(242, 183, 5, 0.14);
+  --best-border: rgba(242, 183, 5, 0.4);
+  --chip-on-bg: color-mix(in srgb, var(--gold) 16%, var(--surface-2));
+  --chip-on-border: color-mix(in srgb, var(--gold) 45%, var(--border));
 
-  /* Kartmarkörer. Ringen ska skilja markören från underlaget, och underlaget
-     byter håll med temat. */
-  --markor-ring: rgba(255, 255, 255, 0.92);
-  --markor-ring-topp: rgba(255, 255, 255, 0.9);
-  --markor-skugga: 0 2px 6px rgba(0, 0, 0, 0.55);
-  --markor-skugga-topp: 0 2px 7px rgba(0, 0, 0, 0.6);
-  --gps-skugga: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.5);
-  --obs-prick: rgba(255, 255, 255, 0.62);
-  --obs-prick-kant: rgba(0, 0, 0, 0.45);
+  /* Map markers. The ring must separate the marker from its background, and
+     the background flips with the theme. */
+  --marker-ring: rgba(255, 255, 255, 0.92);
+  --marker-ring-top: rgba(255, 255, 255, 0.9);
+  --marker-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+  --marker-shadow-top: 0 2px 7px rgba(0, 0, 0, 0.6);
+  --gps-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.5);
+  --obs-dot: rgba(255, 255, 255, 0.62);
+  --obs-dot-border: rgba(0, 0, 0, 0.45);
 
-  /* Varnings- och fararutor. */
-  --varning-bg: #2a1f12;
-  --varning-kant: #5c4420;
-  --fara-bg: #2a1614;
-  --fara-kant: #5e2b28;
+  /* Warning and danger boxes. */
+  --warning-bg: #2a1f12;
+  --warning-border: #5c4420;
+  --danger-bg: #2a1614;
+  --danger-border: #5e2b28;
 
   color-scheme: dark;
 }
 
 /*
- * Ljust läge.
+ * Light mode.
  *
- * Guldet ändras inte — det är varumärket och fungerar som fyllnadsfärg mot
- * vitt. Men guld duger inte som text mot vitt, därför den separata
- * --guld-text. --text-svagast är satt högre än en rak spegling hade gett:
- * småtexten i 11–12 px är för viktig, och ljust läge är just vad man har
- * uppe i motljus.
+ * The gold does not change — it is the brand and works as a fill colour
+ * against white. But gold will not do as text against white, hence the
+ * separate --gold-text. --text-dimmer is set higher than a straight mirror
+ * would have given: the small text at 11–12 px is too important, and light
+ * mode is exactly what you have up in glare.
  */
-[data-tema='ljus'] {
-  --bakgrund: #f7f6f1;
-  --yta: #ffffff;
-  --yta-2: #f1f0e9;
-  --yta-3: #e4e3d9;
-  --kant: #dad8cd;
-  --kant-stark: #c2c0b1;
+[data-theme='light'] {
+  --bg: #f7f6f1;
+  --surface: #ffffff;
+  --surface-2: #f1f0e9;
+  --surface-3: #e4e3d9;
+  --border: #dad8cd;
+  --border-strong: #c2c0b1;
 
   --text: #191c18;
-  --text-svag: #585e56;
-  --text-svagast: #686e63;
+  --text-dim: #585e56;
+  --text-dimmer: #686e63;
 
-  --guld-ljus: #96690a;
-  --gron: #2b8340;
+  --gold-light: #96690a;
+  --green: #2b8340;
   --orange: #a4600f;
-  --rod: #c0322c;
-  --bla: #1b7cbc;
+  --red: #c0322c;
+  --blue: #1b7cbc;
 
-  --guld-text: #96690a;
-  --guld-ikon: #c68a00;
+  --gold-text: #96690a;
+  --gold-icon: #c68a00;
 
-  --skugga: 0 2px 8px rgba(0, 0, 0, 0.16);
-  --skugga-hog: 0 -8px 32px rgba(0, 0, 0, 0.18);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  --shadow-high: 0 -8px 32px rgba(0, 0, 0, 0.18);
 
   --panel-bg: rgba(255, 255, 255, 0.95);
   --panel-bg-0: rgba(255, 255, 255, 0);
-  --kart-knapp-bg: rgba(255, 255, 255, 0.94);
+  --map-btn-bg: rgba(255, 255, 255, 0.94);
   --nav-bg: rgba(255, 255, 255, 0.96);
   --attribution-bg: rgba(255, 255, 255, 0.82);
 
-  --tona-start: rgba(247, 246, 241, 0);
-  --tona-slut: #f7f6f1;
+  --fade-start: rgba(247, 246, 241, 0);
+  --fade-end: #f7f6f1;
 
-  --kartbotten: #e8e6dc;
+  --map-bg: #e8e6dc;
 
-  --gulmark: rgba(242, 183, 5, 0.24);
-  --bast-bg: rgba(242, 183, 5, 0.24);
-  --bast-kant: rgba(180, 126, 0, 0.5);
-  --chip-vald-bg: rgba(242, 183, 5, 0.26);
-  --chip-vald-kant: rgba(180, 126, 0, 0.6);
+  --gold-wash: rgba(242, 183, 5, 0.24);
+  --best-bg: rgba(242, 183, 5, 0.24);
+  --best-border: rgba(180, 126, 0, 0.5);
+  --chip-on-bg: rgba(242, 183, 5, 0.26);
+  --chip-on-border: rgba(180, 126, 0, 0.6);
 
-  --markor-ring: rgba(58, 43, 0, 0.45);
-  --markor-ring-topp: rgba(58, 43, 0, 0.5);
-  --markor-skugga: 0 2px 6px rgba(0, 0, 0, 0.28);
-  --markor-skugga-topp: 0 2px 7px rgba(0, 0, 0, 0.3);
-  --gps-skugga: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --obs-prick: rgba(30, 30, 30, 0.55);
-  --obs-prick-kant: rgba(255, 255, 255, 0.7);
+  --marker-ring: rgba(58, 43, 0, 0.45);
+  --marker-ring-top: rgba(58, 43, 0, 0.5);
+  --marker-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  --marker-shadow-top: 0 2px 7px rgba(0, 0, 0, 0.3);
+  --gps-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --obs-dot: rgba(30, 30, 30, 0.55);
+  --obs-dot-border: rgba(255, 255, 255, 0.7);
 
-  --varning-bg: #fbf3e0;
-  --varning-kant: #e0cfa2;
-  --fara-bg: #fdeeed;
-  --fara-kant: #e6b4b0;
+  --warning-bg: #fbf3e0;
+  --warning-border: #e0cfa2;
+  --danger-bg: #fdeeed;
+  --danger-border: #e6b4b0;
 
   color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 
-html, body, #rot {
+html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
 body {
-  background: var(--bakgrund);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
   font-size: 16px;
@@ -175,8 +177,8 @@ body {
   overscroll-behavior: none;
 }
 
-/* Stoppar hela sidan från att studsa medan kartan panoreras. */
-body.karta-aktiv { overflow: hidden; }
+/* Stops the whole page from bouncing while the map is panned. */
+body.map-active { overflow: hidden; }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 650; letter-spacing: -0.01em; }
 h1 { font-size: 26px; }
@@ -188,7 +190,7 @@ p:last-child { margin-bottom: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; border: none; background: none; }
 
-/* ---------- Skal ---------- */
+/* ---------- Shell ---------- */
 
 .app {
   display: flex;
@@ -198,28 +200,28 @@ button { cursor: pointer; border: none; background: none; }
   overflow: hidden;
 }
 
-.innehall {
+.content {
   flex: 1;
   min-height: 0;
   position: relative;
 }
 
-.rullar {
+.scroll {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: calc(14px + env(safe-area-inset-top)) var(--sidled) calc(24px + env(safe-area-inset-bottom));
+  padding: calc(14px + env(safe-area-inset-top)) var(--gutter) calc(24px + env(safe-area-inset-bottom));
 }
 
-/* ---------- Bottennavigering ---------- */
+/* ---------- Bottom navigation ---------- */
 
 .nav {
   display: flex;
   background: var(--nav-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--kant);
+  border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
   flex-shrink: 0;
   z-index: 900;
@@ -227,13 +229,13 @@ button { cursor: pointer; border: none; background: none; }
 
 .nav button {
   flex: 1;
-  height: var(--nav-hojd);
+  height: var(--nav-height);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: var(--text-svagast);
+  color: var(--text-dimmer);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -242,7 +244,7 @@ button { cursor: pointer; border: none; background: none; }
 }
 
 .nav button svg { width: 23px; height: 23px; }
-.nav button[aria-current='page'] { color: var(--guld-text); }
+.nav button[aria-current='page'] { color: var(--gold-text); }
 .nav button[aria-current='page']::before {
   content: '';
   position: absolute;
@@ -250,20 +252,20 @@ button { cursor: pointer; border: none; background: none; }
   width: 30px;
   height: 2.5px;
   border-radius: 0 0 3px 3px;
-  background: var(--guld);
+  background: var(--gold);
 }
 
-/* ---------- Kort och ytor ---------- */
+/* ---------- Cards and surfaces ---------- */
 
-.kort {
-  background: var(--yta);
-  border: 1px solid var(--kant);
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r-m);
   padding: 14px;
   margin-bottom: 12px;
 }
 
-.kort-rubrik {
+.card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -271,26 +273,26 @@ button { cursor: pointer; border: none; background: none; }
   margin-bottom: 10px;
 }
 
-.kort-rubrik h3 { flex: 1; }
+.card-head h3 { flex: 1; }
 
-.etikett {
+.label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-svagast);
+  color: var(--text-dimmer);
 }
 
-.svag { color: var(--text-svag); }
-.svagast { color: var(--text-svagast); }
-.liten { font-size: 13.5px; }
-.mini { font-size: 12px; }
-.mitten { text-align: center; }
-.fet { font-weight: 650; }
+.dim { color: var(--text-dim); }
+.dimmer { color: var(--text-dimmer); }
+.small { font-size: 13.5px; }
+.tiny { font-size: 12px; }
+.center { text-align: center; }
+.bold { font-weight: 650; }
 
-/* ---------- Knappar ---------- */
+/* ---------- Buttons ---------- */
 
-.knapp {
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -298,8 +300,8 @@ button { cursor: pointer; border: none; background: none; }
   min-height: 46px;
   padding: 0 18px;
   border-radius: var(--r-m);
-  background: var(--yta-2);
-  border: 1px solid var(--kant-stark);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
   color: var(--text);
   font-weight: 600;
   font-size: 15px;
@@ -307,44 +309,45 @@ button { cursor: pointer; border: none; background: none; }
   transition: transform 0.1s, background 0.15s, color 0.15s;
 }
 
-.knapp:active { transform: scale(0.97); }
+.btn:active { transform: scale(0.97); }
 
-/* Genomskinliga knappar över kartan ser trasiga ut — avstängt läge markeras
-   med dämpad färg i stället för opacitet. */
-.knapp:disabled {
-  background: var(--yta);
-  border-color: var(--kant);
-  color: var(--text-svagast);
+/* Translucent buttons over the map look broken — a disabled state is marked
+   with a muted colour rather than with opacity. */
+.btn:disabled {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-dimmer);
   cursor: default;
 }
-.knapp:disabled:active { transform: none; }
+.btn:disabled:active { transform: none; }
 
-.knapp.primar {
-  background: var(--guld);
-  border-color: var(--guld);
+.btn.primary {
+  background: var(--gold);
+  border-color: var(--gold);
   color: #191203;
   font-weight: 700;
 }
 
-.knapp.fara { color: var(--rod); border-color: var(--fara-kant); background: var(--fara-bg); }
-.knapp.bred { width: 100%; }
-.knapp.smal { min-height: 38px; padding: 0 13px; font-size: 14px; }
+.btn.danger { color: var(--red); border-color: var(--danger-border); background: var(--danger-bg); }
+.btn.wide { width: 100%; }
+.btn.narrow { min-height: 38px; padding: 0 13px; font-size: 14px; }
 
-/* Kartans handlingsrad. "Spara fynd" tar bredden och "Skanna" krymper till en
-   ikonruta: man skannar en gång per skogsbesök men sparar fynd varje gång man
-   hittar något, och två likadana knappar påstod att de är lika viktiga. */
-.knapp.stor { min-height: 52px; border-radius: 16px; font-size: 17px; gap: 9px; }
-.knapp.ikon { flex: 0 0 52px; width: 52px; min-height: 52px; padding: 0; border-radius: 16px; }
+/* The map's action row. "Spara fynd" takes the width and "Skanna" shrinks to
+   an icon square: you scan once per forest visit but save a find every time
+   you find something, and two identical buttons claimed they are equally
+   important. */
+.btn.large { min-height: 52px; border-radius: 16px; font-size: 17px; gap: 9px; }
+.btn.icon { flex: 0 0 52px; width: 52px; min-height: 52px; padding: 0; border-radius: 16px; }
 
-.knapprad { display: flex; gap: 8px; }
-.knapprad > * { flex: 1; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row > * { flex: 1; }
 
-/* ---------- Segmenterad väljare ---------- */
+/* ---------- Segmented control ---------- */
 
 .segment {
   display: flex;
-  background: var(--yta-2);
-  border: 1px solid var(--kant);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: var(--r-m);
   padding: 3px;
   gap: 3px;
@@ -356,17 +359,18 @@ button { cursor: pointer; border: none; background: none; }
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-svag);
+  color: var(--text-dim);
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
 }
 
-.segment button[aria-pressed='true'] { background: var(--yta-3); color: var(--text); }
+.segment button[aria-pressed='true'] { background: var(--surface-3); color: var(--text); }
 
-/* Segmentet i kartpanelens huvudrad, där det delar rad med artnamn och
-   Dölj-knappen och därför måste ta sin egen bredd och inte mer. */
-.segment.kompakt { border-radius: 12px; padding: 2px; }
-.segment.kompakt button { flex: 0 0 auto; min-height: 26px; padding: 0 9px; font-size: 12px; }
+/* The segment in the map panel's head row, where it shares a line with the
+   species name and the Dölj button and must therefore take its own width and
+   no more. */
+.segment.compact { border-radius: 12px; padding: 2px; }
+.segment.compact button { flex: 0 0 auto; min-height: 26px; padding: 0 9px; font-size: 12px; }
 
 /* ---------- Chips ---------- */
 
@@ -379,9 +383,9 @@ button { cursor: pointer; border: none; background: none; }
   min-height: 36px;
   padding: 0 13px;
   border-radius: 999px;
-  background: var(--yta-2);
-  border: 1px solid var(--kant);
-  color: var(--text-svag);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -389,100 +393,100 @@ button { cursor: pointer; border: none; background: none; }
 }
 
 .chip[aria-pressed='true'] {
-  background: var(--chip-vald-bg);
-  border-color: var(--chip-vald-kant);
+  background: var(--chip-on-bg);
+  border-color: var(--chip-on-border);
   color: var(--text);
 }
 
-.chip.rullbar { flex-wrap: nowrap; }
+.chip.scrollable { flex-wrap: nowrap; }
 
-/* Raden rullar i sidled och slutade förut i ett avhugget artnamn. Toningen i
-   högerkanten säger att den fortsätter. Den ligger på en omslutande div och
-   inte på raden själv, eftersom ett `position: absolute` inuti en rullande
-   behållare följer med när man drar. */
-.chips.rad {
+/* The row scrolls sideways and used to end in a chopped-off species name. The
+   fade at the right edge says that it continues. It sits on a wrapping div and
+   not on the row itself, since a `position: absolute` inside a scrolling
+   container travels along as you drag. */
+.chips.row {
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px var(--radbleed, var(--sidled));
+  padding: 2px var(--row-bleed, var(--gutter));
 }
-.chips.rad::-webkit-scrollbar { display: none; }
+.chips.row::-webkit-scrollbar { display: none; }
 
-.chipsrad { position: relative; margin: 0 calc(var(--radbleed, var(--sidled)) * -1); }
-.chipsrad::after {
+.chip-row { position: relative; margin: 0 calc(var(--row-bleed, var(--gutter)) * -1); }
+.chip-row::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
   width: 34px;
-  background: linear-gradient(to right, var(--tona-start), var(--tona-slut) 70%);
+  background: linear-gradient(to right, var(--fade-start), var(--fade-end) 70%);
   pointer-events: none;
 }
 
-/* ---------- Mätare och staplar ---------- */
+/* ---------- Gauges and bars ---------- */
 
-.stapel {
+.bar {
   height: 7px;
   border-radius: 999px;
-  background: var(--yta-3);
+  background: var(--surface-3);
   overflow: hidden;
 }
 
-.stapel > i {
+.bar > i {
   display: block;
   height: 100%;
   border-radius: 999px;
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.delpoang { display: grid; gap: 11px; }
+.score-parts { display: grid; gap: 11px; }
 
-.delpoang-rad { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; align-items: baseline; }
-.delpoang-rad .stapel { grid-column: 1 / -1; }
-.delpoang-rad .varde { font-family: var(--siffror); font-variant-numeric: tabular-nums; font-weight: 650; font-size: 14px; }
-.delpoang-rad .motiv { grid-column: 1 / -1; font-size: 12.5px; color: var(--text-svag); line-height: 1.35; }
+.score-part { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; align-items: baseline; }
+.score-part .bar { grid-column: 1 / -1; }
+.score-part .value { font-family: var(--num-font); font-variant-numeric: tabular-nums; font-weight: 650; font-size: 14px; }
+.score-part .reason { grid-column: 1 / -1; font-size: 12.5px; color: var(--text-dim); line-height: 1.35; }
 
-/* ---------- Sifferblock ---------- */
+/* ---------- Number blocks ---------- */
 
-.siffror {
-  font-family: var(--siffror);
+.num {
+  font-family: var(--num-font);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.matvarden { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 10px; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 10px; }
 
-.matvarde { text-align: center; }
-.matvarde .v { font-family: var(--siffror); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-.matvarde .e { font-size: 11px; color: var(--text-svagast); font-weight: 600; letter-spacing: 0.02em; }
+.metric { text-align: center; }
+.metric .v { font-family: var(--num-font); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.metric .e { font-size: 11px; color: var(--text-dimmer); font-weight: 600; letter-spacing: 0.02em; }
 
-/* Etikett och värde på samma rad, i ett rutnät. Fyra smala kolumner med
-   "mm / 7 d", "mm / 14 d", "mm / 30 d" krävde att man tolkade tre nästan
-   identiska etiketter för att hitta den enda som betydde något. */
-.varderutor {
+/* Label and value on the same line, in a grid. Four narrow columns with
+   "mm / 7 d", "mm / 14 d", "mm / 30 d" required you to parse three nearly
+   identical labels to find the one that mattered. */
+.value-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
-  background: var(--kant);
-  border: 1px solid var(--kant);
+  background: var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--r-s);
   overflow: hidden;
 }
 
-.varderuta {
+.value-cell {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
-  background: var(--yta);
+  background: var(--surface);
   padding: 10px 12px;
 }
-.varderuta .e { font-size: 13px; color: var(--text-svag); }
-.varderuta .v {
-  font-family: var(--siffror);
+.value-cell .e { font-size: 13px; color: var(--text-dim); }
+.value-cell .v {
+  font-family: var(--num-font);
   font-variant-numeric: tabular-nums;
   font-size: 18px;
   font-weight: 700;
@@ -490,19 +494,19 @@ button { cursor: pointer; border: none; background: none; }
   white-space: nowrap;
 }
 
-/* ---------- Bottenark ---------- */
+/* ---------- Bottom sheet ---------- */
 
-.ark-bakgrund {
+.sheet-backdrop {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   z-index: 1000;
-  animation: tona 0.2s ease;
+  animation: fade 0.2s ease;
 }
 
-@keyframes tona { from { opacity: 0; } }
+@keyframes fade { from { opacity: 0; } }
 
-.ark {
+.sheet {
   position: absolute;
   left: 0;
   right: 0;
@@ -510,77 +514,77 @@ button { cursor: pointer; border: none; background: none; }
   max-height: 88%;
   display: flex;
   flex-direction: column;
-  background: var(--yta);
-  border-top: 1px solid var(--kant-stark);
+  background: var(--surface);
+  border-top: 1px solid var(--border-strong);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  box-shadow: var(--skugga-hog);
+  box-shadow: var(--shadow-high);
   z-index: 1001;
-  animation: upp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes upp { from { transform: translateY(100%); } }
+@keyframes rise { from { transform: translateY(100%); } }
 
-.ark-handtag {
+.sheet-handle {
   flex-shrink: 0;
   padding: 9px 0 4px;
   display: flex;
   justify-content: center;
   touch-action: none;
 }
-.ark-handtag i { width: 38px; height: 4px; border-radius: 999px; background: var(--kant-stark); }
+.sheet-handle i { width: 38px; height: 4px; border-radius: 999px; background: var(--border-strong); }
 
-.ark-topp {
+.sheet-head {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px var(--sidled) 10px;
+  padding: 2px var(--gutter) 10px;
 }
-.ark-topp h2 { flex: 1; font-size: 19px; }
+.sheet-head h2 { flex: 1; font-size: 19px; }
 
-.ark-kropp {
+.sheet-body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0 var(--sidled) calc(18px + env(safe-area-inset-bottom));
+  padding: 0 var(--gutter) calc(18px + env(safe-area-inset-bottom));
 }
 
-/* Handlingsknappar i ett bottenark ska alltid gå att nå, även när formuläret
-   är längre än arket. */
-.arkknappar {
+/* Action buttons in a bottom sheet must always be reachable, even when the
+   form is longer than the sheet. */
+.sheet-actions {
   position: sticky;
   bottom: 0;
   display: flex;
   gap: 8px;
   padding: 12px 0 calc(6px + env(safe-area-inset-bottom));
   margin-top: 4px;
-  background: linear-gradient(to bottom, transparent, var(--yta) 22%);
+  background: linear-gradient(to bottom, transparent, var(--surface) 22%);
 }
-.arkknappar > * { flex: 1; }
+.sheet-actions > * { flex: 1; }
 
-.stang {
+.close {
   width: 34px;
   height: 34px;
   flex-shrink: 0;
   border-radius: 999px;
-  background: var(--yta-3);
-  color: var(--text-svag);
+  background: var(--surface-3);
+  color: var(--text-dim);
   display: grid;
   place-items: center;
 }
 
-/* ---------- Karta ---------- */
+/* ---------- Map ---------- */
 
-.kartyta { position: absolute; inset: 0; background: var(--kartbotten); }
-.kartyta .leaflet-container { width: 100%; height: 100%; background: var(--kartbotten); font-family: var(--sans); }
+.map-surface { position: absolute; inset: 0; background: var(--map-bg); }
+.map-surface .leaflet-container { width: 100%; height: 100%; background: var(--map-bg); font-family: var(--sans); }
 .leaflet-control-attribution {
   background: var(--attribution-bg) !important;
-  color: var(--text-svagast) !important;
+  color: var(--text-dimmer) !important;
   font-size: 9.5px !important;
   backdrop-filter: blur(6px);
 }
-.leaflet-control-attribution a { color: var(--text-svag) !important; }
+.leaflet-control-attribution a { color: var(--text-dim) !important; }
 
-.kart-overlager {
+.map-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -589,57 +593,57 @@ button { cursor: pointer; border: none; background: none; }
   flex-direction: column;
   padding: calc(10px + env(safe-area-inset-top)) 12px 12px;
 }
-.kart-overlager > * { pointer-events: auto; }
+.map-overlay > * { pointer-events: auto; }
 
-.kart-knapp {
+.map-btn {
   width: 44px;
   height: 44px;
   border-radius: 13px;
-  background: var(--kart-knapp-bg);
+  background: var(--map-btn-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--kant-stark);
+  border: 1px solid var(--border-strong);
   color: var(--text);
   display: grid;
   place-items: center;
-  box-shadow: var(--skugga);
+  box-shadow: var(--shadow);
   transition: transform 0.1s, background 0.15s;
 }
-.kart-knapp:active { transform: scale(0.93); }
-.kart-knapp[aria-pressed='true'] { background: var(--guld); border-color: var(--guld); color: #191203; }
-.kart-knapp:disabled { opacity: 0.5; }
+.map-btn:active { transform: scale(0.93); }
+.map-btn[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: #191203; }
+.map-btn:disabled { opacity: 0.5; }
 
-.kart-stapel { display: flex; flex-direction: column; gap: 8px; }
+.map-btn-stack { display: flex; flex-direction: column; gap: 8px; }
 
-/* ---------- Diverse ---------- */
+/* ---------- Miscellaneous ---------- */
 
-.rad { display: flex; align-items: center; gap: 10px; }
-.rad.mellan { justify-content: space-between; }
-.vaxa { flex: 1; min-width: 0; }
-.trunka { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.skiljare { height: 1px; background: var(--kant); margin: 12px 0; border: 0; }
+.divider { height: 1px; background: var(--border); margin: 12px 0; border: 0; }
 
-.tom {
+.empty {
   text-align: center;
   padding: 44px 20px;
-  color: var(--text-svag);
+  color: var(--text-dim);
 }
-.tom .emoji { font-size: 42px; display: block; margin-bottom: 12px; opacity: 0.75; }
+.empty .emoji { font-size: 42px; display: block; margin-bottom: 12px; opacity: 0.75; }
 
-.varning {
-  background: var(--varning-bg);
-  border: 1px solid var(--varning-kant);
+.warning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
   border-radius: var(--r-m);
   padding: 12px 14px;
   font-size: 13.5px;
   line-height: 1.45;
 }
-.varning strong { color: var(--guld-ljus); }
+.warning strong { color: var(--gold-light); }
 
-.fara-ruta {
-  background: var(--fara-bg);
-  border: 1px solid var(--fara-kant);
+.danger-box {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: var(--r-m);
   padding: 12px 14px;
   font-size: 13.5px;
@@ -650,43 +654,43 @@ input[type='text'], input[type='number'], input[type='search'], textarea, select
   width: 100%;
   min-height: 46px;
   padding: 11px 13px;
-  background: var(--yta-2);
-  border: 1px solid var(--kant-stark);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
   border-radius: var(--r-m);
   outline: none;
   transition: border-color 0.15s;
 }
-input:focus, textarea:focus, select:focus { border-color: var(--guld-mork); }
+input:focus, textarea:focus, select:focus { border-color: var(--gold-dark); }
 textarea { min-height: 84px; resize: vertical; line-height: 1.45; }
-::placeholder { color: var(--text-svagast); }
+::placeholder { color: var(--text-dimmer); }
 
-label.falt { display: block; margin-bottom: 12px; }
-label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-svag); }
+label.field { display: block; margin-bottom: 12px; }
+label.field > span { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-dim); }
 
-.snurra {
+.spinner {
   width: 17px; height: 17px;
-  border: 2.5px solid var(--kant-stark);
-  border-top-color: var(--guld);
+  border: 2.5px solid var(--border-strong);
+  border-top-color: var(--gold);
   border-radius: 999px;
-  animation: snurr 0.7s linear infinite;
+  animation: spin 0.7s linear infinite;
   flex-shrink: 0;
 }
-@keyframes snurr { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-/* ---------- Kartmarkörer ---------- */
+/* ---------- Map markers ---------- */
 
-.varmekarta {
-  /* Ingen blandningsläge — över en ljus terrängkarta lyste "screen" ut
-     hela skalan så att allt såg lika bra ut. */
+.heatmap {
+  /* No blend mode — over a light terrain map "screen" washed out the whole
+     scale so that everything looked equally good. */
   image-rendering: auto;
   pointer-events: none;
 }
 
-/* Din egen position: blå prick med riktningskon. */
+/* Your own position: a blue dot with a heading cone. */
 .m-gps { position: relative; width: 40px; height: 40px; }
 .m-gps b {
   position: absolute;
@@ -694,9 +698,9 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   width: 16px; height: 16px;
   margin: -8px 0 0 -8px;
   border-radius: 999px;
-  background: var(--bla);
+  background: var(--blue);
   border: 2.5px solid #fff;
-  box-shadow: var(--gps-skugga);
+  box-shadow: var(--gps-shadow);
 }
 .m-gps i {
   position: absolute;
@@ -710,75 +714,75 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   margin-left: -6px;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 10px solid var(--bla);
+  border-bottom: 10px solid var(--blue);
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
-/* Egna fyndplatser. */
-.m-fynd {
+/* Your own find locations. */
+.m-find {
   width: 28px; height: 28px;
   border-radius: 999px;
   background: var(--f, #f2b705);
-  border: 2.5px solid var(--markor-ring);
-  box-shadow: var(--markor-skugga);
+  border: 2.5px solid var(--marker-ring);
+  box-shadow: var(--marker-shadow);
   display: grid;
   place-items: center;
   font-size: 13px;
   line-height: 1;
 }
-.m-fynd.stor { width: 34px; height: 34px; font-size: 16px; border-width: 3px; }
-.m-fynd.favorit { box-shadow: 0 0 0 2.5px var(--guld), var(--markor-skugga); }
+.m-find.large { width: 34px; height: 34px; font-size: 16px; border-width: 3px; }
+.m-find.favorite { box-shadow: 0 0 0 2.5px var(--gold), var(--marker-shadow); }
 
-/* Rapporterade fynd från GBIF. */
+/* Reported finds from GBIF. */
 .m-obs {
   width: 9px; height: 9px;
   border-radius: 999px;
-  background: var(--obs-prick);
-  border: 1px solid var(--obs-prick-kant);
+  background: var(--obs-dot);
+  border: 1px solid var(--obs-dot-border);
 }
 
-/* Punkten du tryckt på. */
-.m-vald { width: 30px; height: 30px; position: relative; }
-.m-vald i {
+/* The point you tapped. */
+.m-selected { width: 30px; height: 30px; position: relative; }
+.m-selected i {
   position: absolute;
   inset: 0;
   border: 2.5px solid #fff;
   border-radius: 999px;
   box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.5), inset 0 0 0 1.5px rgba(0, 0, 0, 0.35);
-  animation: puls 1.6s ease-out infinite;
+  animation: pulse 1.6s ease-out infinite;
 }
-@keyframes puls {
+@keyframes pulse {
   0% { transform: scale(0.72); opacity: 1; }
   70% { transform: scale(1); opacity: 0.85; }
   100% { transform: scale(1.08); opacity: 0.6; }
 }
 
-/* Numrerade toppställen ur skanningen. */
-.m-topp {
+/* Numbered top places from the scan. */
+.m-top {
   width: 26px; height: 26px;
   border-radius: 999px;
   background: #f2b705;
   color: #1a1203;
-  border: 2px solid var(--markor-ring-topp);
-  box-shadow: var(--markor-skugga-topp);
+  border: 2px solid var(--marker-ring-top);
+  box-shadow: var(--marker-shadow-top);
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: 13px;
-  font-family: var(--siffror);
+  font-family: var(--num-font);
 }
 
-/* Målet du navigerar mot. */
-.m-mal {
+/* The target you are navigating towards. */
+.m-target {
   width: 22px; height: 22px;
   border-radius: 999px;
-  border: 3px solid var(--guld);
+  border: 3px solid var(--gold);
   box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55);
 }
 
-/* ---------- Kartpanel längst ned ---------- */
+/* ---------- Map panel at the bottom ---------- */
 
-.kart-fot {
+.map-footer {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   z-index: 700;
@@ -788,27 +792,28 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   flex-direction: column;
   gap: 8px;
 }
-.kart-fot > * { pointer-events: auto; }
+.map-footer > * { pointer-events: auto; }
 
 .panel {
   background: var(--panel-bg);
-  /* Chipsraden inuti panelen ska tona mot panelen, inte mot sidbakgrunden. */
-  --tona-start: var(--panel-bg-0);
-  --tona-slut: var(--panel-bg);
-  --radbleed: 14px;
+  /* The chip row inside the panel should fade towards the panel, not towards
+     the page background. */
+  --fade-start: var(--panel-bg-0);
+  --fade-end: var(--panel-bg);
+  --row-bleed: 14px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--kant-stark);
+  border: 1px solid var(--border-strong);
   border-radius: var(--r-l);
-  box-shadow: var(--skugga);
+  box-shadow: var(--shadow);
   padding: 12px 14px;
 }
 
-/* Teckenförklaringen har hela bredden nu när segmentväljaren flyttat upp i
-   huvudraden. Dagsljustexten har fått plats på samma rad i stället för en
-   egen. */
+/* The legend has the full width now that the segmented control has moved up
+   into the head row. The daylight text has found room on the same line
+   instead of one of its own. */
 .legend { display: flex; align-items: center; gap: 9px; }
-.legend .skala {
+.legend .scale {
   flex: 1;
   min-width: 90px;
   height: 8px;
@@ -817,28 +822,28 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
     rgb(56 104 116) 0%, rgb(126 142 78) 30%, rgb(206 148 30) 55%,
     rgb(244 184 10) 78%, rgb(255 236 152) 100%);
 }
-.legend .avdelare { flex-shrink: 0; width: 1px; height: 12px; background: var(--kant); margin: 0 2px; }
-.legend .ljustext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend .sep { flex-shrink: 0; width: 1px; height: 12px; background: var(--border); margin: 0 2px; }
+.legend .daylight { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.framstegsrad {
+.progress {
   height: 4px;
   border-radius: 999px;
-  background: var(--yta-3);
+  background: var(--surface-3);
   overflow: hidden;
   margin-top: 8px;
 }
-.framstegsrad > i {
+.progress > i {
   display: block;
   height: 100%;
-  background: var(--guld);
+  background: var(--gold);
   transition: width 0.3s ease;
 }
 
-/* ---------- Mätare ---------- */
+/* ---------- Gauge ---------- */
 
-.matare { position: relative; display: grid; justify-items: center; }
-.matare svg { display: block; }
-.matare-mitt {
+.gauge { position: relative; display: grid; justify-items: center; }
+.gauge svg { display: block; }
+.gauge-center {
   position: absolute;
   top: 78px;
   left: 0; right: 0;
@@ -847,10 +852,10 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   pointer-events: none;
 }
 
-/* Dagsljus och säsong delar en fotrad under mätaren. Båda svarar på samma
-   fråga — hur långt fram på dygnet respektive året vi är — och ingen av dem
-   är värd en egen rad. */
-.matarfot {
+/* Daylight and season share a footer row under the gauge. Both answer the same
+   question — how far along we are in the day and in the year respectively —
+   and neither is worth a row of its own. */
+.gauge-foot {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -858,77 +863,77 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   gap: 14px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid var(--kant);
+  border-top: 1px solid var(--border);
   font-size: 13px;
-  color: var(--text-svagast);
+  color: var(--text-dimmer);
 }
-.matarfot > span { display: flex; align-items: center; gap: 6px; }
+.gauge-foot > span { display: flex; align-items: center; gap: 6px; }
 
-/* ---------- Faktarutor ---------- */
+/* ---------- Fact boxes ---------- */
 
-.faktarutor {
+.facts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.faktaruta {
-  background: var(--yta);
-  border: 1px solid var(--kant);
+.fact {
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r-s);
   padding: 9px 10px;
   min-width: 0;
 }
-.faktaruta .etikett { font-size: 10px; margin-bottom: 2px; }
-.faktaruta .fet { font-size: 14.5px; line-height: 1.25; }
+.fact .label { font-size: 10px; margin-bottom: 2px; }
+.fact .bold { font-size: 14.5px; line-height: 1.25; }
 
 @media (max-width: 360px) {
-  .faktarutor { grid-template-columns: repeat(2, 1fr); }
+  .facts { grid-template-columns: repeat(2, 1fr); }
 }
 
-.punktlista {
+.bullets {
   margin: 0;
   padding-left: 17px;
   font-size: 13.5px;
-  color: var(--text-svag);
+  color: var(--text-dim);
   line-height: 1.5;
 }
-.punktlista li { margin-bottom: 3px; }
-.punktlista li::marker { color: var(--guld-mork); }
+.bullets li { margin-bottom: 3px; }
+.bullets li::marker { color: var(--gold-dark); }
 
-/* ---------- Bilder ---------- */
+/* ---------- Photos ---------- */
 
-.bildrad {
+.photo-row {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  margin: 0 calc(var(--sidled) * -1) 12px;
-  padding: 0 var(--sidled);
+  margin: 0 calc(var(--gutter) * -1) 12px;
+  padding: 0 var(--gutter);
 }
-.bildrad::-webkit-scrollbar { display: none; }
-.bildrad img {
+.photo-row::-webkit-scrollbar { display: none; }
+.photo-row img {
   height: 168px;
   width: auto;
   border-radius: var(--r-m);
-  border: 1px solid var(--kant);
+  border: 1px solid var(--border);
   object-fit: cover;
   flex-shrink: 0;
 }
 
-/* ---------- Navigeringspanel på kartan ---------- */
+/* ---------- Navigation panel on the map ---------- */
 
-.navpanel { display: flex; align-items: center; gap: 11px; padding: 9px 10px 9px 14px; }
-.navpanel .navpil { transition: transform 0.25s ease-out; flex-shrink: 0; }
+.nav-panel { display: flex; align-items: center; gap: 11px; padding: 9px 10px 9px 14px; }
+.nav-panel .nav-arrow { transition: transform 0.25s ease-out; flex-shrink: 0; }
 
-/* ---------- Diagram ---------- */
+/* ---------- Charts ---------- */
 
-.diagram { margin: 4px 0 0; }
-.diagram svg { display: block; }
-.diagram-fot { display: flex; justify-content: space-between; margin-top: 3px; }
+.chart { margin: 4px 0 0; }
+.chart svg { display: block; }
+.chart-foot { display: flex; justify-content: space-between; margin-top: 3px; }
 
-.prognosstapel {
+.forecast-bars {
   display: flex;
   gap: 3px;
   align-items: flex-end;
@@ -936,9 +941,9 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   scrollbar-width: none;
   padding-bottom: 2px;
 }
-.prognosstapel::-webkit-scrollbar { display: none; }
+.forecast-bars::-webkit-scrollbar { display: none; }
 
-.prognosdag {
+.forecast-day {
   flex: 1;
   min-width: 26px;
   text-align: center;
@@ -947,28 +952,28 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   padding: 3px 1px;
   border-radius: 8px;
 }
-.prognosdag.bast { background: var(--bast-bg); outline: 1px solid var(--bast-kant); }
-/* Den markerade dagens etiketter måste läsas mot den gula bakgrunden. */
-.prognosdag.bast .svagast { color: var(--text-svag); }
+.forecast-day.best { background: var(--best-bg); outline: 1px solid var(--best-border); }
+/* The highlighted day's labels have to be readable against the gold background. */
+.forecast-day.best .dimmer { color: var(--text-dim); }
 
-.stapelbox {
+.bar-box {
   height: 82px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
-.stapelbox > i {
+.bar-box > i {
   display: block;
   width: 74%;
   border-radius: 3px 3px 1px 1px;
   transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- Artöversikt ---------- */
+/* ---------- Species overview ---------- */
 
-.artlage { display: grid; gap: 2px; }
+.species-list { display: grid; gap: 2px; }
 
-.artrad {
+.species-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -978,59 +983,59 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   text-align: left;
   transition: background 0.15s;
 }
-.artrad:active { background: var(--yta-2); }
-.artrad[aria-pressed='true'] { background: var(--yta-2); }
-.artrad .artikon { display: grid; place-items: center; width: 22px; flex-shrink: 0; }
+.species-row:active { background: var(--surface-2); }
+.species-row[aria-pressed='true'] { background: var(--surface-2); }
+.species-row .species-icon { display: grid; place-items: center; width: 22px; flex-shrink: 0; }
 
-/* Silhuetterna sitter i knappar och rader tillsammans med text. Utan
-   display:block ärver en inline-svg textens nedstapelutrymme och trycker
-   raden två pixlar för hög. */
-.chip svg, .artikon svg, .fyndprick svg, .m-fynd svg { display: block; flex-shrink: 0; }
+/* The silhouettes sit in buttons and rows alongside text. Without
+   display:block an inline svg inherits the text's descender space and pushes
+   the row two pixels too tall. */
+.chip svg, .species-icon svg, .find-dot svg, .m-find svg { display: block; flex-shrink: 0; }
 
-/* Nio arter där de fyra sista ligger under femton procent är en lista man
-   ändå inte läser klart. Fem rader, resten bakom en knapp. */
-.visa-alla {
+/* Nine species where the last four are under fifteen per cent is a list you
+   do not read to the end anyway. Five rows, the rest behind a button. */
+.show-all {
   display: block;
   width: 100%;
   min-height: 36px;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid var(--kant);
+  border-top: 1px solid var(--border);
   text-align: left;
   font-size: 13.5px;
   font-weight: 650;
-  color: var(--guld-text);
+  color: var(--gold-text);
 }
 
-/* ---------- Fyndlista ---------- */
+/* ---------- Find list ---------- */
 
-.fyndlista {
+.find-list {
   display: grid;
-  /* minmax(0, 1fr) i stället för 1fr: annars vägrar rutnätsceller krympa
-     under sitt innehålls minsta bredd, och rader med lång text växer ut
-     ur kortet i stället för att kortas av med ellips. */
+  /* minmax(0, 1fr) instead of 1fr: otherwise grid cells refuse to shrink below
+     their content's minimum width, and rows with long text grow out of the
+     card instead of being cut off with an ellipsis. */
   grid-template-columns: minmax(0, 1fr);
   gap: 1px;
-  background: var(--kant);
-  border: 1px solid var(--kant);
+  background: var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--r-m);
   overflow: hidden;
 }
 
-.fyndrad {
+.find-row {
   display: flex;
   align-items: center;
   min-width: 0;
   gap: 11px;
   padding: 11px 12px;
-  background: var(--yta);
+  background: var(--surface);
   text-align: left;
   width: 100%;
   transition: background 0.12s;
 }
-.fyndrad:active { background: var(--yta-2); }
+.find-row:active { background: var(--surface-2); }
 
-.fyndprick {
+.find-dot {
   width: 34px; height: 34px;
   flex-shrink: 0;
   border-radius: 999px;
@@ -1040,26 +1045,26 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   color: #191203;
 }
 
-/* ---------- Artkort ---------- */
+/* ---------- Species card ---------- */
 
-.artkort { display: block; width: 100%; text-align: left; }
-.artkort:active { background: var(--yta-2); }
+.species-card { display: block; width: 100%; text-align: left; }
+.species-card:active { background: var(--surface-2); }
 
-.marke {
+.badge {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 2px 7px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--guld) 20%, transparent);
-  color: var(--guld-ljus);
+  background: color-mix(in srgb, var(--gold) 20%, transparent);
+  color: var(--gold-light);
   white-space: nowrap;
 }
 
-.sasong { margin-top: 12px; }
+.season { margin-top: 12px; }
 
-.sasongsband {
+.season-band {
   position: relative;
   display: flex;
   gap: 1px;
@@ -1067,8 +1072,8 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   border-radius: 4px;
   overflow: hidden;
 }
-.sasongsband > i { flex: 1; display: block; }
-.sasongsband .idagmark {
+.season-band > i { flex: 1; display: block; }
+.season-band .today-mark {
   position: absolute;
   top: -2px;
   bottom: -2px;
@@ -1078,56 +1083,58 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   border-radius: 2px;
 }
 
-.sasongsmanader {
+.season-months {
   display: flex;
   justify-content: space-between;
   margin-top: 3px;
   padding: 0 1px;
 }
-.sasongsmanader span { flex: 1; text-align: center; }
+.season-months span { flex: 1; text-align: center; }
 
-/* ---------- Hopfällbar kartpanel ---------- */
+/* ---------- Collapsible map panel ---------- */
 
 /*
- * Huvudraden visar art och läge i båda tillstånden — hopfälld är den enda
- * platsen där de står alls, och utfälld sa "Svampläge" ingenting som inte
- * redan syntes. Raden är en div och inte en knapp, eftersom Dölj och
- * segmentväljaren är egna kontroller och en knapp inte får ligga i en knapp.
+ * The head row shows species and state in both conditions — collapsed it is
+ * the only place they appear at all, and expanded "Svampläge" said nothing
+ * that was not already visible. The row is a div and not a button, since Dölj
+ * and the segmented control are their own controls and a button may not sit
+ * inside a button.
  */
-.panel-huvud {
+.panel-head {
   display: flex;
   align-items: center;
-  /* Sju och inte nio som i skissen: raden rymmer artnamn, läge, Dölj,
-     segmentväljare och chevron på 336 px, och skissen ritades med det
-     kortaste artnamnet i appen. De två pixlarna är skillnaden mellan att
-     "Kantarell · mycket bra" får plats och att det kortas av. */
+  /* Seven and not nine as in the sketch: the row has to fit species name,
+     state, Dölj, the segmented control and the chevron in 336 px, and the
+     sketch was drawn with the shortest species name in the app. Those two
+     pixels are the difference between "Kantarell · mycket bra" fitting and
+     being cut off. */
   gap: 7px;
   width: 100%;
   min-height: 30px;
   margin: -4px 0 -2px;
-  color: var(--text-svag);
+  color: var(--text-dim);
   text-align: left;
 }
-.panel-huvud > button {
+.panel-head > button {
   display: flex;
   align-items: center;
   gap: 7px;
   min-height: 30px;
-  /* Webbläsarens egen knapputfyllnad kostar tolv pixlar per knapp här. */
+  /* The browser's own button padding costs twelve pixels per button here. */
   padding: 0;
   color: inherit;
 }
-.panel-huvud > button:active { opacity: 0.65; }
-/* Bara artnamnet krymper. Läget är ett kort ord som bär hela poängen med
-   raden, och kontrollerna till höger har fasta mått. */
-.panel-huvud .titel { flex: 0 1 auto; min-width: 0; }
-.panel-huvud .titel .namn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.panel-huvud .titel .lage { flex-shrink: 0; }
-.panel-huvud .fall { flex-shrink: 0; }
-.panel-huvud > .segment { flex-shrink: 0; }
-.panel-huvud svg { transition: transform 0.2s ease; color: var(--text-svagast); display: block; }
+.panel-head > button:active { opacity: 0.65; }
+/* Only the species name shrinks. The state is a short word carrying the whole
+   point of the row, and the controls to the right have fixed dimensions. */
+.panel-head .title { flex: 0 1 auto; min-width: 0; }
+.panel-head .title .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-head .title .state { flex-shrink: 0; }
+.panel-head .collapse { flex-shrink: 0; }
+.panel-head > .segment { flex-shrink: 0; }
+.panel-head svg { transition: transform 0.2s ease; color: var(--text-dimmer); display: block; }
 
-.artprick {
+.species-dot {
   width: 13px;
   height: 13px;
   border-radius: 999px;
@@ -1135,18 +1142,19 @@ label.falt > span { display: block; margin-bottom: 6px; font-size: 13px; font-we
   border: 1.5px solid rgba(255, 255, 255, 0.55);
 }
 
-/* ---------- Nattläge ---------- */
+/* ---------- Night mode ---------- */
 
 /*
- * Dämpar bara själva kartrutorna, inte lager ovanpå. Ett riktigt mörkt
- * baslager finns (CARTO, Esri Dark Gray) men de är avskalade gatukartor utan
- * höjdkurvor och skogsmarkering — alltså utan det man faktiskt letar efter.
- * Att dämpa terrängkartan behåller informationen och skonar mörkerseendet,
- * medan värmekartan och markörerna ligger kvar i full styrka ovanpå.
+ * Dims only the map tiles themselves, not layers on top. A genuinely dark base
+ * layer exists (CARTO, Esri Dark Gray) but those are stripped-down street maps
+ * without contour lines or forest shading — that is, without the very thing
+ * you are looking for. Dimming the terrain map keeps the information and
+ * spares your night vision, while the heatmap and the markers stay at full
+ * strength on top.
  */
-.kartyta.natt .leaflet-tile-pane {
+.map-surface.night .leaflet-tile-pane {
   filter: brightness(0.52) saturate(0.68) contrast(1.12);
 }
 
-/* Attributionsraden ska inte lysa vitt i skogen. */
-.kartyta.natt .leaflet-control-attribution { opacity: 0.5; }
+/* The attribution line should not glow white out in the forest. */
+.map-surface.night .leaflet-control-attribution { opacity: 0.5; }

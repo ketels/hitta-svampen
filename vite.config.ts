@@ -3,28 +3,28 @@ import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
 /**
- * Geolocation kräver "secure context". På localhost räknas http som säkert,
- * men från telefonen över LAN gör det inte det — därför slår `npm run mobil`
- * på ett självsignerat certifikat.
+ * Geolocation requires a "secure context". On localhost http counts as secure,
+ * but from a phone over the LAN it does not — hence `npm run mobil` turning on
+ * a self-signed certificate.
  */
-const mobil = process.env.MOBIL === '1'
+const mobile = process.env.MOBIL === '1'
 
 export default defineConfig({
-  plugins: [react(), ...(mobil ? [basicSsl()] : [])],
+  plugins: [react(), ...(mobile ? [basicSsl()] : [])],
   server: {
     port: 5173,
-    host: mobil,
+    host: mobile,
     /*
-     * Overpass svarar 406 på webbläsarlika User-Agents, och webbläsaren får
-     * inte sätta headern själv. I produktion löses det av en edge-funktion
-     * under /api/overpass; här gör dev-servern samma sak, så koden slipper
-     * bry sig om vilken miljö den kör i.
+     * Overpass answers 406 to browser-like User-Agents, and the browser may
+     * not set the header itself. In production that is solved by an edge
+     * function under /api/overpass; here the dev server does the same thing,
+     * so the code does not have to care which environment it runs in.
      */
     proxy: {
       '/api/overpass': {
         target: 'https://overpass-api.de',
         changeOrigin: true,
-        rewrite: (sokvag) => sokvag.replace(/^\/api\/overpass/, '/api/interpreter'),
+        rewrite: (path) => path.replace(/^\/api\/overpass/, '/api/interpreter'),
         headers: { 'User-Agent': 'hitta-svampen/1.0 (utveckling)' },
       },
     },

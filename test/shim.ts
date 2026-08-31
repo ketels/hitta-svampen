@@ -1,5 +1,5 @@
-/** Gör terrängkakel-avkodningen körbar i Node genom att härma webbläsarens
- *  createImageBitmap och OffscreenCanvas. Används bara av testerna. */
+/** Makes the terrain-tile decoding runnable in Node by imitating the
+ *  browser's createImageBitmap and OffscreenCanvas. Used only by the tests. */
 import { PNG } from 'pngjs'
 
 type Bitmap = { data: Uint8ClampedArray; width: number; height: number; close(): void }
@@ -17,7 +17,7 @@ type Bitmap = { data: Uint8ClampedArray; width: number; height: number; close():
 ;(globalThis as any).OffscreenCanvas = class {
   width: number
   height: number
-  private aktuell: Uint8ClampedArray | null = null
+  private current: Uint8ClampedArray | null = null
   constructor(w: number, h: number) {
     this.width = w
     this.height = h
@@ -27,10 +27,10 @@ type Bitmap = { data: Uint8ClampedArray; width: number; height: number; close():
     return {
       clearRect() {},
       drawImage(b: Bitmap) {
-        self.aktuell = b.data
+        self.current = b.data
       },
       getImageData() {
-        return { data: self.aktuell ?? new Uint8ClampedArray(self.width * self.height * 4) }
+        return { data: self.current ?? new Uint8ClampedArray(self.width * self.height * 4) }
       },
     }
   }

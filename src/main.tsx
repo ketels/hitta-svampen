@@ -3,13 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import { App } from './App.tsx'
 import { AppProvider } from './state/app.tsx'
-import { lasTema, loserTema, tillampaTema } from './lib/tema.ts'
+import { readTheme, resolveTheme, applyTheme } from './lib/theme.ts'
 
-/* Temat sätts före första målningen. AppProvider tar sedan över och håller det
-   i takt med inställningen och med systemet. */
-tillampaTema(loserTema(lasTema()))
+/* The theme is set before the first paint. AppProvider then takes over and
+   keeps it in step with the setting and with the system. */
+applyTheme(resolveTheme(readTheme()))
 
-createRoot(document.getElementById('rot')!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppProvider>
       <App />
@@ -17,13 +17,13 @@ createRoot(document.getElementById('rot')!).render(
   </StrictMode>,
 )
 
-/* Serviceworkern gör appen installerbar och startbar utan täckning.
-   Misslyckas den fungerar allt utom just kallstarten offline — kartrutor,
-   höjddata, väder och fynd ligger i IndexedDB oavsett. Vi sväljer därför
-   felet, men skriver ut det så att man kan se vad som hände, och statusen
-   visas under Mer. */
+/* The service worker makes the app installable and startable without coverage.
+   If it fails, everything except the cold start works offline — map tiles,
+   elevation data, weather and finds all live in IndexedDB regardless. We
+   therefore swallow the error, but print it so you can see what happened, and
+   the status is shown under Mer. */
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  const registrera = () => {
+  const register = () => {
     navigator.serviceWorker.register('/sw.js').catch((e: unknown) => {
       console.warn(
         'Serviceworkern kunde inte registreras — appen startar inte utan nät. ' +
@@ -32,7 +32,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       )
     })
   }
-  // `load` kan redan ha hunnit inträffa när modulen körs.
-  if (document.readyState === 'complete') registrera()
-  else window.addEventListener('load', registrera, { once: true })
+  // `load` may already have fired by the time the module runs.
+  if (document.readyState === 'complete') register()
+  else window.addEventListener('load', register, { once: true })
 }

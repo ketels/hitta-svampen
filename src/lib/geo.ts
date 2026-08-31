@@ -1,25 +1,25 @@
-/** Geometri, avstånd och terrängmatte. Allt i WGS84 om inget annat sägs. */
+/** Geometry, distances and terrain maths. Everything in WGS84 unless stated. */
 
 import type { BBox, LatLng } from './types.ts'
 
-export const JORDRADIE = 6371008.8
+export const EARTH_RADIUS = 6371008.8
 
 const rad = (d: number) => (d * Math.PI) / 180
 const deg = (r: number) => (r * 180) / Math.PI
 
-/** Avstånd i meter mellan två punkter (haversine). */
-export function avstand(a: LatLng, b: LatLng): number {
+/** Distance in metres between two points (haversine). */
+export function distance(a: LatLng, b: LatLng): number {
   const dLat = rad(b.lat - a.lat)
   const dLon = rad(b.lon - a.lon)
   const la1 = rad(a.lat)
   const la2 = rad(b.lat)
   const h =
     Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2
-  return 2 * JORDRADIE * Math.asin(Math.min(1, Math.sqrt(h)))
+  return 2 * EARTH_RADIUS * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-/** Bäring i grader från norr, a → b. */
-export function baring(a: LatLng, b: LatLng): number {
+/** Bearing in degrees from north, a → b. */
+export function bearing(a: LatLng, b: LatLng): number {
   const dLon = rad(b.lon - a.lon)
   const la1 = rad(a.lat)
   const la2 = rad(b.lat)
@@ -28,10 +28,10 @@ export function baring(a: LatLng, b: LatLng): number {
   return (deg(Math.atan2(y, x)) + 360) % 360
 }
 
-/** Punkt på `m` meters avstånd i riktning `bearing` grader. */
-export function flytta(p: LatLng, m: number, bearing: number): LatLng {
-  const d = m / JORDRADIE
-  const br = rad(bearing)
+/** Point `m` metres away in the direction `bearingDeg` degrees. */
+export function move(p: LatLng, m: number, bearingDeg: number): LatLng {
+  const d = m / EARTH_RADIUS
+  const br = rad(bearingDeg)
   const la1 = rad(p.lat)
   const lo1 = rad(p.lon)
   const la2 = Math.asin(
@@ -46,19 +46,19 @@ export function flytta(p: LatLng, m: number, bearing: number): LatLng {
   return { lat: deg(la2), lon: ((deg(lo2) + 540) % 360) - 180 }
 }
 
-/** Meter per grad longitud på given latitud. */
-export function meterPerGradLon(lat: number): number {
-  return (Math.PI / 180) * JORDRADIE * Math.cos(rad(lat))
+/** Metres per degree of longitude at the given latitude. */
+export function metresPerDegreeLon(lat: number): number {
+  return (Math.PI / 180) * EARTH_RADIUS * Math.cos(rad(lat))
 }
 
-export function meterPerGradLat(): number {
-  return (Math.PI / 180) * JORDRADIE
+export function metresPerDegreeLat(): number {
+  return (Math.PI / 180) * EARTH_RADIUS
 }
 
-/** Kvadratisk bbox runt en punkt med given radie i meter. */
-export function bboxRunt(c: LatLng, radieM: number): BBox {
-  const dLat = radieM / meterPerGradLat()
-  const dLon = radieM / meterPerGradLon(c.lat)
+/** Square bounding box around a point with the given radius in metres. */
+export function bboxAround(c: LatLng, radiusM: number): BBox {
+  const dLat = radiusM / metresPerDegreeLat()
+  const dLon = radiusM / metresPerDegreeLon(c.lat)
   return {
     south: c.lat - dLat,
     north: c.lat + dLat,
@@ -67,30 +67,30 @@ export function bboxRunt(c: LatLng, radieM: number): BBox {
   }
 }
 
-/* ---------- Punkt mot polygon ---------- */
+/* ---------- Point in polygon ---------- */
 
 /**
- * Ray casting — ligger punkten inuti ringen?
+ * Ray casting — is the point inside the ring?
  *
- * Tar lat och lon var för sig i stället för ett objekt. Anropas en gång per
- * rutnätscell och polygon under en skanning, alltså miljontals gånger, och då
- * är en sparad objektallokering per anrop värd den fulare signaturen.
+ * Takes lat and lon separately rather than an object. Called once per grid
+ * cell and polygon during a scan, so millions of times, and then one saved
+ * object allocation per call is worth the uglier signature.
  */
-export function iPolygon(lat: number, lon: number, ring: LatLng[]): boolean {
-  let inne = false
+export function inPolygon(lat: number, lon: number, ring: LatLng[]): boolean {
+  let inside = false
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const xi = ring[i]!.lon
     const yi = ring[i]!.lat
     const xj = ring[j]!.lon
     const yj = ring[j]!.lat
     if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
-      inne = !inne
+      inside = !inside
     }
   }
-  return inne
+  return inside
 }
 
-/** Snabb bbox för en ring, för att slippa dyra polygontester. */
+/** Quick bounding box for a ring, to avoid expensive polygon tests. */
 export function ringBBox(ring: LatLng[]): BBox {
   let s = Infinity,
     n = -Infinity,
@@ -105,36 +105,37 @@ export function ringBBox(ring: LatLng[]): BBox {
   return { south: s, north: n, west: w, east: e }
 }
 
-/* ---------- Formatering ---------- */
+/* ---------- Formatting ---------- */
 
-/** Grader/minuter — formatet de flesta kartappar och friluftsfolk använder. */
-export function formateraKoord(lat: number, lon: number): string {
-  const del = (v: number, pos: string, neg: string) => {
+/** Degrees/minutes — the format most map apps and outdoor folk use. */
+export function formatCoord(lat: number, lon: number): string {
+  const part = (v: number, pos: string, neg: string) => {
     const h = v >= 0 ? pos : neg
     const a = Math.abs(v)
     const g = Math.floor(a)
     const m = (a - g) * 60
     return `${g}°${m.toFixed(3)}'${h}`
   }
-  return `${del(lat, 'N', 'S')} ${del(lon, 'E', 'W')}`
+  return `${part(lat, 'N', 'S')} ${part(lon, 'E', 'W')}`
 }
 
-export function formateraAvstand(m: number): string {
+export function formatDistance(m: number): string {
   if (!isFinite(m)) return '–'
   if (m < 1000) return `${Math.round(m)} m`
   return `${(m / 1000).toFixed(m < 10000 ? 1 : 0)} km`
 }
 
-const KOMPASS = [
+/** Compass points in Swedish (O = öster/east, V = väster/west). */
+const COMPASS = [
   'N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO',
   'S', 'SSV', 'SV', 'VSV', 'V', 'VNV', 'NV', 'NNV',
 ]
 
-export function kompass(grader: number): string {
-  return KOMPASS[Math.round((((grader % 360) + 360) % 360) / 22.5) % 16]!
+export function compass(degrees: number): string {
+  return COMPASS[Math.round((((degrees % 360) + 360) % 360) / 22.5) % 16]!
 }
 
-/** Svensk pluralisering: `antal(1, 'ruta', 'rutor')` → "1 ruta". */
-export function antal(n: number, ental: string, flertal: string): string {
-  return `${n.toLocaleString('sv-SE')} ${n === 1 ? ental : flertal}`
+/** Swedish pluralisation: `plural(1, 'ruta', 'rutor')` → "1 ruta". */
+export function plural(n: number, singular: string, many: string): string {
+  return `${n.toLocaleString('sv-SE')} ${n === 1 ? singular : many}`
 }

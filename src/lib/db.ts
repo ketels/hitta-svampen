@@ -1,156 +1,267 @@
 /**
- * Lokal lagring. Allt ligger i webbläsaren — inga konton, ingen server, inget
- * som lämnar telefonen. Fyndplatser är personlig egendom och ska förbli det.
+ * Local storage. Everything lives in the browser — no accounts, no server,
+ * nothing that leaves the phone. Find locations are personal property and
+ * shall remain so.
  */
 
-import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { Find, Spar } from './types.ts'
+import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction } from 'idb'
+import type { Find, Track } from './types.ts'
+import {
+  LEGACY_MAP_LAYER, LEGACY_SETTINGS, migrateFind, migrateSettingValue, migrateTrack,
+} from './dbMigrate.ts'
 
-interface SvampDB extends DBSchema {
-  fynd: { key: string; value: Find; indexes: { tid: number; art: string } }
-  spar: { key: string; value: Spar; indexes: { start: number } }
-  bilder: { key: string; value: Blob }
-  cache: { key: string; value: { nyckel: string; data: unknown; tid: number; ttl: number } }
-  rutor: { key: string; value: { nyckel: string; blob: Blob; tid: number } }
-  installningar: { key: string; value: unknown }
+interface MushroomDB extends DBSchema {
+  finds: { key: string; value: Find; indexes: { time: number; species: string } }
+  tracks: { key: string; value: Track; indexes: { start: number } }
+  photos: { key: string; value: Blob }
+  cache: { key: string; value: { key: string; data: unknown; time: number; ttl: number } }
+  tiles: { key: string; value: { key: string; blob: Blob; time: number } }
+  settings: { key: string; value: unknown }
 }
 
-let dbP: Promise<IDBPDatabase<SvampDB>> | null = null
+/**
+ * Version 2 renamed every store and field from Swedish to English. Version 1
+ * databases are migrated in place rather than discarded — see `upgradeToV2`.
+ */
+const DB_VERSION = 2
 
-export function db(): Promise<IDBPDatabase<SvampDB>> {
-  if (!dbP) {
-    dbP = openDB<SvampDB>('hitta-svampen', 1, {
-      upgrade(d) {
-        const f = d.createObjectStore('fynd', { keyPath: 'id' })
-        f.createIndex('tid', 'tid')
-        f.createIndex('art', 'art')
-        const s = d.createObjectStore('spar', { keyPath: 'id' })
-        s.createIndex('start', 'start')
-        d.createObjectStore('bilder')
-        d.createObjectStore('cache', { keyPath: 'nyckel' })
-        d.createObjectStore('rutor', { keyPath: 'nyckel' })
-        d.createObjectStore('installningar')
+let dbPromise: Promise<IDBPDatabase<MushroomDB>> | null = null
+
+export function db(): Promise<IDBPDatabase<MushroomDB>> {
+  if (!dbPromise) {
+    dbPromise = openDB<MushroomDB>('hitta-svampen', DB_VERSION, {
+      upgrade(d, oldVersion, _newVersion, tx) {
+        createStores(d)
+        if (oldVersion === 1) void upgradeToV2(d, tx)
       },
     })
   }
-  return dbP
+  return dbPromise
 }
 
-export const nyttId = () =>
+function createStores(d: IDBPDatabase<MushroomDB>) {
+  if (!d.objectStoreNames.contains('finds')) {
+    const f = d.createObjectStore('finds', { keyPath: 'id' })
+    f.createIndex('time', 'time')
+    f.createIndex('species', 'species')
+  }
+  if (!d.objectStoreNames.contains('tracks')) {
+    const s = d.createObjectStore('tracks', { keyPath: 'id' })
+    s.createIndex('start', 'start')
+  }
+  if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos')
+  if (!d.objectStoreNames.contains('cache')) d.createObjectStore('cache', { keyPath: 'key' })
+  if (!d.objectStoreNames.contains('tiles')) d.createObjectStore('tiles', { keyPath: 'key' })
+  if (!d.objectStoreNames.contains('settings')) d.createObjectStore('settings')
+}
+
+/**
+ * Moves version 1's Swedish stores into the new English ones.
+ *
+ * Runs inside the upgrade transaction, so either everything lands or nothing
+ * does — a half-migrated database would be worse than no migration at all.
+ * The old stores are deleted only after their contents have been written, and
+ * the network cache is dropped rather than translated: it is regenerable, and
+ * its keys carry the old field names inside the cached payloads.
+ */
+type UpgradeTx = IDBPTransaction<
+  MushroomDB,
+  ('finds' | 'tracks' | 'photos' | 'cache' | 'tiles' | 'settings')[],
+  'versionchange'
+>
+
+async function upgradeToV2(d: IDBPDatabase<MushroomDB>, tx: UpgradeTx) {
+  const old = tx as unknown as {
+    objectStore(name: string): {
+      getAll(): Promise<unknown[]>
+      getAllKeys(): Promise<IDBValidKey[]>
+      get(key: IDBValidKey): Promise<unknown>
+    }
+  }
+  const has = (name: string) => d.objectStoreNames.contains(name as never)
+
+  if (has('fynd')) {
+    const finds = tx.objectStore('finds')
+    for (const raw of await old.objectStore('fynd').getAll()) {
+      const f = migrateFind(raw)
+      if (f) await finds.put(f)
+    }
+  }
+
+  if (has('spar')) {
+    const tracks = tx.objectStore('tracks')
+    for (const raw of await old.objectStore('spar').getAll()) {
+      const s = migrateTrack(raw)
+      if (s) await tracks.put(s)
+    }
+  }
+
+  if (has('bilder')) {
+    const photos = tx.objectStore('photos')
+    const src = old.objectStore('bilder')
+    for (const key of await src.getAllKeys()) {
+      const blob = await src.get(key)
+      if (blob instanceof Blob) await photos.put(blob, key as string)
+    }
+  }
+
+  /* Map tiles are keyed `<layer>/<z>/<x>/<y>`, and two of the three layer ids
+     changed name. Rewriting the prefix keeps a downloaded offline area usable
+     instead of silently making the phone fetch it all again. */
+  if (has('rutor')) {
+    const tiles = tx.objectStore('tiles')
+    for (const raw of await old.objectStore('rutor').getAll()) {
+      const r = raw as { nyckel?: unknown; blob?: unknown; tid?: unknown }
+      if (typeof r.nyckel !== 'string' || !(r.blob instanceof Blob)) continue
+      const slash = r.nyckel.indexOf('/')
+      const prefix = slash < 0 ? r.nyckel : r.nyckel.slice(0, slash)
+      const key = LEGACY_MAP_LAYER[prefix]
+        ? LEGACY_MAP_LAYER[prefix] + r.nyckel.slice(slash)
+        : r.nyckel
+      await tiles.put({ key, blob: r.blob, time: typeof r.tid === 'number' ? r.tid : Date.now() })
+    }
+  }
+
+  /* Settings are small and each one has a known new name. Several also hold
+     values that were renamed, so the value is translated as well as the key.
+     `senasteSkanning` is deliberately not carried over: a saved scan is a deep
+     object full of Swedish field names, and re-scanning takes seconds. */
+  if (has('installningar')) {
+    const settings = tx.objectStore('settings')
+    const src = old.objectStore('installningar')
+    for (const key of await src.getAllKeys()) {
+      const name = LEGACY_SETTINGS[String(key)]
+      if (!name || name === 'lastScan') continue
+      const raw = await src.get(key)
+      if (raw === undefined) continue
+      const value = migrateSettingValue(name, raw)
+      if (value !== undefined) await settings.put(value, name)
+    }
+  }
+
+  for (const name of ['fynd', 'spar', 'bilder', 'cache', 'rutor', 'installningar']) {
+    if (has(name)) d.deleteObjectStore(name as never)
+  }
+}
+
+export const newId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
-/* ---------- Fynd ---------- */
+/* ---------- Finds ---------- */
 
-export async function sparaFynd(f: Find): Promise<void> {
-  await (await db()).put('fynd', f)
+export async function saveFind(f: Find): Promise<void> {
+  await (await db()).put('finds', f)
 }
 
-export async function hamtaFynd(): Promise<Find[]> {
-  const alla = await (await db()).getAll('fynd')
-  return alla.sort((a, b) => b.tid - a.tid)
+export async function loadFinds(): Promise<Find[]> {
+  const all = await (await db()).getAll('finds')
+  return all.sort((a, b) => b.time - a.time)
 }
 
-export async function raderaFynd(id: string): Promise<void> {
+export async function deleteFind(id: string): Promise<void> {
   const d = await db()
-  const f = await d.get('fynd', id)
-  if (f) for (const b of f.bilder) await d.delete('bilder', b)
-  await d.delete('fynd', id)
+  const f = await d.get('finds', id)
+  if (f) for (const p of f.photos) await d.delete('photos', p)
+  await d.delete('finds', id)
 }
 
-/* ---------- Spår ---------- */
+/* ---------- Tracks ---------- */
 
-export async function sparaSpar(s: Spar): Promise<void> {
-  await (await db()).put('spar', s)
+export async function saveTrack(s: Track): Promise<void> {
+  await (await db()).put('tracks', s)
 }
 
-export async function hamtaSpar(): Promise<Spar[]> {
-  const alla = await (await db()).getAll('spar')
-  return alla.sort((a, b) => b.start - a.start)
+export async function loadTracks(): Promise<Track[]> {
+  const all = await (await db()).getAll('tracks')
+  return all.sort((a, b) => b.start - a.start)
 }
 
-export async function raderaSpar(id: string): Promise<void> {
-  await (await db()).delete('spar', id)
+export async function deleteTrack(id: string): Promise<void> {
+  await (await db()).delete('tracks', id)
 }
 
-/* ---------- Bilder ---------- */
+/* ---------- Photos ---------- */
 
-export async function sparaBild(blob: Blob): Promise<string> {
-  const id = nyttId()
-  await (await db()).put('bilder', blob, id)
+export async function savePhoto(blob: Blob): Promise<string> {
+  const id = newId()
+  await (await db()).put('photos', blob, id)
   return id
 }
 
-export async function hamtaBild(id: string): Promise<Blob | undefined> {
-  return (await db()).get('bilder', id)
+export async function loadPhoto(id: string): Promise<Blob | undefined> {
+  return (await db()).get('photos', id)
 }
 
-/* ---------- Nätverkscache ---------- */
+/* ---------- Network cache ---------- */
 
 /**
- * Höjs när formen på något som cachas ändras — nya fält i väderserien,
- * annan tolkning av OSM-taggar, och så vidare. Utan den här skulle gamla
- * poster ligga kvar och tyst ge appen sämre data än den tror sig ha.
- * Kartrutor och höjdkakel berörs inte; de ligger i en egen lagringsplats
- * och är råa bilder som aldrig ändrar form.
+ * Bumped whenever the shape of something cached changes — new fields in the
+ * weather series, a different reading of OSM tags, and so on. Without it old
+ * entries would linger and quietly feed the app worse data than it believes
+ * it has. Map tiles and elevation tiles are unaffected; they live in their own
+ * store and are raw images that never change shape.
+ *
+ * Version 5 is the English rename: the cached payloads are typed objects whose
+ * field names all changed.
  */
-const CACHE_VERSION = 4
+const CACHE_VERSION = 5
 
-const versionerad = (nyckel: string) => `v${CACHE_VERSION}:${nyckel}`
+const versioned = (key: string) => `v${CACHE_VERSION}:${key}`
 
-/** Läser ur cachen om posten inte hunnit bli för gammal. */
-export async function cacheLas<T>(nyckel: string): Promise<T | null> {
+/** Reads from the cache unless the entry has grown too old. */
+export async function cacheRead<T>(key: string): Promise<T | null> {
   try {
-    const post = await (await db()).get('cache', versionerad(nyckel))
-    if (!post) return null
-    if (Date.now() - post.tid > post.ttl) return null
-    return post.data as T
+    const entry = await (await db()).get('cache', versioned(key))
+    if (!entry) return null
+    if (Date.now() - entry.time > entry.ttl) return null
+    return entry.data as T
   } catch {
     return null
   }
 }
 
-/** Läser ur cachen även om den är gammal — sista utvägen när nätet är borta. */
-export async function cacheLasGammal<T>(nyckel: string): Promise<T | null> {
+/** Reads from the cache even when stale — the last resort when the net is gone. */
+export async function cacheReadStale<T>(key: string): Promise<T | null> {
   try {
-    const post = await (await db()).get('cache', versionerad(nyckel))
-    return post ? (post.data as T) : null
+    const entry = await (await db()).get('cache', versioned(key))
+    return entry ? (entry.data as T) : null
   } catch {
     return null
   }
 }
 
-export async function cacheSkriv(nyckel: string, data: unknown, ttl: number): Promise<void> {
+export async function cacheWrite(key: string, data: unknown, ttl: number): Promise<void> {
   try {
-    await (await db()).put('cache', { nyckel: versionerad(nyckel), data, tid: Date.now(), ttl })
+    await (await db()).put('cache', { key: versioned(key), data, time: Date.now(), ttl })
   } catch {
-    /* Fullt lagringsutrymme ska aldrig krascha appen. */
+    /* A full storage quota must never crash the app. */
   }
 }
 
 /**
- * Letar upp en cachepost vars nyckel matchar `prefix` och vars sparade ruta
- * omsluter den efterfrågade. Används av landtäcket: har man förhämtat en
- * hel trakt ska en skanning mitt i den slippa gå ut på nätet igen, trots att
- * dess ruta inte är exakt densamma.
+ * Finds a cache entry whose key matches `prefix` and whose stored box encloses
+ * the requested one. Used by the land cover: having prefetched a whole area, a
+ * scan in the middle of it should not have to go back to the network even
+ * though its box is not exactly the same.
  */
-export async function cacheHittaTackande<T>(
+export async function cacheFindCovering<T>(
   prefix: string,
   box: { south: number; west: number; north: number; east: number },
 ): Promise<T | null> {
   try {
     const d = await db()
-    const nycklar = await d.getAllKeys('cache')
-    const nu = Date.now()
-    for (const nyckel of nycklar) {
-      const k = String(nyckel)
+    const keys = await d.getAllKeys('cache')
+    const now = Date.now()
+    for (const key of keys) {
+      const k = String(key)
       if (!k.startsWith(`v${CACHE_VERSION}:${prefix}`)) continue
-      const delar = k.slice(k.indexOf(prefix) + prefix.length).split(',').map(Number)
-      if (delar.length < 4 || delar.some((v) => !isFinite(v))) continue
-      const [s2, w2, n2, e2] = delar as [number, number, number, number]
+      const parts = k.slice(k.indexOf(prefix) + prefix.length).split(',').map(Number)
+      if (parts.length < 4 || parts.some((v) => !isFinite(v))) continue
+      const [s2, w2, n2, e2] = parts as [number, number, number, number]
       if (s2 > box.south || w2 > box.west || n2 < box.north || e2 < box.east) continue
-      const post = await d.get('cache', k)
-      if (!post || nu - post.tid > post.ttl) continue
-      return post.data as T
+      const entry = await d.get('cache', k)
+      if (!entry || now - entry.time > entry.ttl) continue
+      return entry.data as T
     }
     return null
   } catch {
@@ -158,77 +269,78 @@ export async function cacheHittaTackande<T>(
   }
 }
 
-/** Slänger cacheposter från äldre versioner. Körs en gång vid uppstart. */
-export async function stadaCache(): Promise<number> {
+/** Discards cache entries from older versions. Runs once at startup. */
+export async function pruneCache(): Promise<number> {
   try {
     const d = await db()
-    const nycklar = await d.getAllKeys('cache')
-    const gamla = nycklar.filter((k) => !String(k).startsWith(`v${CACHE_VERSION}:`))
-    for (const k of gamla) await d.delete('cache', k)
-    return gamla.length
+    const keys = await d.getAllKeys('cache')
+    const stale = keys.filter((k) => !String(k).startsWith(`v${CACHE_VERSION}:`))
+    for (const k of stale) await d.delete('cache', k)
+    return stale.length
   } catch {
     return 0
   }
 }
 
-/* ---------- Kartrutor för offline ---------- */
+/* ---------- Map tiles for offline use ---------- */
 
-export async function sparaRuta(nyckel: string, blob: Blob): Promise<void> {
+export async function saveTile(key: string, blob: Blob): Promise<void> {
   try {
-    await (await db()).put('rutor', { nyckel, blob, tid: Date.now() })
+    await (await db()).put('tiles', { key, blob, time: Date.now() })
   } catch {
-    /* ignorera */
+    /* ignore */
   }
 }
 
-export async function hamtaRuta(nyckel: string): Promise<Blob | undefined> {
+export async function loadTile(key: string): Promise<Blob | undefined> {
   try {
-    return (await (await db()).get('rutor', nyckel))?.blob
+    return (await (await db()).get('tiles', key))?.blob
   } catch {
     return undefined
   }
 }
 
-export async function antalRutor(): Promise<number> {
+export async function countTiles(): Promise<number> {
   try {
-    return await (await db()).count('rutor')
+    return await (await db()).count('tiles')
   } catch {
     return 0
   }
 }
 
-export async function rensaRutor(): Promise<void> {
-  await (await db()).clear('rutor')
+export async function clearTiles(): Promise<void> {
+  await (await db()).clear('tiles')
 }
 
-/* ---------- Inställningar ---------- */
+/* ---------- Settings ---------- */
 
-export async function las<T>(nyckel: string, standard: T): Promise<T> {
+export async function readSetting<T>(key: string, fallback: T): Promise<T> {
   try {
-    const v = await (await db()).get('installningar', nyckel)
-    return v === undefined ? standard : (v as T)
+    const v = await (await db()).get('settings', key)
+    return v === undefined ? fallback : (v as T)
   } catch {
-    return standard
+    return fallback
   }
 }
 
-export async function skriv(nyckel: string, varde: unknown): Promise<void> {
-  await (await db()).put('installningar', varde, nyckel)
+export async function writeSetting(key: string, value: unknown): Promise<void> {
+  await (await db()).put('settings', value, key)
 }
 
 /**
- * Ber webbläsaren behålla datan.
+ * Asks the browser to keep the data.
  *
- * IndexedDB är inte garanterat beständigt. Under lagringsbrist kan
- * webbläsaren vräka det, och Safari rensar dessutom skrivbar lagring efter
- * ungefär en veckas inaktivitet för vanliga webbsidor. Fyndplatser som tagit
- * år att samla ihop ska inte försvinna för att man haft en lugn höst.
+ * IndexedDB is not guaranteed to be durable. Under storage pressure the
+ * browser may evict it, and Safari additionally clears writable storage after
+ * roughly a week of inactivity for ordinary web pages. Find locations that
+ * took years to gather must not disappear because of one quiet autumn.
  *
- * Webbläsaren avgör själv, utifrån om appen är installerad på hemskärmen,
- * bokmärkt eller flitigt använd. Nekas den får man be igen senare — därför
- * anropas den här både vid start och efter att ett fynd sparats.
+ * The browser decides for itself, based on whether the app is installed to the
+ * home screen, bookmarked or used often. If it refuses you can ask again
+ * later — which is why this is called both at startup and after a find is
+ * saved.
  */
-export async function begarBestandigLagring(): Promise<boolean> {
+export async function requestPersistentStorage(): Promise<boolean> {
   try {
     if (!navigator.storage?.persist) return false
     if (await navigator.storage.persisted()) return true
@@ -238,7 +350,7 @@ export async function begarBestandigLagring(): Promise<boolean> {
   }
 }
 
-export async function arLagringBestandig(): Promise<boolean> {
+export async function isStoragePersistent(): Promise<boolean> {
   try {
     return (await navigator.storage?.persisted?.()) ?? false
   } catch {
@@ -246,38 +358,39 @@ export async function arLagringBestandig(): Promise<boolean> {
   }
 }
 
-/** Ungefärlig lagringsanvändning, för inställningsvyn. */
-export async function lagringsstatus(): Promise<{ anvant: number; kvot: number }> {
+/** Approximate storage usage, for the settings view. */
+export async function storageEstimate(): Promise<{ used: number; quota: number }> {
   if (navigator.storage?.estimate) {
     const e = await navigator.storage.estimate()
-    return { anvant: e.usage ?? 0, kvot: e.quota ?? 0 }
+    return { used: e.usage ?? 0, quota: e.quota ?? 0 }
   }
-  return { anvant: 0, kvot: 0 }
+  return { used: 0, quota: 0 }
 }
 
-/* ---------- Senaste skanningen ---------- */
+/* ---------- The most recent scan ---------- */
 
 /**
- * Skanningen sparas mellan sessioner. Poängen är offline: när du väl står i
- * skogen utan täckning ska kartan du gjorde vid köksbordet finnas kvar.
- * Rutnätet är stort men ryms gott inom webbläsarens kvot.
+ * The scan is kept between sessions. That is the whole point of offline: once
+ * you are out in the forest without coverage, the map you made at the kitchen
+ * table should still be there. The grid is large but fits comfortably within
+ * the browser's quota.
  */
-export async function sparaSkanning(s: unknown): Promise<void> {
+export async function saveScan(s: unknown): Promise<void> {
   try {
-    await (await db()).put('installningar', s, 'senasteSkanning')
+    await (await db()).put('settings', s, 'lastScan')
   } catch {
-    /* Fullt utrymme ska inte förstöra en färsk skanning i minnet. */
+    /* A full quota must not destroy a fresh scan held in memory. */
   }
 }
 
-export async function hamtaSkanning<T>(): Promise<T | null> {
+export async function loadScan<T>(): Promise<T | null> {
   try {
-    return ((await (await db()).get('installningar', 'senasteSkanning')) as T) ?? null
+    return ((await (await db()).get('settings', 'lastScan')) as T) ?? null
   } catch {
     return null
   }
 }
 
-export async function glomSkanning(): Promise<void> {
-  await (await db()).delete('installningar', 'senasteSkanning')
+export async function forgetScan(): Promise<void> {
+  await (await db()).delete('settings', 'lastScan')
 }
