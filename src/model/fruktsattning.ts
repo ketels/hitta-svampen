@@ -27,7 +27,8 @@ const mattnad = (v: number, skala: number) => 1 - Math.exp(-Math.max(0, v) / ska
 export type Fruktsattning = {
   /** Slutligt index 0–1. */
   index: number
-  /** Sammanvägd vattentillgång 0–1 — den hårdaste begränsningen. */
+  /** Sammanvägd vattentillgång — den hårdaste begränsningen. Kan nå ~1.15
+      när blöt yta lyfter över initieringens tak; indexet clampas till 1. */
   vatten: number
   /** Vilken faktor som håller tillbaka fruktsättningen just nu. */
   begransning: 'vatten' | 'temperatur' | 'frost' | 'torka' | 'inget'
@@ -84,7 +85,8 @@ export function beraknaFruktsattning(
      Det tröga tiodygnsmedlet är avsiktligt: 9–27 cm är initieringssignalen
      och ska inte rycka till av gårdagens skyfall. Nedåt får klockan ett mjukt
      golv i stället för en nollklippa — exakt på artens minimum är marken
-     marginell, inte omöjlig. Golvet gäller bara den torra sidan; vattensjuk
+     marginell, inte omöjlig — och golvet tonar in i klockan så att stigande
+     fukt alltid syns i poängen. Det gäller bara den torra sidan; vattensjuk
      mark är fortfarande noll. */
   const fuktFonster = serie.slice(Math.max(0, i - 9), tom)
   const medelMarkfukt =
@@ -95,15 +97,19 @@ export function beraknaFruktsattning(
     artData.markfukt.opt,
     artData.markfukt.max,
   )
-  const golv = 0.15 * Math.exp(-Math.max(0, artData.markfukt.min - medelMarkfukt) / 0.03)
-  const markfukt = medelMarkfukt <= artData.markfukt.opt ? Math.max(markfuktKlocka, golv) : markfuktKlocka
+  const markfukt =
+    medelMarkfukt > artData.markfukt.opt
+      ? markfuktKlocka
+      : medelMarkfukt >= artData.markfukt.min
+        ? 0.15 + 0.85 * markfuktKlocka
+        : 0.15 * Math.exp(-(artData.markfukt.min - medelMarkfukt) / 0.03)
 
   /* --- 2b. Ytfukt 3–9 cm, medel över två dygn — den snabba kanalen ---
      Ytskiktet svarar på regn inom timmar, så här är ett kort fönster rätt.
      Äldre sparade serier saknar fältet; då får djupfukten vikariera. */
   const ytFonster = serie.slice(Math.max(0, i - 1), tom)
   const medelYtfukt =
-    ytFonster.reduce((s, d) => s + (d.ytfukt ?? d.markfukt ?? 0), 0) / Math.max(1, ytFonster.length)
+    ytFonster.reduce((s, d) => s + (d.ytfukt ?? d.markfukt), 0) / Math.max(1, ytFonster.length)
   const ytfukt = Math.max(
     0,
     Math.min(1, (medelYtfukt - artData.markfukt.min) / (artData.markfukt.opt - artData.markfukt.min)),
@@ -145,12 +151,13 @@ export function beraknaFruktsattning(
      stället för att medelvärdesbildas. Exponenterna gör vattnet till den
      hårdaste begränsningen och låter temperaturen modulera takten.
 
-     Initieringen (fördröjt regn + djupfukt) sätter taket; ytfukten modulerar
-     bara inom det. Färskt regn lyfter alltså nuläget direkt — fruktkroppar
-     under utveckling mår bra av det — men utan initiering finns inget att
-     lyfta, och en uttorkad yta kostar som mest en fjärdedel. */
+     Initieringen (fördröjt regn + djupfukt) sätter nivån; ytfukten modulerar
+     kring den, centrerad så att en typisk yta är neutral. Blöt yta lyfter
+     upp till 15 % — färskt regn ger alltså omedelbar effekt på fruktkroppar
+     under utveckling — och uttorkad yta kostar 15 %. Utan initiering finns
+     inget att lyfta: skyfall på torr mark förblir nära noll. */
   const initiering = 0.45 * regnDriv + 0.55 * markfukt
-  const vatten = initiering * (0.75 + 0.25 * ytfukt)
+  const vatten = initiering * (0.85 + 0.3 * ytfukt)
   const index = Math.max(
     0,
     Math.min(1, Math.pow(vatten, 0.9) * Math.pow(marktemp, 0.6) * frostfaktor * torkfaktor),

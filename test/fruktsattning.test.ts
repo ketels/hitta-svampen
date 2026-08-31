@@ -112,17 +112,24 @@ console.log('\n— Kantarell, olika vädersituationer (mitten av augusti) —')
      `${f1.index.toFixed(3)} -> ${f2.index.toFixed(3)}`)
 }
 
-// H. God initiering men uttorkad yta — pågående utveckling hämmas, dör inte.
-//    Ytfukten modulerar inom [0.75, 1] av initieringens tak, aldrig mer.
+// H. Ytfukten modulerar kring initieringen, [0.85, 1.15]: blöt yta LYFTER
+//    över initieringens nivå (färskt regn ger omedelbar effekt), torr yta
+//    hämmar pågående utveckling utan att döda den.
 {
   const regn = (a: number) => (a >= 14 && a <= 19 ? 12 : a % 6 === 0 ? 2 : 0)
   const blot = serie('2026-08-15', regn, () => 0.30, 16)
   const torrYta = serie('2026-08-15', regn, () => 0.30, 16, undefined, (a) => (a <= 4 ? 0.10 : 0.30))
   const fB = beraknaFruktsattning(blot, kantarell, '2026-08-15')
   const fT = beraknaFruktsattning(torrYta, kantarell, '2026-08-15')
-  ok('torr yta sänker indexet', fT.index < fB.index * 0.85,
+  const initB = 0.45 * fB.regnDriv + 0.55 * fB.markfukt
+  const initT = 0.45 * fT.regnDriv + 0.55 * fT.markfukt
+  ok('blöt yta lyfter vattnet ÖVER initieringen', fB.vatten > initB * 1.05,
+     `initiering=${initB.toFixed(3)} -> vatten=${fB.vatten.toFixed(3)}`)
+  ok('  torr yta trycker det under', fT.vatten < initT * 0.95,
+     `initiering=${initT.toFixed(3)} -> vatten=${fT.vatten.toFixed(3)}`)
+  ok('  torr yta sänker indexet mot blöt', fT.index < fB.index * 0.85,
      `${fB.index.toFixed(3)} -> ${fT.index.toFixed(3)}`)
-  ok('  men taket är en fjärdedel', fT.index > fB.index * 0.7,
+  ok('  men svängrummet är begränsat', fT.index > fB.index * 0.7,
      `kvot=${(fT.index / fB.index).toFixed(2)}`)
 }
 
