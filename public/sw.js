@@ -1,6 +1,6 @@
-/* Serviceworker: gör appen startbar utan täckning.
-   Externa data (kartrutor, höjdkakel, väder) cachas av appen själv i
-   IndexedDB — här bryr vi oss bara om appskalet. */
+/* Service worker: makes the app startable without coverage.
+   External data (map tiles, elevation tiles, weather) is cached by the app
+   itself in IndexedDB — here we only care about the app shell. */
 
 const CACHE = 'hitta-svampen-v1'
 
@@ -9,7 +9,7 @@ self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     (async () => {
-      for (const n of await caches.keys()) if (n !== CACHE) await caches.delete(n)
+      for (const name of await caches.keys()) if (name !== CACHE) await caches.delete(name)
       await self.clients.claim()
     })(),
   )
@@ -23,23 +23,23 @@ self.addEventListener('fetch', (e) => {
     (async () => {
       const cache = await caches.open(CACHE)
 
-      // Sidnavigering: färskt om möjligt, annars det senast sparade skalet.
+      // Page navigation: fresh if possible, otherwise the last saved shell.
       if (e.request.mode === 'navigate') {
         try {
-          const svar = await fetch(e.request)
-          void cache.put('/', svar.clone())
-          return svar
+          const res = await fetch(e.request)
+          void cache.put('/', res.clone())
+          return res
         } catch {
           return (await cache.match('/')) ?? Response.error()
         }
       }
 
-      const sparad = await cache.match(e.request)
-      if (sparad) return sparad
+      const saved = await cache.match(e.request)
+      if (saved) return saved
       try {
-        const svar = await fetch(e.request)
-        if (svar.ok) void cache.put(e.request, svar.clone())
-        return svar
+        const res = await fetch(e.request)
+        if (res.ok) void cache.put(e.request, res.clone())
+        return res
       } catch {
         return Response.error()
       }

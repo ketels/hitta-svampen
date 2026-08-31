@@ -1,50 +1,50 @@
 /**
- * Verifierade svampfynd från GBIF — i Sverige mestadels Artportalen, alltså
- * rapporter från riktiga svampplockare och mykologer.
+ * Verified mushroom records from GBIF — in Sweden mostly Artportalen, that is
+ * reports from real mushroom pickers and mycologists.
  *
- * De här punkterna är inte en skattkarta: många är gamla, avrundade eller
- * rapporterade från en parkering i närheten av fyndet. Men de säger något
- * viktigt ändå — att arten faktiskt förekommer i den här skogen. Vi använder
- * dem som stöd för habitatmodellen, inte som facit.
+ * These points are not a treasure map: many are old, rounded off, or reported
+ * from a car park near the actual find. But they do say something important —
+ * that the species really does occur in this forest. We use them as support
+ * for the habitat model, not as ground truth.
  */
 
-import { cacheLas, cacheSkriv, cacheLasGammal } from '../lib/db.ts'
-import { GBIF_NYCKLAR } from './arter.ts'
+import { cacheRead, cacheWrite, cacheReadStale } from '../lib/db.ts'
+import { GBIF_KEYS } from './species.ts'
 import type { BBox, SpeciesId } from '../lib/types.ts'
 
-const BAS = 'https://api.gbif.org/v1/occurrence/search'
+const BASE = 'https://api.gbif.org/v1/occurrence/search'
 
 export type Observation = {
   lat: number
   lon: number
-  art: SpeciesId
-  ar: number | null
-  manad: number | null
-  /** Koordinatosäkerhet i meter. Saknas ofta. */
-  osakerhet: number | null
-  plats: string | null
+  species: SpeciesId
+  year: number | null
+  month: number | null
+  /** Coordinate uncertainty in metres. Often missing. */
+  uncertainty: number | null
+  place: string | null
 }
 
-const NYCKEL_TILL_ART = new Map<number, SpeciesId>(
-  Object.entries(GBIF_NYCKLAR).map(([k, v]) => [v as number, k as SpeciesId]),
+const KEY_TO_SPECIES = new Map<number, SpeciesId>(
+  Object.entries(GBIF_KEYS).map(([k, v]) => [v as number, k as SpeciesId]),
 )
 
-export async function hamtaObservationer(
+export async function fetchObservations(
   box: BBox,
-  arter: SpeciesId[],
+  speciesIds: SpeciesId[],
   signal?: AbortSignal,
 ): Promise<Observation[]> {
-  const nycklar = arter.map((a) => GBIF_NYCKLAR[a]).filter((n): n is number => !!n)
-  if (nycklar.length === 0) return []
+  const keys = speciesIds.map((s) => GBIF_KEYS[s]).filter((n): n is number => !!n)
+  if (keys.length === 0) return []
 
-  const nyckel = `gbif:${box.south.toFixed(3)},${box.west.toFixed(3)},${box.north.toFixed(
+  const cacheKey = `gbif:${box.south.toFixed(3)},${box.west.toFixed(3)},${box.north.toFixed(
     3,
-  )},${box.east.toFixed(3)}:${nycklar.sort().join('_')}`
-  const cachad = await cacheLas<Observation[]>(nyckel)
-  if (cachad) return cachad
+  )},${box.east.toFixed(3)}:${keys.sort().join('_')}`
+  const cached = await cacheRead<Observation[]>(cacheKey)
+  if (cached) return cached
 
   const p = new URLSearchParams()
-  for (const n of nycklar) p.append('taxonKey', String(n))
+  for (const n of keys) p.append('taxonKey', String(n))
   p.set('decimalLatitude', `${box.south.toFixed(5)},${box.north.toFixed(5)}`)
   p.set('decimalLongitude', `${box.west.toFixed(5)},${box.east.toFixed(5)}`)
   p.set('hasCoordinate', 'true')
@@ -52,13 +52,13 @@ export async function hamtaObservationer(
   p.set('limit', '300')
 
   try {
-    const ut: Observation[] = []
-    // Max tre sidor — 900 fynd är gott och väl nog för att forma en yta.
-    for (let sida = 0; sida < 3; sida++) {
-      p.set('offset', String(sida * 300))
-      const svar = await fetch(`${BAS}?${p}`, { signal })
-      if (!svar.ok) throw new Error(`GBIF svarade ${svar.status}`)
-      const j = (await svar.json()) as {
+    const out: Observation[] = []
+    // At most three pages — 900 records is plenty to shape a surface.
+    for (let page = 0; page < 3; page++) {
+      p.set('offset', String(page * 300))
+      const res = await fetch(`${BASE}?${p}`, { signal })
+      if (!res.ok) throw new Error(`GBIF svarade ${res.status}`)
+      const j = (await res.json()) as {
         endOfRecords: boolean
         results: {
           decimalLatitude: number
@@ -73,67 +73,67 @@ export async function hamtaObservationer(
         }[]
       }
       for (const r of j.results) {
-        const art =
-          NYCKEL_TILL_ART.get(r.speciesKey ?? -1) ??
-          NYCKEL_TILL_ART.get(r.acceptedTaxonKey ?? -1) ??
-          NYCKEL_TILL_ART.get(r.taxonKey ?? -1)
-        if (!art) continue
-        ut.push({
+        const id =
+          KEY_TO_SPECIES.get(r.speciesKey ?? -1) ??
+          KEY_TO_SPECIES.get(r.acceptedTaxonKey ?? -1) ??
+          KEY_TO_SPECIES.get(r.taxonKey ?? -1)
+        if (!id) continue
+        out.push({
           lat: r.decimalLatitude,
           lon: r.decimalLongitude,
-          art,
-          ar: r.year ?? null,
-          manad: r.month ?? null,
-          osakerhet: r.coordinateUncertaintyInMeters ?? null,
-          plats: r.locality ?? null,
+          species: id,
+          year: r.year ?? null,
+          month: r.month ?? null,
+          uncertainty: r.coordinateUncertaintyInMeters ?? null,
+          place: r.locality ?? null,
         })
       }
       if (j.endOfRecords || j.results.length < 300) break
     }
-    // GBIF uppdateras sällan för gamla fynd. En månad är rimligt.
-    await cacheSkriv(nyckel, ut, 30 * 24 * 3600e3)
-    return ut
+    // GBIF rarely updates old records. A month is reasonable.
+    await cacheWrite(cacheKey, out, 30 * 24 * 3600e3)
+    return out
   } catch (e) {
-    const gammal = await cacheLasGammal<Observation[]>(nyckel)
-    if (gammal) return gammal
+    const stale = await cacheReadStale<Observation[]>(cacheKey)
+    if (stale) return stale
     throw e
   }
 }
 
 /**
- * Hur väl stöttar kända fynd den här punkten?
+ * How well do known finds support this point?
  *
- * Varje observation bidrar med en klocka vars bredd sätts av dess egen
- * koordinatosäkerhet — ett fynd angivet på 25 meter när säger mycket om just
- * den kullen, ett angivet på 5 kilometer säger bara att arten finns i trakten.
- * Gamla fynd väger lite mindre, men mycel lever i decennier så vi glömmer
- * dem inte.
+ * Each observation contributes a bell whose width is set by its own coordinate
+ * uncertainty — a record given to within 25 metres says a lot about that
+ * particular hillside, one given to within 5 kilometres only says the species
+ * occurs in the area. Old records weigh slightly less, but mycelium lives for
+ * decades so we do not forget them.
  */
-export function observationsstod(
+export function observationSupport(
   obs: Observation[],
   lat: number,
   lon: number,
   metersPerLat: number,
   metersPerLon: number,
 ): number {
-  let summa = 0
-  const iAr = new Date().getFullYear()
+  let sum = 0
+  const thisYear = new Date().getFullYear()
   for (const o of obs) {
-    const sigma = Math.min(1200, Math.max(120, o.osakerhet ?? 350))
-    const rackvidd = sigma * 2.5
+    const sigma = Math.min(1200, Math.max(120, o.uncertainty ?? 350))
+    const reach = sigma * 2.5
     const dy = (o.lat - lat) * metersPerLat
-    if (dy > rackvidd || dy < -rackvidd) continue
+    if (dy > reach || dy < -reach) continue
     const dx = (o.lon - lon) * metersPerLon
-    if (dx > rackvidd || dx < -rackvidd) continue
+    if (dx > reach || dx < -reach) continue
     const d = Math.hypot(dx, dy)
-    if (d > rackvidd) continue
-    const narhet = Math.exp(-0.5 * (d / sigma) ** 2)
-    // Ett fynd på 5 km osäkerhet ska inte väga lika tungt som ett på 25 m.
+    if (d > reach) continue
+    const nearness = Math.exp(-0.5 * (d / sigma) ** 2)
+    // A record with 5 km of uncertainty must not weigh as much as one with 25 m.
     const precision = Math.min(1, 300 / sigma)
-    const alder = o.ar ? Math.max(0, iAr - o.ar) : 25
-    const farskhet = 0.55 + 0.45 * Math.exp(-alder / 30)
-    summa += narhet * precision * farskhet
+    const age = o.year ? Math.max(0, thisYear - o.year) : 25
+    const freshness = 0.55 + 0.45 * Math.exp(-age / 30)
+    sum += nearness * precision * freshness
   }
-  // Mättande: tio bra fynd är inte tio gånger bättre än ett.
-  return 1 - Math.exp(-summa / 1.6)
+  // Saturating: ten good records are not ten times better than one.
+  return 1 - Math.exp(-sum / 1.6)
 }

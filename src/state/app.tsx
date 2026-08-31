@@ -1,4 +1,4 @@
-/** Delat tillstånd. Litet nog att bo i en enda kontext. */
+/** Shared state. Small enough to live in a single context. */
 
 import {
   createContext,
@@ -11,270 +11,269 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  begarBestandigLagring, hamtaFynd, hamtaSkanning, hamtaSpar, las, raderaFynd, raderaSpar,
-  skriv, sparaFynd, sparaSkanning, stadaCache,
+  requestPersistentStorage, loadFinds, loadScan, loadTracks, readSetting, deleteFind,
+  deleteTrack, writeSetting, saveFind, saveScan, pruneCache,
 } from '../lib/db.ts'
-import { useGPS, useKompass, type Plats } from '../lib/gps.ts'
-import { lasTema, loserTema, skrivTema, systemetsTema, tillampaTema, type Tema } from '../lib/tema.ts'
-import type { Find, Spar, SpeciesId } from '../lib/types.ts'
-import type { Skanning } from '../model/skanning.ts'
-import { berikaEftersläntrare } from '../model/berika.ts'
+import { useGPS, useCompass, type GeoPosition } from '../lib/gps.ts'
+import { readTheme, resolveTheme, writeTheme, systemTheme, applyTheme, type Theme } from '../lib/theme.ts'
+import type { Find, Track, SpeciesId } from '../lib/types.ts'
+import type { Scan } from '../model/scan.ts'
+import { enrichStragglers } from '../model/enrich.ts'
 
-export type Vy = 'karta' | 'prognos' | 'fynd' | 'arter' | 'mer'
+export type View = 'map' | 'forecast' | 'finds' | 'species' | 'more'
 
-export type Kartlager = 'topo' | 'satellit' | 'karta'
+export type MapLayer = 'topo' | 'satellite' | 'street'
 
 /**
- * Målet man navigerar mot. `etikett` är det namn användaren själv tryckte på —
- * "Mot plats 2" eller "Mot kantarell" säger under gång vad man är på väg till,
- * vilket "Mot ditt mål" aldrig gjorde.
+ * The target you navigate towards. `label` is the name the user themselves
+ * tapped — "Mot plats 2" or "Mot kantarell" says, while walking, what you are
+ * heading for, which "Mot ditt mål" never did.
  */
-export type Malpunkt = { lat: number; lon: number; zoom?: number; etikett?: string }
+export type Destination = { lat: number; lon: number; zoom?: number; label?: string }
 
-type AppVarde = {
-  fynd: Find[]
-  spar: Spar[]
-  laddaOm: () => Promise<void>
-  spara: (f: Find) => Promise<void>
-  taBort: (id: string) => Promise<void>
-  taBortSpar: (id: string) => Promise<void>
+type AppValue = {
+  finds: Find[]
+  tracks: Track[]
+  reload: () => Promise<void>
+  save: (f: Find) => Promise<void>
+  remove: (id: string) => Promise<void>
+  removeTrack: (id: string) => Promise<void>
 
-  valdArt: SpeciesId
-  setValdArt: (a: SpeciesId) => void
+  selectedSpecies: SpeciesId
+  setSelectedSpecies: (s: SpeciesId) => void
 
-  vy: Vy
-  setVy: (v: Vy) => void
+  view: View
+  setView: (v: View) => void
 
-  kartlager: Kartlager
-  setKartlager: (l: Kartlager) => void
+  mapLayer: MapLayer
+  setMapLayer: (l: MapLayer) => void
 
-  visaObservationer: boolean
-  setVisaObservationer: (v: boolean) => void
+  showObservations: boolean
+  setShowObservations: (v: boolean) => void
 
-  /** Om kartans bottenpanel är utfälld. Ute i skogen vill man se kartan. */
-  panelOppen: boolean
-  setPanelOppen: (v: boolean) => void
+  /** Whether the map's bottom panel is expanded. Out in the forest you want to
+   *  see the map. */
+  panelOpen: boolean
+  setPanelOpen: (v: boolean) => void
 
-  /** Dämpad karta för skymning och mörker. */
-  nattlage: boolean
-  setNattlage: (v: boolean) => void
+  /** Dimmed map for dusk and darkness. */
+  nightMode: boolean
+  setNightMode: (v: boolean) => void
 
-  /** Ljust eller mörkt formspråk. Auto följer systemet. */
-  tema: Tema
-  setTema: (t: Tema) => void
-  /** Vilket läge temat faktiskt landade i just nu. */
-  ljustLage: boolean
+  /** Light or dark design language. Auto follows the system. */
+  theme: Theme
+  setTheme: (t: Theme) => void
+  /** Which mode the theme actually landed in right now. */
+  lightMode: boolean
 
-  skanning: Skanning | null
-  setSkanning: (s: Skanning | null) => void
+  scan: Scan | null
+  setScan: (s: Scan | null) => void
 
-  /** Punkt kartan ska flyga till, sätts av andra vyer. */
-  malpunkt: Malpunkt | null
-  gaTill: (mal: Malpunkt) => void
-  rensaMal: () => void
+  /** Point the map should fly to, set by other views. */
+  destination: Destination | null
+  goTo: (target: Destination) => void
+  clearDestination: () => void
 
   gps: ReturnType<typeof useGPS>
-  kompass: ReturnType<typeof useKompass>
-  /** Senast kända position, även om GPS:en är avstängd just nu. */
-  sistaPlats: Plats | null
+  compass: ReturnType<typeof useCompass>
+  /** The last known position, even if the GPS is off right now. */
+  lastPosition: GeoPosition | null
 }
 
-const Kontext = createContext<AppVarde | null>(null)
+const Context = createContext<AppValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [fynd, setFynd] = useState<Find[]>([])
-  const [spar, setSpar] = useState<Spar[]>([])
-  const [valdArt, setValdArtRaw] = useState<SpeciesId>('kantarell')
-  const [vy, setVy] = useState<Vy>('karta')
-  const [kartlager, setKartlagerRaw] = useState<Kartlager>('topo')
-  const [visaObservationer, setVisaObservationerRaw] = useState(false)
-  const [panelOppen, setPanelOppenRaw] = useState(true)
-  const [nattlage, setNattlageRaw] = useState(false)
-  const [tema, setTemaRaw] = useState<Tema>(lasTema)
-  const [systemtema, setSystemtema] = useState(systemetsTema)
-  const [skanning, setSkanningRaw] = useState<Skanning | null>(null)
-  const [malpunkt, setMalpunkt] = useState<AppVarde['malpunkt']>(null)
-  const [sistaPlats, setSistaPlats] = useState<Plats | null>(null)
+  const [finds, setFinds] = useState<Find[]>([])
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [selectedSpecies, setSelectedSpeciesRaw] = useState<SpeciesId>('chanterelle')
+  const [view, setView] = useState<View>('map')
+  const [mapLayer, setMapLayerRaw] = useState<MapLayer>('topo')
+  const [showObservations, setShowObservationsRaw] = useState(false)
+  const [panelOpen, setPanelOpenRaw] = useState(true)
+  const [nightMode, setNightModeRaw] = useState(false)
+  const [theme, setThemeRaw] = useState<Theme>(readTheme)
+  const [sysTheme, setSysTheme] = useState(systemTheme)
+  const [scan, setScanRaw] = useState<Scan | null>(null)
+  const [destination, setDestination] = useState<AppValue['destination']>(null)
+  const [lastPosition, setLastPosition] = useState<GeoPosition | null>(null)
 
   const gps = useGPS()
-  const kompass = useKompass()
+  const compass = useCompass()
 
   useEffect(() => {
-    if (gps.plats) setSistaPlats(gps.plats)
-  }, [gps.plats])
+    if (gps.position) setLastPosition(gps.position)
+  }, [gps.position])
 
-  /* Systemet kan byta läge medan appen är igång — soluppgång, schemalagt
-     nattläge, eller att man drar ned kontrollcentret och trycker. */
+  /* The system can switch mode while the app is running — sunrise, a scheduled
+     night mode, or pulling down control centre and tapping. */
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-color-scheme: light)')
     if (!mq) return
-    const vid = () => setSystemtema(systemetsTema())
-    mq.addEventListener('change', vid)
-    return () => mq.removeEventListener('change', vid)
+    const onChange = () => setSysTheme(systemTheme())
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  const ljustLage = (tema === 'auto' ? systemtema : tema) === 'ljus'
+  const lightMode = (theme === 'auto' ? sysTheme : theme) === 'light'
 
   useEffect(() => {
-    tillampaTema(loserTema(tema))
-  }, [tema, systemtema])
+    applyTheme(resolveTheme(theme))
+  }, [theme, sysTheme])
 
-  const laddaOm = useCallback(async () => {
-    const [f, s] = await Promise.all([hamtaFynd(), hamtaSpar()])
-    setFynd(f)
-    setSpar(s)
+  const reload = useCallback(async () => {
+    const [f, t] = await Promise.all([loadFinds(), loadTracks()])
+    setFinds(f)
+    setTracks(t)
   }, [])
 
   useEffect(() => {
-    void laddaOm()
-    void stadaCache()
-    void begarBestandigLagring()
+    void reload()
+    void pruneCache()
+    void requestPersistentStorage()
     void (async () => {
-      setValdArtRaw(await las<SpeciesId>('valdArt', 'kantarell'))
-      setKartlagerRaw(await las<Kartlager>('kartlager', 'topo'))
-      setVisaObservationerRaw(await las<boolean>('visaObservationer', false))
-      setPanelOppenRaw(await las<boolean>('panelOppen', true))
-      setNattlageRaw(await las<boolean>('nattlage', false))
-      const p = await las<Plats | null>('sistaPlats', null)
-      if (p) setSistaPlats(p)
-      // Den senaste skanningen läggs tillbaka så att kartan är ifylld direkt
-      // när man öppnar appen — även utan täckning ute i skogen.
-      const s = await hamtaSkanning<Skanning>()
-      if (s) setSkanningRaw(s)
+      setSelectedSpeciesRaw(await readSetting<SpeciesId>('selectedSpecies', 'chanterelle'))
+      setMapLayerRaw(await readSetting<MapLayer>('mapLayer', 'topo'))
+      setShowObservationsRaw(await readSetting<boolean>('showObservations', false))
+      setPanelOpenRaw(await readSetting<boolean>('panelOpen', true))
+      setNightModeRaw(await readSetting<boolean>('nightMode', false))
+      const p = await readSetting<GeoPosition | null>('lastPosition', null)
+      if (p) setLastPosition(p)
+      // The most recent scan is put back so the map is filled in immediately
+      // when you open the app — even without coverage out in the forest.
+      const s = await loadScan<Scan>()
+      if (s) setScanRaw(s)
     })()
-  }, [laddaOm])
+  }, [reload])
 
-  /* Fyller på habitatdata för fynd som saknar den. Sparar man ett fynd utan
-     täckning — eller importerar från en annan telefon — hinner analysen inte
-     med då. Här tas de om hand i lugn takt när appen väl är igång.
+  /* Fills in habitat data for finds that lack it. Save a find without coverage
+     — or import from another phone — and the analysis cannot keep up then.
+     Here they are taken care of at a calm pace once the app is running.
 
-     Flaggan sätts först när arbetet verkligen startar. Sätts den redan när
-     effekten körs monterar React i strikt läge om komponenten, städar bort
-     timern och kommer sedan aldrig förbi flaggan igen. */
-  const berikatRef = useRef(false)
-  const fyndRef = useRef(fynd)
-  const skanningRef = useRef(skanning)
-  fyndRef.current = fynd
-  skanningRef.current = skanning
-  const behoverBerikas = fynd.some((f) => !f.habitat)
+     The flag is set only when the work actually starts. Set it as the effect
+     runs and React in strict mode remounts the component, clears the timer and
+     then never gets past the flag again. */
+  const enrichedRef = useRef(false)
+  const findsRef = useRef(finds)
+  const scanRef = useRef(scan)
+  findsRef.current = finds
+  scanRef.current = scan
+  const needsEnriching = finds.some((f) => !f.habitat)
 
   useEffect(() => {
-    if (!behoverBerikas || berikatRef.current) return
+    if (!needsEnriching || enrichedRef.current) return
     const ctrl = new AbortController()
     const start = setTimeout(() => {
-      if (berikatRef.current) return
-      berikatRef.current = true
-      void berikaEftersläntrare(fyndRef.current, skanningRef.current, ctrl.signal, () =>
-        void laddaOm(),
-      )
+      if (enrichedRef.current) return
+      enrichedRef.current = true
+      void enrichStragglers(findsRef.current, scanRef.current, ctrl.signal, () => void reload())
     }, 3000)
     return () => {
       clearTimeout(start)
       ctrl.abort()
     }
-  }, [behoverBerikas, laddaOm])
+  }, [needsEnriching, reload])
 
-  // Sparar senaste positionen så kartan öppnar på rätt ställe nästa gång.
+  // Saves the latest position so the map opens in the right place next time.
   useEffect(() => {
-    if (!gps.plats) return
-    const t = setTimeout(() => void skriv('sistaPlats', gps.plats), 4000)
+    if (!gps.position) return
+    const t = setTimeout(() => void writeSetting('lastPosition', gps.position), 4000)
     return () => clearTimeout(t)
-  }, [gps.plats])
+  }, [gps.position])
 
-  const setSkanning = useCallback((s: Skanning | null) => {
-    setSkanningRaw(s)
-    void sparaSkanning(s)
+  const setScan = useCallback((s: Scan | null) => {
+    setScanRaw(s)
+    void saveScan(s)
   }, [])
 
-  const setValdArt = useCallback((a: SpeciesId) => {
-    setValdArtRaw(a)
-    void skriv('valdArt', a)
+  const setSelectedSpecies = useCallback((s: SpeciesId) => {
+    setSelectedSpeciesRaw(s)
+    void writeSetting('selectedSpecies', s)
   }, [])
 
-  const setKartlager = useCallback((l: Kartlager) => {
-    setKartlagerRaw(l)
-    void skriv('kartlager', l)
+  const setMapLayer = useCallback((l: MapLayer) => {
+    setMapLayerRaw(l)
+    void writeSetting('mapLayer', l)
   }, [])
 
-  const setVisaObservationer = useCallback((v: boolean) => {
-    setVisaObservationerRaw(v)
-    void skriv('visaObservationer', v)
+  const setShowObservations = useCallback((v: boolean) => {
+    setShowObservationsRaw(v)
+    void writeSetting('showObservations', v)
   }, [])
 
-  const setPanelOppen = useCallback((v: boolean) => {
-    setPanelOppenRaw(v)
-    void skriv('panelOppen', v)
+  const setPanelOpen = useCallback((v: boolean) => {
+    setPanelOpenRaw(v)
+    void writeSetting('panelOpen', v)
   }, [])
 
-  const setNattlage = useCallback((v: boolean) => {
-    setNattlageRaw(v)
-    void skriv('nattlage', v)
+  const setNightMode = useCallback((v: boolean) => {
+    setNightModeRaw(v)
+    void writeSetting('nightMode', v)
   }, [])
 
-  const setTema = useCallback((t: Tema) => {
-    setTemaRaw(t)
-    skrivTema(t)
+  const setTheme = useCallback((t: Theme) => {
+    setThemeRaw(t)
+    writeTheme(t)
   }, [])
 
-  const spara = useCallback(
+  const save = useCallback(
     async (f: Find) => {
-      await sparaFynd(f)
-      await laddaOm()
-      // Webbläsaren beviljar beständig lagring lättare när appen bevisligen
-      // används, så vi frågar igen varje gång något sparas.
-      void begarBestandigLagring()
+      await saveFind(f)
+      await reload()
+      // The browser grants persistent storage more readily when the app is
+      // demonstrably in use, so we ask again every time something is saved.
+      void requestPersistentStorage()
     },
-    [laddaOm],
+    [reload],
   )
 
-  const taBort = useCallback(
+  const remove = useCallback(
     async (id: string) => {
-      await raderaFynd(id)
-      await laddaOm()
+      await deleteFind(id)
+      await reload()
     },
-    [laddaOm],
+    [reload],
   )
 
-  const taBortSpar = useCallback(
+  const removeTrack = useCallback(
     async (id: string) => {
-      await raderaSpar(id)
-      await laddaOm()
+      await deleteTrack(id)
+      await reload()
     },
-    [laddaOm],
+    [reload],
   )
 
-  const gaTill = useCallback((mal: Malpunkt) => {
-    setMalpunkt(mal)
-    setVy('karta')
+  const goTo = useCallback((target: Destination) => {
+    setDestination(target)
+    setView('map')
   }, [])
 
-  const rensaMal = useCallback(() => setMalpunkt(null), [])
+  const clearDestination = useCallback(() => setDestination(null), [])
 
-  const varde = useMemo<AppVarde>(
+  const value = useMemo<AppValue>(
     () => ({
-      fynd, spar, laddaOm, spara, taBort, taBortSpar,
-      valdArt, setValdArt,
-      vy, setVy,
-      kartlager, setKartlager,
-      visaObservationer, setVisaObservationer,
-      panelOppen, setPanelOppen,
-      nattlage, setNattlage,
-      tema, setTema, ljustLage,
-      skanning, setSkanning,
-      malpunkt, gaTill, rensaMal,
-      gps, kompass, sistaPlats,
+      finds, tracks, reload, save, remove, removeTrack,
+      selectedSpecies, setSelectedSpecies,
+      view, setView,
+      mapLayer, setMapLayer,
+      showObservations, setShowObservations,
+      panelOpen, setPanelOpen,
+      nightMode, setNightMode,
+      theme, setTheme, lightMode,
+      scan, setScan,
+      destination, goTo, clearDestination,
+      gps, compass, lastPosition,
     }),
-    [fynd, spar, laddaOm, spara, taBort, taBortSpar, valdArt, setValdArt, vy, kartlager,
-     setKartlager, visaObservationer, setVisaObservationer, panelOppen, setPanelOppen,
-     nattlage, setNattlage, tema, setTema, ljustLage, skanning, setSkanning, malpunkt,
-     gaTill, rensaMal, gps, kompass, sistaPlats],
+    [finds, tracks, reload, save, remove, removeTrack, selectedSpecies, setSelectedSpecies, view,
+     mapLayer, setMapLayer, showObservations, setShowObservations, panelOpen, setPanelOpen,
+     nightMode, setNightMode, theme, setTheme, lightMode, scan, setScan, destination,
+     goTo, clearDestination, gps, compass, lastPosition],
   )
 
-  return <Kontext.Provider value={varde}>{children}</Kontext.Provider>
+  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 
-export function useApp(): AppVarde {
-  const v = useContext(Kontext)
+export function useApp(): AppValue {
+  const v = useContext(Context)
   if (!v) throw new Error('useApp måste användas inuti AppProvider')
   return v
 }

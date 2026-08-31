@@ -1,195 +1,196 @@
-/** Grundläggande typer för Hitta Svampen. */
+/** Core types for Hitta Svampen. */
 
 export type LatLng = { lat: number; lon: number }
 
 export type BBox = { south: number; west: number; north: number; east: number }
 
-/* ---------- Arter ---------- */
+/* ---------- Species ---------- */
 
 export type SpeciesId =
-  | 'kantarell'
-  | 'trattkantarell'
-  | 'svart-trumpetsvamp'
-  | 'karljohan'
-  | 'blek-taggsvamp'
-  | 'faarticka'
-  | 'blodriska'
-  | 'sandsopp'
-  | 'brunsopp'
-  | 'annat'
+  | 'chanterelle'
+  | 'funnel-chanterelle'
+  | 'black-trumpet'
+  | 'porcini'
+  | 'hedgehog'
+  | 'sheep-polypore'
+  | 'saffron-milkcap'
+  | 'velvet-bolete'
+  | 'bay-bolete'
+  | 'other'
 
-/** Vilka trädslag svampen bildar mykorrhiza med. Styr habitatpoängen. */
-export type Host = 'gran' | 'tall' | 'bjork' | 'ek' | 'bok' | 'hassel' | 'asp'
+/** Tree species the fungus forms mycorrhiza with. Drives the habitat score. */
+export type Host = 'spruce' | 'pine' | 'birch' | 'oak' | 'beech' | 'hazel' | 'aspen'
 
 export type Species = {
   id: SpeciesId
-  namn: string
+  name: string
   latin: string
-  farg: string
-  /** Trädslag den lever i symbios med, viktigast först. */
-  vardar: Host[]
-  /** Föredragen skogstyp: vikt 0–1 per lövtyp. */
-  lovtyp: { needleleaved: number; broadleaved: number; mixed: number }
-  /** Optimal marktemperatur på 6 cm djup (°C). */
-  marktemp: { min: number; opt: number; max: number }
-  /** Optimal markfuktighet 9–27 cm (m³/m³). */
-  markfukt: { min: number; opt: number; max: number }
-  /** Dagar från regn till fruktkropp — kärnans tyngdpunkt och bredd. */
-  regnfordrojning: { topp: number; bredd: number }
-  /** Säsong som dagnummer (1–366) i mellansverige. Justeras efter latitud. */
-  sasong: { start: number; toppStart: number; toppSlut: number; slut: number }
-  /** Tål frost? Trattkantarell gör det, kantarell inte. */
-  frosttalig: boolean
-  /** Topografiskt våtindex-optimum (högre = blötare läge). */
+  color: string
+  /** Trees it lives in symbiosis with, most important first. */
+  hosts: Host[]
+  /** Preferred forest type: weight 0–1 per leaf type. */
+  leafType: { needleleaved: number; broadleaved: number; mixed: number }
+  /** Optimal soil temperature at 6 cm depth (°C). */
+  soilTemp: { min: number; opt: number; max: number }
+  /** Optimal soil moisture 9–27 cm (m³/m³). */
+  soilMoisture: { min: number; opt: number; max: number }
+  /** Days from rain to fruit body — the kernel's centre of mass and width. */
+  rainLag: { peak: number; width: number }
+  /** Season as day-of-year (1–366) for central Sweden. Adjusted by latitude. */
+  season: { start: number; peakStart: number; peakEnd: number; end: number }
+  /** Frost tolerant? The funnel chanterelle is, the chanterelle is not. */
+  frostHardy: boolean
+  /** Topographic wetness index optimum (higher = wetter position). */
   twiOpt: number
-  twiBredd: number
-  /** Kort beskrivning av var man hittar den. */
-  var: string
-  /** Kännetecken för säker identifiering. */
-  kannetecken: string[]
-  /** Farliga eller trista förväxlingssvampar. */
-  forvaxling: string[]
+  twiWidth: number
+  /** Short description of where to find it. */
+  where: string
+  /** Distinguishing marks for confident identification. */
+  features: string[]
+  /** Dangerous or merely disappointing lookalikes. */
+  lookalikes: string[]
 }
 
-/* ---------- Fynd ---------- */
+/* ---------- Finds ---------- */
 
-export type Mangd = 'enstaka' | 'handfull' | 'korg' | 'jackpot'
+export type Amount = 'few' | 'handful' | 'basket' | 'jackpot'
 
 export type Find = {
   id: string
   lat: number
   lon: number
-  /** GPS-noggrannhet i meter när fyndet sparades. */
-  noggrannhet: number | null
-  /** Tidpunkt (epoch ms). */
-  tid: number
-  art: SpeciesId
-  mangd: Mangd
-  anteckning: string
-  /** Bild-id:n i bildlagret. */
-  bilder: string[]
-  /** Fyndet är hemligt — visas bara som prick utan namn vid delning. */
-  favorit: boolean
-  /** Automatiskt fångad habitatbeskrivning vid sparandet. */
-  habitat?: HabitatProv
-  /** Vädret de senaste veckorna när fyndet gjordes. */
-  vader?: VaderSammanfattning
+  /** GPS accuracy in metres when the find was saved. */
+  accuracy: number | null
+  /** Timestamp (epoch ms). */
+  time: number
+  species: SpeciesId
+  amount: Amount
+  note: string
+  /** Photo ids in the photo store. */
+  photos: string[]
+  /** The find is a secret — shown only as an unnamed dot when shared. */
+  favorite: boolean
+  /** Habitat description captured automatically on save. */
+  habitat?: HabitatSample
+  /** The weather over the past weeks when the find was made. */
+  weather?: WeatherSummary
 }
 
-/** En inspelad rutt genom skogen. */
-export type Spar = {
+/** A recorded route through the forest. */
+export type Track = {
   id: string
-  namn: string
+  name: string
   start: number
-  slut: number
-  punkter: { lat: number; lon: number; t: number; alt: number | null }[]
-  /** Längd i meter. */
-  langd: number
+  end: number
+  points: { lat: number; lon: number; t: number; alt: number | null }[]
+  /** Length in metres. */
+  length: number
 }
 
-/* ---------- Terräng & landtäcke ---------- */
+/* ---------- Terrain & land cover ---------- */
 
-export type Marktyp =
-  | 'barrskog'
-  | 'lovskog'
-  | 'blandskog'
-  | 'skog'
-  | 'busksnar'
-  | 'myr'
-  | 'ang'
-  | 'aker'
-  | 'vatten'
-  | 'bebyggt'
-  | 'hygge'
-  | 'okant'
+export type LandType =
+  | 'coniferous'
+  | 'deciduous'
+  | 'mixed'
+  | 'forest'
+  | 'scrub'
+  | 'bog'
+  | 'meadow'
+  | 'farmland'
+  | 'water'
+  | 'built'
+  | 'clearcut'
+  | 'unknown'
 
-export type HabitatProv = {
+export type HabitatSample = {
   lat: number
   lon: number
-  marktyp: Marktyp
-  /** Höjd över havet (m). */
-  hojd: number
-  /** Lutning i grader. */
-  lutning: number
-  /** Väderstreck lutningen pekar mot, grader från norr. null om platt. */
-  vaderstreck: number | null
-  /** Topografiskt våtindex — hur mycket vatten som samlas här. */
+  landType: LandType
+  /** Elevation above sea level (m). */
+  elevation: number
+  /** Slope in degrees. */
+  slope: number
+  /** Compass direction the slope faces, degrees from north. null if flat. */
+  aspect: number | null
+  /** Topographic wetness index — how much water collects here. */
   twi: number
-  /** Meter till närmaste vatten/dike/å. */
-  tillVatten: number | null
-  /** Meter till närmaste skogsbryn eller stig. */
-  tillKant: number | null
-  /** Trädslag från OSM-taggar om de finns. */
-  tradslag: Host[]
+  /** Metres to the nearest water body, ditch or stream. */
+  toWater: number | null
+  /** Metres to the nearest forest edge or path. */
+  toEdge: number | null
+  /** Tree species from OSM tags where present. */
+  treeSpecies: Host[]
 }
 
-/* ---------- Väder ---------- */
+/* ---------- Weather ---------- */
 
-export type VaderDag = {
-  datum: string
-  nederbord: number
+export type WeatherDay = {
+  date: string
+  precipitation: number
   tempMax: number
   tempMin: number
-  /** Markfukt 9–27 cm (mycelets djup), dygnsmedel. */
-  markfukt: number
-  /** Markfukt 3–9 cm (ytan), dygnsmedel. Saknas i äldre sparade serier. */
-  ytfukt?: number
-  /** Djupfukten som relativt uttagbart vatten (0 = platsens torraste,
-      1 = dess blötaste) mot 15-årsklimatologin. Saknas utan klimatologi —
-      modellen räknar då i absoluta värden. */
-  markfuktRew?: number
-  /** Ytfukten i samma REW-rymd, mot ytlagrets egen klimatologi. */
-  ytfuktRew?: number
-  /** Marktemp 6 cm, dygnsmedel. */
-  marktemp: number
-  /** Lokal tid, ISO utan zon. Null när solen inte går upp eller ned alls. */
-  soluppgang?: string | null
-  solnedgang?: string | null
+  /** Soil moisture 9–27 cm (mycelium depth), daily mean. */
+  soilMoisture: number
+  /** Soil moisture 3–9 cm (surface), daily mean. Missing in older saved series. */
+  surfaceMoisture?: number
+  /** Deep moisture as relative extractable water (0 = the site's driest,
+      1 = its wettest) against the 15-year climatology. Missing without a
+      climatology — the model then works in absolute values. */
+  soilMoistureRew?: number
+  /** Surface moisture in the same REW space, against the surface layer's own
+      climatology. */
+  surfaceMoistureRew?: number
+  /** Soil temperature at 6 cm, daily mean. */
+  soilTemp: number
+  /** Local time, ISO without zone. Null when the sun neither rises nor sets. */
+  sunrise?: string | null
+  sunset?: string | null
 }
 
-export type VaderSammanfattning = {
-  /** Regn senaste 7 / 14 / 30 dygnen (mm). */
-  regn7: number
-  regn14: number
-  regn30: number
-  markfukt: number
-  marktemp: number
-  /** Fruktsättningsindex 0–1 för dagens datum. */
+export type WeatherSummary = {
+  /** Rain over the past 7 / 14 / 30 days (mm). */
+  rain7: number
+  rain14: number
+  rain30: number
+  soilMoisture: number
+  soilTemp: number
+  /** Fruiting index 0–1 for today's date. */
   index: number
 }
 
-/* ---------- Poängsättning ---------- */
+/* ---------- Scoring ---------- */
 
-export type Delpoang = {
-  namn: string
-  varde: number
-  vikt: number
-  motivering: string
+export type ScorePart = {
+  name: string
+  value: number
+  weight: number
+  reason: string
   /**
-   * `vikt` — ingår i det viktade medelvärdet för terrängen.
-   * `faktor` — multiplicerar hela poängen i stället, för sådant som avgör
-   * takhöjden snarare än nyansen (marktyp, kända fynd).
+   * `weight` — included in the weighted mean for the terrain.
+   * `factor` — multiplies the whole score instead, for things that set the
+   * ceiling rather than the nuance (land type, known finds).
    */
-  typ?: 'vikt' | 'faktor'
+  kind?: 'weight' | 'factor'
 }
 
-export type Bedomning = {
-  /** Slutlig chans 0–100. */
-  poang: number
+export type Assessment = {
+  /** Final chance 0–100. */
+  score: number
   habitat: number
-  fruktsattning: number
-  sasong: number
-  delar: Delpoang[]
-  /** Kort textmotivering på svenska. */
-  sammanfattning: string
+  fruiting: number
+  season: number
+  parts: ScorePart[]
+  /** Short explanation in Swedish, shown in the UI. */
+  summary: string
 }
 
-/** En cell i habitatskanningen. */
+/** One cell in the habitat scan. */
 export type ScanCell = {
   lat: number
   lon: number
-  poang: number
-  habitat: HabitatProv
-  /** Antal kända fynd (GBIF + egna) som stöttar cellen. */
-  stod: number
+  score: number
+  habitat: HabitatSample
+  /** Number of known finds (GBIF + your own) supporting the cell. */
+  support: number
 }
