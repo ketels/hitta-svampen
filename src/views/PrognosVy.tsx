@@ -21,6 +21,21 @@ const rakneord = (n: number) => RAKNEORD[n] ?? String(n)
 /** Hur många arter listan visar innan man ber om resten. */
 const ARTER_I_KORTLISTAN = 5
 
+/**
+ * Fukten i procent på den skala poängen faktiskt räknas i: relativt uttagbart
+ * vatten mot platsens egen klimatologi när den finns, annars råa m³/m³.
+ * Talet måste höra ihop med sin egen färg — ett absolut fuktvärde färgat av
+ * en REW-poäng säger emot sig självt för den som läser det.
+ *
+ * Under platsens torraste läge blir REW negativ, och då säger "<0" mer än
+ * ett minustal: marken är torrare än den brukar bli, hur mycket spelar
+ * ingen roll för den som funderar på att gå ut.
+ */
+function fuktProcent(rew: number | null, absolut: number): string {
+  if (rew === null) return `${Math.round(absolut * 100)}%`
+  return rew < 0 ? '<0%' : `${Math.round(rew * 100)}%`
+}
+
 export function PrognosVy() {
   const app = useApp()
   const [vader, setVader] = useState<Vaderserie | null>(null)
@@ -208,16 +223,26 @@ export function PrognosVy() {
             <div className="kort-rubrik">
               <h3>Marken just nu</h3>
             </div>
+            {/* Utan den här raden är fuktsiffrorna oförklarliga: 30 % kan vara
+                rött i en läge som normalt är blötare, och det ser ut som ett
+                fel i appen snarare än som torka. */}
+            {analys.f.normaliserad ? (
+              <p className="liten svag">
+                Fukten vägs mot platsens egen 15-årsklimatologi — 0 % är det torraste den här
+                marken brukar bli, 100 % det blötaste. Samma absoluta fuktvärde betyder olika
+                saker i en sandig tallmo och i en lerig granskog.
+              </p>
+            ) : null}
             <div className="matvarden" style={{ marginBottom: 12 }}>
               <div className="matvarde">
                 <div className="v" style={{ color: chansfarg(analys.f.ytfukt) }}>
-                  {(analys.f.medelYtfukt * 100).toFixed(0)}%
+                  {fuktProcent(analys.f.medelYtRew, analys.f.medelYtfukt)}
                 </div>
                 <div className="e">ytfukt 3–9 cm</div>
               </div>
               <div className="matvarde">
                 <div className="v" style={{ color: chansfarg(analys.f.markfukt) }}>
-                  {(analys.f.medelMarkfukt * 100).toFixed(0)}%
+                  {fuktProcent(analys.f.medelDjupRew, analys.f.medelMarkfukt)}
                 </div>
                 <div className="e">djupfukt 9–27 cm</div>
               </div>

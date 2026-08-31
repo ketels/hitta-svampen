@@ -25,11 +25,14 @@ export type Klimatologi = {
   yta: { wp: number; fc: number }
 }
 
-/** Relativt uttagbart vatten: 0 vid platsens torraste, 1 vid dess blötaste. */
+/** Relativt uttagbart vatten: 0 vid platsens torraste (p2), 1 vid dess
+    blötaste (p98). Ingen nedre clamp — extremtorka under p2 ger negativ REW
+    så att klockgolvets exponentialsvans fortsätter avta i stället för att
+    plana ut. */
 export function tillRew(varde: number, lager: { wp: number; fc: number }): number {
   const span = lager.fc - lager.wp
   if (!(span > 0.02)) return NaN // degenererad klimatologi — låt anroparen falla tillbaka
-  return Math.max(0, Math.min(1.05, (varde - lager.wp) / span))
+  return Math.min(1.05, (varde - lager.wp) / span)
 }
 
 const klimatNyckel = (lat: number, lon: number) =>

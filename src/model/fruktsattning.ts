@@ -103,6 +103,11 @@ export type Fruktsattning = {
   dagarSedanRegn: number | null
   /** True när fukten poängsattes i REW-rymd mot platsens klimatologi. */
   normaliserad: boolean
+  /** Djupfuktens tiodygnsmedel i REW (0 = platsens torraste, 1 = blötaste).
+      Null när modellen kör på absoluta värden. */
+  medelDjupRew: number | null
+  /** Ytfuktens tvådygnsmedel i samma REW-rymd. */
+  medelYtRew: number | null
   forklaring: string[]
 }
 
@@ -294,6 +299,8 @@ export function beraknaFruktsattning(
     medelMarktemp,
     dagarSedanRegn,
     normaliserad,
+    medelDjupRew: normaliserad ? medelDjup : null,
+    medelYtRew: normaliserad ? medelYt : null,
     forklaring,
   }
 }
