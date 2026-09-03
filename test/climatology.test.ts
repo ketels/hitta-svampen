@@ -11,6 +11,8 @@
  * Körs med: node --experimental-strip-types test/climatology.test.ts
  */
 
+import { CENTER } from './location.ts'
+
 let failures = 0
 const ok = (name: string, v: boolean, extra = '') => {
   console.log(`${v ? '  ok  ' : ' FAIL '} ${name}${extra ? '   ' + extra : ''}`)
@@ -18,7 +20,7 @@ const ok = (name: string, v: boolean, extra = '') => {
 }
 
 const PLACES: [string, number, number][] = [
-  ['Uppsala-skog', 59.77, 17.66],
+  ['Testskogen', CENTER.lat, CENTER.lon],
   ['Växjö', 56.88, 14.81],
   ['Jokkmokk', 66.6, 19.83],
 ]

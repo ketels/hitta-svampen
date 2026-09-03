@@ -231,8 +231,10 @@ async function buildDEM(
 ) {
   // Aim for tiles at least as fine grained as the grid, so we do not
   // interpolate up data that is not there.
+  // The label covers the whole first phase: the caller runs the other three
+  // fetches alongside this one, and the tiles are what there is a count of.
   const mosaic = await ElevationMosaic.load(box, cellM * 0.9, signal, (done, total) =>
-    progress?.('Hämtar höjddata', from + ((to - from) * done) / Math.max(1, total)),
+    progress?.('Hämtar kartdata', from + ((to - from) * done) / Math.max(1, total)),
   )
 
   const z = new Float32Array(rows * cols)
@@ -280,6 +282,18 @@ async function buildDEM(
 
 /* ---------- Scan ---------- */
 
+/**
+ * Waits out a fetch that is allowed to fail, without its rejection going
+ * unobserved while another source is still being awaited. What to do about the
+ * failure is decided where the value is needed, not here.
+ */
+function settle<T>(p: Promise<T>): Promise<{ value: T } | { error: unknown }> {
+  return p.then(
+    (value) => ({ value }),
+    (error) => ({ error }),
+  )
+}
+
 export async function scan(options: ScanOptions): Promise<Scan> {
   const { center, radiusM, finds, progress, signal } = options
   const baseSpecies = lookupSpecies(options.species)
@@ -299,38 +313,49 @@ export async function scan(options: ScanOptions): Promise<Scan> {
   const cols = n
   const targetCell = widthM / (n - 1)
 
-  progress?.('Hämtar väderdata', 2)
-  const weather = await fetchWeather(center.lat, center.lon)
+  // Weather, elevation, land cover and known finds are four independent
+  // services. They all go out at once, so a scan takes as long as the slowest
+  // of them rather than the sum of all four.
+  progress?.('Hämtar kartdata', 2)
+  let elevationDone = false
+  const weatherPromise = fetchWeather(center.lat, center.lon)
+  const demPromise = buildDEM(box, rows, cols, targetCell, progress, signal, 5, 48)
+  const landCoverResult = settle(
+    fetchLandCover(box, signal, (done, total) => {
+      // The elevation tiles own the bar until they are done. Two sources
+      // writing to it at once would only make it jump about.
+      if (elevationDone)
+        progress?.('Hämtar skogs- och markdata', 62 + (16 * done) / Math.max(1, total))
+    }),
+  )
+  const observationsResult = settle(fetchObservations(box, [options.species], signal))
+
+  // Weather and elevation are the two that may fail the scan, and they are
+  // awaited together so that one failing never leaves the other unobserved.
+  const [weather, { dem }] = await Promise.all([weatherPromise, demPromise])
+  elevationDone = true
   const todayDate = weather.days[weather.today]!.date
   const fruiting = computeFruiting(weather.days, sp, todayDate)
   const season = seasonFactor(sp, new Date(), center.lat)
 
-  const { dem } = await buildDEM(box, rows, cols, targetCell, progress, signal, 5, 48)
-
+  // Scoring the terrain needs nothing from the network, so it runs while the
+  // land cover and the observations are still on their way.
   progress?.('Analyserar terräng', 52)
   await yieldToRender()
   const terrain: Terrain = analyseTerrain(dem)
 
   progress?.('Hämtar skogs- och markdata', 62)
-  let landCover: LandCover
-  try {
-    landCover = await fetchLandCover(box, signal, (done, total) =>
-      progress?.('Hämtar skogs- och markdata', 62 + (16 * done) / Math.max(1, total)),
-    )
-  } catch (e) {
-    if (signal?.aborted) throw e
-    // Without land cover it gets worse but not worthless — the terrain carries the model.
-    landCover = emptyLandCover(box)
-  }
+  const landCoverSettled = await landCoverResult
+  if ('error' in landCoverSettled && signal?.aborted) throw landCoverSettled.error
+  // Without land cover it gets worse but not worthless — the terrain carries the model.
+  const landCover: LandCover =
+    'value' in landCoverSettled ? landCoverSettled.value : emptyLandCover(box)
   const landCoverMissing = landCover.source === 'none'
 
   progress?.('Hämtar rapporterade fynd', 80)
-  let observations: Observation[] = []
-  try {
-    observations = await fetchObservations(box, [options.species], signal)
-  } catch {
-    observations = []
-  }
+  const observationsSettled = await observationsResult
+  const observations: Observation[] =
+    'value' in observationsSettled ? observationsSettled.value : []
 
   progress?.('Poängsätter terrängen', 86)
   await yieldToRender()
@@ -583,28 +608,27 @@ export async function assessPoint(
   const N = 91
   const cellM = (RADIUS * 2) / (N - 1)
 
-  const weather = await fetchWeather(point.lat, point.lon)
+  // The same four independent services as in a scan, and fetched the same way:
+  // all at once, so a tap on the map waits for the slowest and not for the sum.
+  const weatherPromise = fetchWeather(point.lat, point.lon)
+  const demPromise = buildDEM(box, N, N, cellM, undefined, signal, 0, 0)
+  const landCoverResult = settle(fetchLandCover(box, signal))
+  const observationsResult = settle(fetchObservations(box, [speciesId], signal))
+
+  const [weather, { dem }] = await Promise.all([weatherPromise, demPromise])
   const fruiting = computeFruiting(weather.days, sp, weather.days[weather.today]!.date)
   const season = seasonFactor(sp, new Date(), point.lat)
-
-  const { dem } = await buildDEM(box, N, N, cellM, undefined, signal, 0, 0)
   const terrain = analyseTerrain(dem)
 
-  let landCover: LandCover
-  try {
-    landCover = await fetchLandCover(box, signal)
-  } catch (e) {
-    if (signal?.aborted) throw e
-    landCover = emptyLandCover(box)
-  }
+  const landCoverSettled = await landCoverResult
+  if ('error' in landCoverSettled && signal?.aborted) throw landCoverSettled.error
+  const landCover: LandCover =
+    'value' in landCoverSettled ? landCoverSettled.value : emptyLandCover(box)
   const landCoverMissing = landCover.source === 'none'
 
-  let observations: Observation[] = []
-  try {
-    observations = await fetchObservations(box, [speciesId], signal)
-  } catch {
-    observations = []
-  }
+  const observationsSettled = await observationsResult
+  const observations: Observation[] =
+    'value' in observationsSettled ? observationsSettled.value : []
 
   const { landType, treeSpecies, waterSeeds, edgeSeeds } = paintLandCover(landCover, box, N, N)
 
