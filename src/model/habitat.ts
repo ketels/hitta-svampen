@@ -18,6 +18,7 @@ const CEILING: Record<LandType, number> = {
   mixed: 1.0,
   forest: 1.0,
   clearcut: 0.4,
+  bare: 0.1,
   scrub: 0.45,
   bog: 0.35,
   meadow: 0.25,
@@ -42,6 +43,7 @@ function landTypeScore(m: LandType, sp: Species): number {
     case 'scrub': return 0.3
     case 'bog': return 0.22
     case 'clearcut': return 0.2
+    case 'bare': return 0.05
     case 'meadow': return 0.08
     case 'farmland': return 0.02
     case 'built': return 0.03
@@ -230,7 +232,7 @@ export const hostName = (h: string) => HOST_NAME[h] ?? h
 function describeLandType(m: LandType, sp: Species, score: number): string {
   const name: Record<LandType, string> = {
     coniferous: 'Barrskog', deciduous: 'Lövskog', mixed: 'Blandskog', forest: 'Skog utan angiven typ',
-    clearcut: 'Hygge', scrub: 'Busksnår', bog: 'Myrmark', meadow: 'Öppen gräsmark',
+    clearcut: 'Hygge', bare: 'Kalmark eller berg', scrub: 'Busksnår', bog: 'Myrmark', meadow: 'Öppen gräsmark',
     farmland: 'Åkermark', water: 'Vatten', built: 'Bebyggt område', unknown: 'Otaggad mark',
   }
   const base = name[m]

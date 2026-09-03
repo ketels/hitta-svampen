@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { species as lookupSpecies } from '../data/species.ts'
-import { LAND_TYPE_NAME } from '../data/overpass.ts'
+import { LAND_TYPE_NAME } from '../data/landCover.ts'
 import { loadPhoto } from '../lib/db.ts'
 import { formatDistance, formatCoord, compass } from '../lib/geo.ts'
 import { useApp } from '../state/app.tsx'

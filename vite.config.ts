@@ -14,20 +14,6 @@ export default defineConfig({
   server: {
     port: 5173,
     host: mobile,
-    /*
-     * Overpass answers 406 to browser-like User-Agents, and the browser may
-     * not set the header itself. In production that is solved by an edge
-     * function under /api/overpass; here the dev server does the same thing,
-     * so the code does not have to care which environment it runs in.
-     */
-    proxy: {
-      '/api/overpass': {
-        target: 'https://overpass-api.de',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/overpass/, '/api/interpreter'),
-        headers: { 'User-Agent': 'hitta-svampen/1.0 (utveckling)' },
-      },
-    },
   },
   build: { target: 'es2022', sourcemap: true },
 })

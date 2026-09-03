@@ -120,7 +120,8 @@ Allt är fritt och kräver ingen nyckel.
 
 | Källa | Vad den ger |
 |---|---|
-| **OpenStreetMap** via Overpass | Skogstyp (barr/löv/bland), myrar, åkrar, vattendrag, stigar |
+| **Nationella marktäckedata** (Naturvårdsverket, CC0) | Skogstyp ner till tall, gran, triviallöv och ädellöv, hyggen, myrar, åkrar, vatten — 10 m raster över hela Sverige, som kartrutor via WMS |
+| **OpenStreetMap** via OpenFreeMaps vektorrutor | Stigar, traktorspår, bäckar och diken; grov marktäckning som reserv utanför Sverige |
 | **Terrängkakel** (AWS Open Data, Terrarium) | Höjddata, ~10 m upplösning på våra breddgrader |
 | **Open-Meteo** (ERA5 + ICON) | Nederbörd, marktemperatur, markfukt 9–27 cm. 60 dygn bakåt, 16 framåt |
 | **GBIF** | Rapporterade fynd, i Sverige mest via Artportalen |

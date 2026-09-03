@@ -7,7 +7,7 @@ import {
 } from '../lib/db.ts'
 import { migrateFind, migrateTrack, isLegacyFind, isLegacyTrack } from '../lib/dbMigrate.ts'
 import { LAYERS, downloadArea, countTilesInArea } from '../components/mapLayers.ts'
-import { PREFETCH_WIDTH_M, prefetchLandCover } from '../data/overpass.ts'
+import { prefetchLandCover } from '../data/landCover.ts'
 import { ElevationMosaic } from '../data/elevationTiles.ts'
 import { plural } from '../lib/geo.ts'
 import { learningOverview } from '../model/personalize.ts'
@@ -35,7 +35,7 @@ export function MoreView() {
   const [storage, setStorage] = useState({ used: 0, quota: 0 })
   const [radius, setRadius] = useState(5)
   const [downloading, setDownloading] = useState<{ done: number; total: number; what: string } | null>(null)
-  const [forestData, setForestData] = useState<'waiting' | 'done' | 'failed' | null>(null)
+  const [forestData, setForestData] = useState<'waiting' | 'done' | 'partial' | 'failed' | null>(null)
   const [statusText, setStatusText] = useState<string | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
   const [coldStart, setColdStart] = useState<'yes' | 'no' | 'unknown'>('unknown')
@@ -90,37 +90,27 @@ export function MoreView() {
       )
       if (ctrl.signal.aborted) return
 
+      const area = {
+        south: bounds.getSouth(), north: bounds.getNorth(),
+        west: bounds.getWest(), east: bounds.getEast(),
+      }
+
       // Elevation data is needed to analyse points without coverage.
       setDownloading({ done: 0, total: 1, what: 'Höjddata' })
       await ElevationMosaic.load(
-        {
-          south: bounds.getSouth(), north: bounds.getNorth(),
-          west: bounds.getWest(), east: bounds.getEast(),
-        },
+        area,
         12,
         ctrl.signal,
         (done, total) => setDownloading({ done, total, what: 'Höjddata' }),
       )
 
-      /* Forest data last, and patiently. Overpass throttles hard and is the
-         only step that usually misbehaves out in the forest — here it gets a
-         few minutes instead, and afterwards it sits in the cache. */
-      if (position) {
-        setForestData('waiting')
-        const ok = await prefetchLandCover(
-          { lat: position.lat, lon: position.lon },
-          ctrl.signal,
-          (state) =>
-            setDownloading({
-              done: state.attempt,
-              total: state.ofAttempts,
-              what: state.waiting
-                ? `Skogsdata — väntar ${state.secondsLeft} s före försök ${state.attempt + 1}`
-                : `Skogsdata, försök ${state.attempt} av ${state.ofAttempts}`,
-            }),
-        )
-        setForestData(ok ? 'done' : 'failed')
-      }
+      /* Land cover, paths and streams over the same area. These are static
+         tiles like the ones above — a plain download, and afterwards scans in
+         the area never need the net for them. */
+      setForestData('waiting')
+      const lc = await prefetchLandCover(area, ctrl.signal, setDownloading)
+      if (ctrl.signal.aborted) return
+      setForestData(lc.fetched === 0 ? 'failed' : lc.failed > 0 ? 'partial' : 'done')
 
       setStatusText(
         `Klart. ${res.fetched} nya rutor sparade${res.skipped ? `, ${res.skipped} fanns redan` : ''}.`,
@@ -131,7 +121,7 @@ export function MoreView() {
       setDownloading(null)
       void refreshStatus()
     }
-  }, [bounds, estimated, app.mapLayer, refreshStatus, position])
+  }, [bounds, estimated, app.mapLayer, refreshStatus])
 
   const exportData = useCallback(() => {
     const data = {
@@ -227,9 +217,9 @@ export function MoreView() {
           ändå.
         </p>
         <p className="tiny dimmer" style={{ marginTop: 8 }}>
-          Skogsdatan kommer från Overpass, som stryper hårt och ofta failar om man
-          frågar ute i skogen. Här får den några minuter och flera försök i stället —
-          och sedan ligger den kvar i en vecka.
+          Skogstyperna är Naturvårdsverkets marktäckekarta, stigar och bäckar kommer
+          från OpenStreetMap. Båda hämtas som kartrutor och ligger kvar tills du
+          rensar.
         </p>
 
         {position ? (
@@ -275,14 +265,20 @@ export function MoreView() {
 
         {forestData === 'done' ? (
           <div className="small" style={{ marginTop: 8, color: 'var(--green)' }}>
-            Skogsdata hämtad för {(PREFETCH_WIDTH_M / 1000).toFixed(1)} km runt din position.
-            Skanningar där hittar den utan nät.
+            Skogstyper, stigar och vattendrag sparade för hela området. Skanningar
+            där hittar dem utan nät.
+          </div>
+        ) : forestData === 'partial' ? (
+          <div className="small" style={{ marginTop: 8, color: 'var(--orange)' }}>
+            Det mesta av skogsdatan sparades, men några rutor gick inte att hämta.
+            Ladda ner igen om en stund så fylls luckorna i — det som redan finns
+            hämtas inte om.
           </div>
         ) : forestData === 'failed' ? (
           <div className="small" style={{ marginTop: 8, color: 'var(--orange)' }}>
-            Skogsdatan gick inte att hämta — Overpass stryper hårt just nu. Kartan och
-            höjddatan finns ändå, och du kan försöka igen om en stund. Utan den bygger
-            skanningen bara på terrängen.
+            Skogsdatan gick inte att hämta just nu. Kartan och höjddatan finns ändå,
+            och du kan försöka igen om en stund. Utan den bygger skanningen bara på
+            terrängen.
           </div>
         ) : null}
 
@@ -402,15 +398,16 @@ export function MoreView() {
       <div className="card">
         <div className="card-head"><h3>Var datan kommer ifrån</h3></div>
         <ul className="bullets">
-          <li><strong>OpenStreetMap</strong> via Overpass — skogstyp, myrar, vattendrag och stigar.</li>
+          <li><strong>Nationella marktäckedata</strong> (Naturvårdsverket) — skogstyp ner till tall, gran och löv, hyggen, myrar, åkrar och vatten. Tio meters raster över hela Sverige.</li>
+          <li><strong>OpenStreetMap</strong> via OpenFreeMap — stigar, traktorspår, bäckar och diken.</li>
           <li><strong>Terrängkakel</strong> (AWS Open Data, Terrarium) — höjddata på cirka tio meters upplösning, grunden för lutning, väderstreck och våtindex.</li>
           <li><strong>Open-Meteo</strong> (ERA5 och ICON) — nederbörd, marktemperatur och markfukt på 9–27 cm djup, 60 dygn bakåt och 16 framåt.</li>
           <li><strong>GBIF</strong> — rapporterade fynd, i Sverige mest från Artportalen.</li>
           <li><strong>OpenTopoMap</strong> och <strong>Esri</strong> — kartbilder.</li>
         </ul>
         <p className="tiny dimmer" style={{ marginTop: 10 }}>
-          Kartdata © OpenStreetMaps bidragsgivare, ODbL. Tjänsterna är gratis och
-          delvis idealt drivna — var snäll mot dem och skanna inte i onödan.
+          Kartdata © OpenStreetMaps bidragsgivare, ODbL. Marktäckedata CC0 Naturvårdsverket.
+          Tjänsterna är gratis och delvis idealt drivna — var snäll mot dem och skanna inte i onödan.
         </p>
       </div>
 

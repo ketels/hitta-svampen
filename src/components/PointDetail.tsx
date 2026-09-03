@@ -1,5 +1,5 @@
 import { species as lookupSpecies } from '../data/species.ts'
-import { LAND_TYPE_NAME } from '../data/overpass.ts'
+import { LAND_TYPE_NAME } from '../data/landCover.ts'
 import { chanceColor, chanceWord } from '../lib/color.ts'
 import { formatDistance, compass } from '../lib/geo.ts'
 import type { SpeciesId } from '../lib/types.ts'
@@ -59,7 +59,7 @@ export function PointDetail({
     <>
       {assessment.landCoverMissing ? (
         <div className="warning" style={{ marginBottom: 12 }}>
-          <strong>Utan kartdata.</strong> OpenStreetMap gick inte att nå, så marktypen är
+          <strong>Utan kartdata.</strong> Marktäckedatan gick inte att hämta, så marktypen är
           okänd och poängen bygger bara på terrängen. Siffran är trubbigare än vanligt —
           den kan inte se skillnad på granskog och åker.
         </div>

@@ -2,7 +2,8 @@
  * Area scan: turns a patch of forest into a probability map.
  *
  * The chain is: elevation grid → terrain analysis (slope, aspect, wetness
- * index) → land cover from OSM → known finds from GBIF and your own logbook →
+ * index) → land cover from the national land cover raster, with paths and
+ * streams from OpenStreetMap → known finds from GBIF and your own logbook →
  * habitat score per cell → multiplied by today's fruiting and season.
  *
  * The emphasis is on doing this fast enough to be useful. Distances to water,
@@ -18,7 +19,7 @@ import type {
 } from '../lib/types.ts'
 import { fetchWeather, type WeatherSeries } from '../data/weather.ts'
 import { ElevationMosaic } from '../data/elevationTiles.ts'
-import { fetchLandCover, type Area, type LandCover } from '../data/overpass.ts'
+import { fetchLandCover, type LandCover } from '../data/landCover.ts'
 import { fetchObservations, observationSupport, type Observation } from '../data/gbif.ts'
 import { species as lookupSpecies } from '../data/species.ts'
 import { computeHabitat } from './habitat.ts'
@@ -54,9 +55,10 @@ export type Scan = {
   observations: Observation[]
   time: number
   /**
-   * True when OSM could not be reached. The scan is still usable — the terrain
-   * carries most of it — but it cannot tell forest from farmland, and that has
-   * to be visible in the interface instead of quietly appearing to work.
+   * True when no land cover at all could be fetched. The scan is still usable
+   * — the terrain carries most of it — but it cannot tell forest from
+   * farmland, and that has to be visible in the interface instead of quietly
+   * appearing to work.
    */
   landCoverMissing: boolean
 }
@@ -126,13 +128,28 @@ function rasteriseLine(
   }
 }
 
-/** Paints the land type per cell. Higher-priority areas overwrite lower ones. */
-function rasteriseLandType(
-  lc: LandCover,
-  box: BBox,
-  rows: number,
-  cols: number,
-): { landType: LandType[]; treeSpecies: Host[][] } {
+/** Forest and whatever is probably forest — no edge is drawn between them. */
+const FOREST_LIKE = new Set<LandType>(['forest', 'coniferous', 'deciduous', 'mixed', 'unknown'])
+
+type Painted = {
+  landType: LandType[]
+  treeSpecies: Host[][]
+  /** Cells that are water: lakes, streams, ditches. */
+  waterSeeds: Uint8Array
+  /** Cells on a forest edge or a path. */
+  edgeSeeds: Uint8Array
+}
+
+/**
+ * Paints the land cover onto the grid.
+ *
+ * The fallback polygons go on first, higher priority over lower, and the
+ * national raster on top wherever it has data — which in Sweden is
+ * everywhere. Water and edge seeds are then read off the finished grid, so a
+ * forest edge is simply where forest meets something that is not forest:
+ * a clear-cut, a mire, a field, a road.
+ */
+function paintLandCover(lc: LandCover, box: BBox, rows: number, cols: number): Painted {
   const landType: LandType[] = new Array(rows * cols).fill('unknown')
   const treeSpecies: Host[][] = new Array(rows * cols).fill(null).map(() => [] as Host[])
   const prio = new Int16Array(rows * cols)
@@ -157,10 +174,48 @@ function rasteriseLandType(
       }
     }
   }
-  return { landType, treeSpecies }
+
+  if (lc.raster) {
+    for (let r = 0; r < rows; r++) {
+      const lat = box.north - (r / (rows - 1)) * (box.north - box.south)
+      for (let c = 0; c < cols; c++) {
+        const lon = box.west + (c / (cols - 1)) * (box.east - box.west)
+        const k = lc.raster.sample(lat, lon)
+        if (!k) continue
+        const i = r * cols + c
+        landType[i] = k.landType
+        treeSpecies[i] = k.treeSpecies
+      }
+    }
+  }
+
+  const waterSeeds = new Uint8Array(rows * cols)
+  for (const l of lc.waterways) rasteriseLine(l, box, rows, cols, waterSeeds)
+  for (let i = 0; i < waterSeeds.length; i++) if (landType[i] === 'water') waterSeeds[i] = 1
+
+  const edgeSeeds = new Uint8Array(rows * cols)
+  for (const l of lc.paths) rasteriseLine(l, box, rows, cols, edgeSeeds)
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c
+      const forest = FOREST_LIKE.has(landType[i]!)
+      if (c + 1 < cols && FOREST_LIKE.has(landType[i + 1]!) !== forest) {
+        edgeSeeds[i] = 1
+        edgeSeeds[i + 1] = 1
+      }
+      if (r + 1 < rows && FOREST_LIKE.has(landType[i + cols]!) !== forest) {
+        edgeSeeds[i] = 1
+        edgeSeeds[i + cols] = 1
+      }
+    }
+  }
+
+  return { landType, treeSpecies, waterSeeds, edgeSeeds }
 }
 
-const FOREST_TYPES = new Set<LandType>(['forest', 'coniferous', 'deciduous', 'mixed'])
+const emptyLandCover = (box: BBox): LandCover => ({
+  box, raster: null, areas: [], waterways: [], paths: [], source: 'none', linesMissing: true,
+})
 
 /* ---------- Elevation grid ---------- */
 
@@ -258,14 +313,16 @@ export async function scan(options: ScanOptions): Promise<Scan> {
 
   progress?.('Hämtar skogs- och markdata', 62)
   let landCover: LandCover
-  let landCoverMissing = false
   try {
-    landCover = await fetchLandCover(box, signal)
-  } catch {
-    // Without OSM it gets worse but not worthless — the terrain carries the model.
-    landCover = { box, areas: [] as Area[], waterways: [], paths: [] }
-    landCoverMissing = true
+    landCover = await fetchLandCover(box, signal, (done, total) =>
+      progress?.('Hämtar skogs- och markdata', 62 + (16 * done) / Math.max(1, total)),
+    )
+  } catch (e) {
+    if (signal?.aborted) throw e
+    // Without land cover it gets worse but not worthless — the terrain carries the model.
+    landCover = emptyLandCover(box)
   }
+  const landCoverMissing = landCover.source === 'none'
 
   progress?.('Hämtar rapporterade fynd', 80)
   let observations: Observation[] = []
@@ -278,23 +335,10 @@ export async function scan(options: ScanOptions): Promise<Scan> {
   progress?.('Poängsätter terrängen', 86)
   await yieldToRender()
 
-  const { landType, treeSpecies } = rasteriseLandType(landCover, box, rows, cols)
+  const { landType, treeSpecies, waterSeeds, edgeSeeds } = paintLandCover(landCover, box, rows, cols)
 
-  // Distance fields for water, paths and forest edges.
-  const waterSeeds = new Uint8Array(rows * cols)
-  for (const l of landCover.waterways) rasteriseLine(l, box, rows, cols, waterSeeds)
-  for (const a of landCover.areas)
-    if (a.landType === 'water') rasteriseLine(a.ring, box, rows, cols, waterSeeds)
-
-  const pathSeeds = new Uint8Array(rows * cols)
-  for (const l of landCover.paths) rasteriseLine(l, box, rows, cols, pathSeeds)
-
-  const edgeSeeds = new Uint8Array(rows * cols)
-  for (const a of landCover.areas)
-    if (FOREST_TYPES.has(a.landType)) rasteriseLine(a.ring, box, rows, cols, edgeSeeds)
-
+  // Distance fields for water and for forest edges and paths.
   const dWater = distanceField(rows, cols, waterSeeds, dem.cellM)
-  const dPath = distanceField(rows, cols, pathSeeds, dem.cellM)
   const dEdge = distanceField(rows, cols, edgeSeeds, dem.cellM)
 
   const mLat = metresPerDegreeLat()
@@ -320,13 +364,9 @@ export async function scan(options: ScanOptions): Promise<Scan> {
         aspect: asp < 0 ? null : asp,
         twi: terrain.twi[i]!,
         toWater: isFinite(dWater[i]!) ? dWater[i]! : null,
-        toEdge: Math.min(
-          isFinite(dPath[i]!) ? dPath[i]! : Infinity,
-          isFinite(dEdge[i]!) ? dEdge[i]! : Infinity,
-        ),
+        toEdge: isFinite(dEdge[i]!) ? dEdge[i]! : null,
         treeSpecies: treeSpecies[i]!,
       }
-      if (sample.toEdge !== null && !isFinite(sample.toEdge)) sample.toEdge = null
 
       const gbifSupport = observationSupport(observations, lat, lon, mLat, mLon)
       const ownSupport = observationSupport(ownObs, lat, lon, mLat, mLon)
@@ -476,7 +516,7 @@ export type PointAssessment = {
   learning: Learning
   /** True when the assessment was read from a finished scan instead of the net. */
   fromScan: boolean
-  /** True when OSM could not be reached — the score is then terrain only. */
+  /** True when no land cover could be fetched — the score is then terrain only. */
   landCoverMissing: boolean
 }
 
@@ -551,16 +591,13 @@ export async function assessPoint(
   const terrain = analyseTerrain(dem)
 
   let landCover: LandCover
-  let landCoverMissing = false
   try {
-    // Must be longer than the proxy's own budget. If the client aborts first
-    // the response never reaches the CDN cache, and the next tap is as slow as
-    // the last one.
-    landCover = await fetchLandCover(box, signal, 23_000)
-  } catch {
-    landCover = { box, areas: [] as Area[], waterways: [], paths: [] }
-    landCoverMissing = true
+    landCover = await fetchLandCover(box, signal)
+  } catch (e) {
+    if (signal?.aborted) throw e
+    landCover = emptyLandCover(box)
   }
+  const landCoverMissing = landCover.source === 'none'
 
   let observations: Observation[] = []
   try {
@@ -569,15 +606,7 @@ export async function assessPoint(
     observations = []
   }
 
-  const { landType, treeSpecies } = rasteriseLandType(landCover, box, N, N)
-  const waterSeeds = new Uint8Array(N * N)
-  for (const l of landCover.waterways) rasteriseLine(l, box, N, N, waterSeeds)
-  for (const a of landCover.areas)
-    if (a.landType === 'water') rasteriseLine(a.ring, box, N, N, waterSeeds)
-  const edgeSeeds = new Uint8Array(N * N)
-  for (const l of landCover.paths) rasteriseLine(l, box, N, N, edgeSeeds)
-  for (const a of landCover.areas)
-    if (FOREST_TYPES.has(a.landType)) rasteriseLine(a.ring, box, N, N, edgeSeeds)
+  const { landType, treeSpecies, waterSeeds, edgeSeeds } = paintLandCover(landCover, box, N, N)
 
   const dWater = distanceField(N, N, waterSeeds, dem.cellM)
   const dEdge = distanceField(N, N, edgeSeeds, dem.cellM)
