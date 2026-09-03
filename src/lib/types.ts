@@ -101,6 +101,7 @@ export type LandType =
   | 'water'
   | 'built'
   | 'clearcut'
+  | 'bare'
   | 'unknown'
 
 export type HabitatSample = {
@@ -119,7 +120,7 @@ export type HabitatSample = {
   toWater: number | null
   /** Metres to the nearest forest edge or path. */
   toEdge: number | null
-  /** Tree species from OSM tags where present. */
+  /** Tree species from the land cover data where it tells. */
   treeSpecies: Host[]
 }
 

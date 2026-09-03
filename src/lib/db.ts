@@ -202,9 +202,10 @@ export async function loadPhoto(id: string): Promise<Blob | undefined> {
  * store and are raw images that never change shape.
  *
  * Version 5 is the English rename: the cached payloads are typed objects whose
- * field names all changed.
+ * field names all changed. Version 6 drops the Overpass land cover entries —
+ * land cover now comes as tiles and lives in the tile store.
  */
-const CACHE_VERSION = 5
+const CACHE_VERSION = 6
 
 const versioned = (key: string) => `v${CACHE_VERSION}:${key}`
 

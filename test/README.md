@@ -11,15 +11,18 @@ node --experimental-strip-types test/<fil>
 | `terrain.test.ts` | Lutning, väderstreck och hydrologi mot syntetiska höjdmodeller — plan yta, kända sluttningar, en V-dal och en sänka utan utlopp | nej |
 | `fruiting.test.ts` | Vädermodellen mot konstruerade scenarier: torka, idealt regnfönster, skyfall igår, vattensjuk mark, frost, säsongskurvan, REW-normaliseringen | nej |
 | `migration.test.ts` | Att en databas skriven av den svenska versionen överlever bytet till engelska fält- och lagernamn — fynd, spår, bilder, kartrutor och inställningar | nej |
-| `prefetch.test.ts` | Att en förhämtad trakt täcker skanningar inuti den, mot en låtsas-Overpass | nej |
+| `prefetch.test.ts` | Att en förhämtad trakt täcker skanningar inuti den och att 2023- och 2018-utgåvorna av marktäckedatan läggs ihop rätt, mot en låtsas-WMS | nej |
 | `elevationTiles.test.ts` | Upplösningsformeln, zoomvalet och att höjdvärdena stämmer med verkligheten | ja |
-| `scan.test.ts` | Hela kedjan mot skarp data över Lunsen söder om Uppsala | ja |
+| `landCover.test.ts` | Att färgtabellerna stämmer med Naturvårdsverkets legend, att testplatsen kommer tillbaka som skog med trädslag, och att vektorrutorna ger stigar och bäckar | ja |
+| `scan.test.ts` | Hela kedjan mot skarp data över testplatsen | ja |
 | `climatology.test.ts` | Att Open-Meteos arkiv och prognos fortfarande är kommensurabla, vilket REW-mappningen förutsätter | ja |
-| `degradation.ts` | Att en skanning fungerar och flaggar sig själv när Overpass är nere | ja |
-| `budget.ts` | Hur snabbt appen ger upp när Overpass inte svarar | ja |
+| `degradation.ts` | Att en skanning fungerar och flaggar sig själv när både marktäcke- och vektorrutorna är onåbara | ja |
 | `distribution.ts` | Skriver ut poängfördelningen — används för att se att modellen skiljer platser åt inom en och samma skog | ja |
 | `heatmap.ts` | Hur stor andel av en skanning som blir synlig i värmekartan | ja |
-| `osm-check.ts` | Snabbkoll att Overpass svarar och vad den ger | ja |
+
+Platsen som testerna skannar ligger i `location.ts` — `CENTER` och `boxAround()`.
+Byt koordinaterna där så flyttar hela sviten till en annan skog; kom ihåg att
+höjdkontrollen i `elevationTiles.test.ts` då behöver nya intervall.
 
 `shim.ts` härmar webbläsarens `createImageBitmap` och `OffscreenCanvas` så att
 avkodningen av terrängkakel går att köra i Node.

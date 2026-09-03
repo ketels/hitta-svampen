@@ -10,6 +10,7 @@
  */
 
 import { loadTile, saveTile } from '../lib/db.ts'
+import { tilePixels } from '../lib/tileImage.ts'
 import type { BBox } from '../lib/types.ts'
 
 const SOURCE = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium'
@@ -46,33 +47,8 @@ export const metresPerPixel = (lat: number, z: number) =>
 
 /* ---------- Decoding ---------- */
 
-let canvasCache: {
-  canvas: OffscreenCanvas | HTMLCanvasElement
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
-} | null = null
-
-function getCanvas() {
-  if (canvasCache) return canvasCache
-  if (typeof OffscreenCanvas !== 'undefined') {
-    const canvas = new OffscreenCanvas(TILE_SIZE, TILE_SIZE)
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })
-    if (ctx) return (canvasCache = { canvas, ctx })
-  }
-  const canvas = document.createElement('canvas')
-  canvas.width = TILE_SIZE
-  canvas.height = TILE_SIZE
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  if (!ctx) throw new Error('Kan inte skapa rityta för höjddata')
-  return (canvasCache = { canvas, ctx })
-}
-
 async function decode(blob: Blob): Promise<Float32Array> {
-  const image = await createImageBitmap(blob)
-  const { ctx } = getCanvas()
-  ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE)
-  ctx.drawImage(image, 0, 0, TILE_SIZE, TILE_SIZE)
-  image.close?.()
-  const d = ctx.getImageData(0, 0, TILE_SIZE, TILE_SIZE).data
+  const d = await tilePixels(blob, TILE_SIZE)
   const z = new Float32Array(TILE_SIZE * TILE_SIZE)
   for (let i = 0, p = 0; i < z.length; i++, p += 4) {
     z[i] = d[p]! * 256 + d[p + 1]! + d[p + 2]! / 256 - 32768

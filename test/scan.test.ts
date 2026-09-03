@@ -1,11 +1,9 @@
 import './shim.ts'
 import 'fake-indexeddb/auto'
 import { scan, bestPlaces, chanceForCell } from '../src/model/scan.ts'
-import { LAND_TYPE_NAME } from '../src/data/overpass.ts'
+import { LAND_TYPE_NAME } from '../src/data/landCover.ts'
 import { compass, formatCoord } from '../src/lib/geo.ts'
-
-// Lunsen south of Uppsala — real chanterelle forest with mixed terrain.
-const CENTER = { lat: 59.7697, lon: 17.6581 }
+import { CENTER } from './location.ts'
 
 const t0 = Date.now()
 let lastStep = ''
@@ -38,7 +36,7 @@ for (const c of s.cells) types.set(c.habitat.landType, (types.get(c.habitat.land
 console.log('\nMarktyper i området:')
 for (const [t, n] of [...types].sort((a, b) => b[1] - a[1]))
   console.log(`  ${LAND_TYPE_NAME[t as keyof typeof LAND_TYPE_NAME].padEnd(20)} ${((n / s.cells.length) * 100).toFixed(1)}%`)
-ok('OSM gav faktiskt skogsdata', (types.get('forest') ?? 0) + (types.get('coniferous') ?? 0) +
+ok('marktäckedatan gav faktiskt skogsdata', (types.get('forest') ?? 0) + (types.get('coniferous') ?? 0) +
    (types.get('mixed') ?? 0) + (types.get('deciduous') ?? 0) > s.cells.length * 0.15)
 
 console.log(`\nVäder: regn 7d=${s.fruiting.rain7.toFixed(0)}mm  14d=${s.fruiting.rain14.toFixed(0)}mm  30d=${s.fruiting.rain30.toFixed(0)}mm`)
