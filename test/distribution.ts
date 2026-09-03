@@ -2,9 +2,10 @@ import './shim.ts'
 import 'fake-indexeddb/auto'
 import { scan } from '../src/model/scan.ts'
 import { LAND_TYPE_NAME } from '../src/data/landCover.ts'
+import { CENTER } from './location.ts'
 
 const s = await scan({
-  center: { lat: 59.7697, lon: 17.6581 },
+  center: CENTER,
   radiusM: 1200, species: 'chanterelle', finds: [],
 })
 

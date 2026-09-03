@@ -3,9 +3,7 @@ import 'fake-indexeddb/auto'
 import { scan, bestPlaces, chanceForCell } from '../src/model/scan.ts'
 import { LAND_TYPE_NAME } from '../src/data/landCover.ts'
 import { compass, formatCoord } from '../src/lib/geo.ts'
-
-// Lunsen south of Uppsala — real chanterelle forest with mixed terrain.
-const CENTER = { lat: 59.7697, lon: 17.6581 }
+import { CENTER } from './location.ts'
 
 const t0 = Date.now()
 let lastStep = ''

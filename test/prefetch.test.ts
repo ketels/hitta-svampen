@@ -4,6 +4,7 @@ import { PNG } from 'pngjs'
 import { fetchLandCover, prefetchLandCover, classify, EDITIONS } from '../src/data/landCover.ts'
 import { tilesCovering } from '../src/data/vectorTiles.ts'
 import { yToLat, xToLon } from '../src/data/elevationTiles.ts'
+import { boxAround } from './location.ts'
 
 let failures = 0
 const ok = (n: string, v: boolean, e = '') => { console.log(`${v ? '  ok  ' : ' FAIL '} ${n}${e ? '   ' + e : ''}`); if (!v) failures++ }
@@ -45,7 +46,7 @@ globalThis.fetch = (async (input: string | URL | Request) => {
 const nmdCalls = () => calls.nmd23 + calls.nmd18
 
 // 1. Prefetch a large area (as the download does).
-const large = { south: 57.6508, west: 12.2264, north: 57.7092, east: 12.3336 }
+const large = boxAround(0.0292, 0.0536)
 const wanted = tilesCovering(large, 13).length
 const res = await prefetchLandCover(large, new AbortController().signal, () => {})
 ok('förhämtningen hämtade varje ruta i båda utgåvorna', nmdCalls() === wanted * 2,
@@ -55,7 +56,7 @@ ok('  vektorrutorna räknas som misslyckade när värden är nere', res.failed >
 
 // 2. A scan in the middle of it must not go to the land cover service.
 const before = nmdCalls()
-const inside = { south: 57.6700, west: 12.2700, north: 57.6900, east: 12.2900 }
+const inside = boxAround(0.01, 0.01)
 const lc = await fetchLandCover(inside)
 ok('skanning inuti träffar cachen', nmdCalls() === before, `${nmdCalls() - before} nya anrop`)
 ok('  och får marktäckedata', lc.source === 'nmd' && lc.raster !== null, lc.source)
@@ -73,7 +74,7 @@ ok('  och båda är barrskog med rätt trädslag',
    upper?.treeSpecies.includes('spruce') === true && lower?.treeSpecies.includes('pine') === true)
 
 // 4. A scan reaching outside fetches only the tiles it lacks.
-const outside = { south: 57.7000, west: 12.2700, north: 57.7500, east: 12.2900 }
+const outside = { ...boxAround(0.01, 0.01), north: large.north + 0.04 }
 const need = tilesCovering(outside, 13).filter((a) => !tilesCovering(large, 13).some((b) => a.x === b.x && a.y === b.y)).length
 const mark = nmdCalls()
 await fetchLandCover(outside)

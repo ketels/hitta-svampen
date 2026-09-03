@@ -5,6 +5,7 @@ import {
 } from '../src/data/landCover.ts'
 import { fetchVectorFeatures } from '../src/data/vectorTiles.ts'
 import { bboxAround } from '../src/lib/geo.ts'
+import { CENTER } from './location.ts'
 
 /* Runs against the live services: Naturvårdsverket's land cover WMS and
    OpenFreeMap's vector tiles. Checks that the colour tables still match the
@@ -46,8 +47,8 @@ for (const ed of EDITIONS) {
   ok(`  tabellen har inga färger som legenden saknar`, extra.length === 0, extra.join(' '))
 }
 
-console.log('\n=== Lunsen söder om Uppsala ===')
-const box = bboxAround({ lat: 59.7697, lon: 17.6581 }, 1000)
+console.log('\n=== Testplatsen ===')
+const box = bboxAround(CENTER, 1000)
 const t0 = Date.now()
 const lc = await fetchLandCover(box, undefined, (d, t) => process.stdout.write(`\r  rutor ${d}/${t}   `))
 console.log(`\n  hämtat på ${((Date.now() - t0) / 1000).toFixed(1)} s`)
@@ -74,7 +75,7 @@ console.log('  Marktyper:')
 for (const [t, n] of [...counts].sort((a, b) => b[1] - a[1]))
   console.log(`    ${LAND_TYPE_NAME[t as keyof typeof LAND_TYPE_NAME].padEnd(20)} ${((n / (N * N)) * 100).toFixed(1)}%`)
 const forest = (counts.get('coniferous') ?? 0) + (counts.get('mixed') ?? 0) + (counts.get('deciduous') ?? 0)
-ok('mest skog, som det ska vara i Lunsen', forest > N * N * 0.5, `${((forest / (N * N)) * 100).toFixed(0)}%`)
+ok('mest skog, som det ska vara på testplatsen', forest > N * N * 0.5, `${((forest / (N * N)) * 100).toFixed(0)}%`)
 ok('trädslag följer med', withTrees > N * N * 0.5)
 ok('inga hål i datan', noData === 0, `${noData} tomma`)
 ok('okänd mark förekommer inte', !counts.has('unknown'))
@@ -84,7 +85,7 @@ const t1 = Date.now()
 const v = await fetchVectorFeatures(box)
 console.log(`  ${v.tilesLoaded}/${v.tilesWanted} rutor på ${((Date.now() - t1) / 1000).toFixed(1)} s`)
 ok('alla vektorrutor kom fram', v.tilesLoaded === v.tilesWanted)
-ok('det finns stigar i Lunsen', v.paths.length >= 10, `${v.paths.length} stigar`)
+ok('det finns stigar på testplatsen', v.paths.length >= 10, `${v.paths.length} stigar`)
 ok('och något vattendrag', v.waterways.length >= 1, `${v.waterways.length} vattendrag`)
 ok('och ytor som reserv', v.areas.length >= 1, `${v.areas.length} ytor`)
 ok('skanningen fick med sig stigarna', !lc.linesMissing && lc.paths.length === v.paths.length)

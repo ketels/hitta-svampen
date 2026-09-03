@@ -1,6 +1,7 @@
 import './shim.ts'
 import 'fake-indexeddb/auto'
 import { scan } from '../src/model/scan.ts'
+import { CENTER } from './location.ts'
 
 // Simulate both land cover sources being down by blocking just those hosts.
 const realFetch = globalThis.fetch
@@ -10,7 +11,7 @@ globalThis.fetch = ((url: string | URL | Request, ...rest: unknown[]) => {
   return realFetch(url as never, ...(rest as []))
 }) as typeof fetch
 
-const s = await scan({ center: { lat: 59.7697, lon: 17.6581 }, radiusM: 800, species: 'chanterelle', finds: [] })
+const s = await scan({ center: CENTER, radiusM: 800, species: 'chanterelle', finds: [] })
 
 let failures = 0
 const ok = (n: string, v: boolean, e = '') => { console.log(`${v?'  ok  ':' FAIL '} ${n}${e?'   '+e:''}`); if(!v) failures++ }
