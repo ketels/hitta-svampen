@@ -1,10 +1,11 @@
 import './shim.ts'
 import 'fake-indexeddb/auto'
 import { scan } from '../src/model/scan.ts'
+import { CENTER } from './location.ts'
 
 /** Mirrors the colouring in MapCanvas.tsx so we can measure how much lights up. */
 const s = await scan({
-  center: { lat: 59.7697, lon: 17.6581 }, radiusM: 1200, species: 'chanterelle', finds: [],
+  center: CENTER, radiusM: 1200, species: 'chanterelle', finds: [],
 })
 const v = s.cells.map((c) => c.score).sort((a, b) => a - b)
 const q = (p: number) => v[Math.floor(p * (v.length - 1))]!
